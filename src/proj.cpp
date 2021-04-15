@@ -144,6 +144,7 @@ class Dot
 		static const int DOT_VEL = 1;
 
 		//Initializes the variables
+		Dot();
 		Dot( int x, int y );
 
 		//Takes key presses and adjusts the dot's velocity
@@ -153,7 +154,7 @@ class Dot
 		void move( SDL_Rect& square, Circle& circle );
 
 		//Shows the dot on the screen
-		void render();
+		void render(LTexture& gDotTexture);
 
 		//Gets collision circle
 		Circle& getCollider();
@@ -172,6 +173,32 @@ class Dot
 		void shiftColliders();
 };
 
+class PlayMode {
+	private:
+		Dot dot;
+		Dot otherDot;
+		SDL_Rect wall;
+		bool isPaused;
+		LTexture gDotTexture;
+
+
+		void runLoop();
+		bool loadMediaPlay();
+		void eventHandler(SDL_Event& e);
+
+	
+	public:
+		PlayMode();
+		PlayMode(bool flag);
+
+		void ReInit();
+		void enterMode();
+		void Pause();
+		void unPause();
+		void Reset();
+		void freePlayMode();
+};
+
 //Starts up SDL and creates window
 bool init();
 
@@ -182,7 +209,7 @@ bool loadMediaHome();
 
 
 //Frees media and shuts down SDL
-void close();
+void close(PlayMode& obj);
 
 //Circle/Circle collision detector
 bool checkCollision( Circle& a, Circle& b );
@@ -200,7 +227,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 
 //Scene textures
-LTexture gDotTexture;
+
 
 SDL_Rect gSpriteClips[ BUTTON_SPRITE_TOTAL ];
 LTexture gButtonSpriteSheetTexture;
@@ -213,6 +240,7 @@ LTexture gButtonSpriteSheetTexture_pm;
 
 //Buttons objects
 LButton gButtons_pm[] = {LButton(BUTTON_RESUME, 1), LButton(BUTTON_HOME, 1)}; 
+PlayMode play_mode;
 
 LTexture::LTexture()
 {
@@ -361,6 +389,7 @@ int LTexture::getHeight()
 {
 	return mHeight;
 }
+Dot::Dot(){}
 
 Dot::Dot( int x, int y )
 {
@@ -434,7 +463,7 @@ void Dot::move( SDL_Rect& square, Circle& circle )
     }
 }
 
-void Dot::render()
+void Dot::render(LTexture& gDotTexture )
 {
     //Show the dot
 	gDotTexture.render( mPosX - mCollider.r, mPosY - mCollider.r );
@@ -684,19 +713,6 @@ bool init()
 	return success;
 }
 
-bool loadMediaPlay()
-{
-	//Loading success flag
-	bool success = true;
-
-	//Load dot texture
-	if( !gDotTexture.loadFromFile( "media/texture/dot.bmp" ) )
-	{
-		printf( "Failed to load dot texture!\n" );
-		success = false;
-	}
-	return success;
-}
 
 bool loadMediaPauseMenu(){
 	bool success = true;
@@ -747,11 +763,11 @@ bool loadMediaHome(){
 	}
 	return success;
 }
-void close()
+void close(PlayMode& play_obj)
 {
 	//Free loaded images
-	gDotTexture.free();
-	gButtonSpriteSheetTexture.free();
+	
+	play_obj.freePlayMode();
 
 	//Destroy window	
 	SDL_DestroyRenderer( gRenderer );
@@ -833,13 +849,10 @@ double distanceSquared( int x1, int y1, int x2, int y2 )
 }
 void pauseMenu();
 void HomeMode();
-void PlayMode();
 
 bool openPauseMenu = false;
 
-void resumePlayMode(){
-	PlayMode();
-}
+
 
 void PauseMenu(){
 	if( !loadMediaPauseMenu() )
@@ -887,7 +900,7 @@ void PauseMenu(){
 			//Select mode
 			if (gButtons_pm[0].getMode()){
 				gButtons_pm[0].setMode(0);
-				resumePlayMode();
+				play_mode.enterMode();
 			}
 			else if (gButtons_pm[1].getMode()){
 				gButtons_pm[1].setMode(0);
@@ -899,7 +912,7 @@ void PauseMenu(){
 }
 
 
-void playMode_eventHandler(SDL_Event& e){
+void PlayMode::eventHandler(SDL_Event& e){
 	if( e.type == SDL_KEYDOWN && e.key.repeat==0)
     {
         switch( e.key.keysym.sym )
@@ -909,67 +922,114 @@ void playMode_eventHandler(SDL_Event& e){
     }
 }
 
-void PlayMode(){
-	if( !loadMediaPlay() ){
-		printf( "Failed to load media!\n" );
+
+void PlayMode::runLoop(){
+	SDL_Event e;
+	while( !quit_program )
+	{
+		//Handle events on queue
+		while( SDL_PollEvent( &e ) != 0 )
+		{
+			//User requests quit
+			if( e.type == SDL_QUIT )
+			{
+				quit_program = true;
+			}
+
+			//Handle input for the dot
+			eventHandler(e);
+			dot.handleEvent( e );
+		}
+		if (openPauseMenu){
+			openPauseMenu = false;
+			Pause();
+			PauseMenu();
+			return;
+		}
+		//Move the dot and check collision
+		dot.move( wall, otherDot.getCollider() );
+
+		//Clear screen
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+		SDL_RenderClear( gRenderer );
+
+		//Render wall
+		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );		
+		SDL_RenderDrawRect( gRenderer, &wall );
+		
+		//Render dots
+		dot.render(gDotTexture);
+		otherDot.render(gDotTexture);
+
+		//Update screen
+		SDL_RenderPresent( gRenderer );
 	}
-	else
-	{	
-		//Event handler
-		SDL_Event e;
+}
 
-		//The dot that will be moving around on the screen
-		Dot dot( Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
-		Dot otherDot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
+bool PlayMode::loadMediaPlay()
+{
+	//Loading success flag
+	bool success = true;
 
-		//Set the wall
-		SDL_Rect wall;
+	//Load dot texture
+	if( !gDotTexture.loadFromFile( "media/texture/dot.bmp" ) )
+	{
+		printf( "Failed to load dot texture!\n" );
+		success = false;
+	}
+	return success;
+}
+void PlayMode::freePlayMode(){
+	gDotTexture.free();
+}
+PlayMode::PlayMode(){};
+PlayMode::PlayMode(bool flag){
+	if (!flag){
+		PlayMode();
+	}
+	else{
+		loadMediaPlay();
+		dot = Dot(Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
+		otherDot = Dot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
 		wall.x = 300;
 		wall.y = 40;
 		wall.w = 40;
 		wall.h = 400;
-		
-		//While application is running
-		while( !quit_program )
-		{
-			//Handle events on queue
-			while( SDL_PollEvent( &e ) != 0 )
-			{
-				//User requests quit
-				if( e.type == SDL_QUIT )
-				{
-					quit_program = true;
-				}
-
-				//Handle input for the dot
-				playMode_eventHandler(e);
-				dot.handleEvent( e );
-			}
-			if (openPauseMenu){
-				openPauseMenu = false;
-				PauseMenu();
-				return;
-			}
-			//Move the dot and check collision
-			dot.move( wall, otherDot.getCollider() );
-
-			//Clear screen
-			SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-			SDL_RenderClear( gRenderer );
-
-			//Render wall
-			SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );		
-			SDL_RenderDrawRect( gRenderer, &wall );
-			
-			//Render dots
-			dot.render();
-			otherDot.render();
-
-			//Update screen
-			SDL_RenderPresent( gRenderer );
-		}
+		isPaused = false;
 	}
 }
+void PlayMode::ReInit(){
+	loadMediaPlay();
+	dot = Dot(Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
+	otherDot = Dot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
+	wall.x = 300;
+	wall.y = 40;
+	wall.w = 40;
+	wall.h = 400; 
+	isPaused = false;
+}
+void PlayMode::enterMode(){
+	if (isPaused){
+		unPause();
+		runLoop();
+	}
+	else{
+		ReInit();
+		runLoop();
+	}
+}
+void PlayMode::Pause(){
+	isPaused = true;
+}
+void PlayMode::unPause(){
+	isPaused = false;
+}
+void PlayMode::Reset(){
+	isPaused = false;
+}
+
+
+
 void HomeMode(){
 	if( !loadMediaHome() )
 	{
@@ -1017,7 +1077,8 @@ void HomeMode(){
 			//Select mode
 			if (gButtons[0].getMode()){
 				gButtons[0].setMode(0);
-				PlayMode();
+				play_mode.Reset();
+				play_mode.enterMode();
 			}
 			else if (gButtons[1].getMode()){
 				gButtons[1].setMode(0);
@@ -1036,9 +1097,10 @@ int main( int argc, char* args[] )
 		printf( "Failed to initialize!\n" );
 	}
 	else{
+		play_mode = PlayMode(true);
 		HomeMode();
 	}
-	close();
+	close(play_mode);
 
 	return 0;
 }
