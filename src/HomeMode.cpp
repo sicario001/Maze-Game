@@ -2,14 +2,20 @@
 
 HomeMode::HomeMode(){
 	gButtonSpriteSheetTexture = new LTexture();
-	// for(int i = 0; i < BUTTON_SPRITE_TOTAL; i++){
-	// 	gSpriteClips[i] = SDL_Rect();
-	// }
+	//Set sprites
+	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+	{
+		gSpriteClips[ i ].x = 0;
+		gSpriteClips[ i ].y = i * 200;
+		gSpriteClips[ i ].w = BUTTON_WIDTH;
+		gSpriteClips[ i ].h = BUTTON_HEIGHT;
+	}
 	gButtons[ 0 ] = new LButton(BUTTON_PRIM,gButtonSpriteSheetTexture,gSpriteClips);
 	gButtons[ 1 ] = new LButton(BUTTON_ALT,gButtonSpriteSheetTexture,gSpriteClips);
 }
 
 bool HomeMode::loadMediaHome(){
+	std::cout << "load media home" << std::endl;
 	bool success = true;
 	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/menu.png" ) )
 	{
@@ -18,15 +24,6 @@ bool HomeMode::loadMediaHome(){
 	}
 	else
 	{
-		//Set sprites
-		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
-		{
-			gSpriteClips[ i ].x = 0;
-			gSpriteClips[ i ].y = i * 200;
-			gSpriteClips[ i ].w = BUTTON_WIDTH;
-			gSpriteClips[ i ].h = BUTTON_HEIGHT;
-		}
-
 		//Set buttons in corners
 		gButtons[ 0 ]->setPosition( 0, 0 );
 		gButtons[ 1 ]->setPosition( SCREEN_WIDTH - BUTTON_WIDTH, 0 );

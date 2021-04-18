@@ -2,9 +2,14 @@
 
 PauseMode::PauseMode(){
 	gButtonSpriteSheetTexture = new LTexture();
-	// for(int i = 0; i < BUTTON_SPRITE_TOTAL; i++){
-	// 	gSpriteClips[i] = SDL_Rect();
-	// }
+	//Set sprites
+	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+	{
+		gSpriteClips[ i ].x = 0;
+		gSpriteClips[ i ].y = i * 200;
+		gSpriteClips[ i ].w = BUTTON_WIDTH;
+		gSpriteClips[ i ].h = BUTTON_HEIGHT;
+	}
 	gButtons[ 0 ] = new LButton(BUTTON_PRIM,gButtonSpriteSheetTexture,gSpriteClips);
 	gButtons[ 1 ] = new LButton(BUTTON_ALT,gButtonSpriteSheetTexture,gSpriteClips);
 }
@@ -18,15 +23,6 @@ bool PauseMode::loadMediaPauseMenu(){
 	}
 	else
 	{
-		//Set sprites
-		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
-		{
-			gSpriteClips[ i ].x = 0;
-			gSpriteClips[ i ].y = i * 200;
-			gSpriteClips[ i ].w = BUTTON_WIDTH;
-			gSpriteClips[ i ].h = BUTTON_HEIGHT;
-		}
-
 		//Set buttons in corners
 		gButtons[ 0 ]->setPosition( (SCREEN_WIDTH-BUTTON_WIDTH)/2, (SCREEN_HEIGHT/2- BUTTON_HEIGHT) );
 		gButtons[ 1 ]->setPosition( (SCREEN_WIDTH-BUTTON_WIDTH)/2, SCREEN_HEIGHT/2 );

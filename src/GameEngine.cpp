@@ -63,6 +63,7 @@ bool GameEngine::init()
 
 void GameEngine::runLoop(){
 	SDL_Event e;
+	homeMode->enterMode();
 	while( !quit_program )
 	{
 		//Handle events on queue

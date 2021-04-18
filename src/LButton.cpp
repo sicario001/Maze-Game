@@ -12,6 +12,7 @@ LButton::LButton(ButtonType type, LTexture* spriteSheet,SDL_Rect (&spriteClips)[
 	for (int i = 0; i < BUTTON_SPRITE_TOTAL; i++)
 	{
 		gSpriteClips[i] = spriteClips[i];
+		// std::cout << gSpriteClips[i].h << std::endl;
 	}
 	
 	if (type==BUTTON_PRIM){
@@ -113,6 +114,8 @@ void LButton::handleEvent( SDL_Event* e )
 	
 void LButton::render()
 {
+	// std::cout << mCurrentSprite << std::endl;
+	// std::cout << gSpriteClips[ mCurrentSprite ].x << gSpriteClips[ mCurrentSprite ].y << gSpriteClips[ mCurrentSprite ].w << gSpriteClips[ mCurrentSprite ].h << std::endl;
 	//Show current button sprite
 	gButtonSpriteSheetTexture->render( mPosition.x, mPosition.y, &gSpriteClips[ mCurrentSprite ] );
 }
