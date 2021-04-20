@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include "fwd.hpp"
-#include "Dot.hpp"
+#include "PhysicsObject.hpp"
 #include "LButton.hpp"
 #include "LTexture.hpp"
 #include "GameEngine.hpp"
@@ -45,11 +45,11 @@ class PauseMode :public GameMode{
 class PlayMode :public GameMode{
 	private:
 		bool openPauseMenu = false;
-		Dot* dot;
-		Dot* otherDot;
-		SDL_Rect wall;
+		Player* player;
+		RigidBody* wall;
 		bool isPaused;
 		LTexture* gDotTexture;
+		LTexture* gWallTexture;
 
 
 		bool loadMediaPlay();

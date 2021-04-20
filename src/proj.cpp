@@ -4,8 +4,6 @@ and may not be redistributed without written permission.*/
 //Using SDL, SDL_image, standard IO, vectors, and strings
 #include <iostream>
 #include "GameEngine.hpp"
-#include "Dot.hpp"
-#include "Circle.hpp"
 #include "LButton.hpp"
 #include "LTexture.hpp"
 

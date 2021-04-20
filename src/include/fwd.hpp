@@ -1,6 +1,4 @@
 #pragma once
-struct Circle; 
-class Dot;
 class GameEngine;
 class GameMode;
 class PlayMode;
@@ -8,6 +6,9 @@ class PauseMode;
 class HomeMode;
 class LButton;
 class LTexture;
+class Entity;
+class RigidBody;
+class Player;
 
 enum LButtonSprite
 {
@@ -29,7 +30,7 @@ enum ButtonType
 };
 
 enum GameModeType{
-	HOME=0,
+	HOME,
 	PAUSE,
 	RESUME,
 	PLAY,
