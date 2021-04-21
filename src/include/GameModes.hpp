@@ -2,10 +2,11 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include "fwd.hpp"
-#include "PhysicsObject.hpp"
 #include "LButton.hpp"
 #include "LTexture.hpp"
 #include "GameEngine.hpp"
+#include "PhysicsObject.hpp"
+#include "TileMap.hpp"
 
 extern GameEngine* gEngine;
 
@@ -46,10 +47,9 @@ class PlayMode :public GameMode{
 	private:
 		bool openPauseMenu = false;
 		Player* player;
-		RigidBody* wall;
+		TileMap* tileMap;
 		bool isPaused;
 		LTexture* gDotTexture;
-		LTexture* gWallTexture;
 
 
 		bool loadMediaPlay();

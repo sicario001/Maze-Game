@@ -23,11 +23,11 @@ void PlayMode::update(){
 
 	//check collision
 	player->handleOutOfBounds(SCREEN_WIDTH,SCREEN_HEIGHT);
-	player->handleCollision(wall);
+	tileMap->handleCollisions(player);
 
 	//Render wall
-	SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
-	wall->render();
+	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
+	tileMap->render();
 	
 	//Render player
 	player->render();
@@ -45,9 +45,9 @@ bool PlayMode::loadMediaPlay()
 		success = false;
 	}
 	//Load wall texture
-	if( !gWallTexture->loadFromFile( "media/texture/wall.bmp" ) )
+	if( !tileMap->loadTexture() )
 	{
-		printf( "Failed to load wall texture!\n" );
+		printf( "Failed to load tile sheet texture!\n" );
 		success = false;
 	}
 	return success;
@@ -58,7 +58,7 @@ void PlayMode::freePlayMode(){
 
 PlayMode::PlayMode(){
 	gDotTexture = new LTexture();
-	gWallTexture = new LTexture();
+	tileMap = new TileMap();
 	player = new Player(100,20,20,gDotTexture);
 };
 
@@ -68,16 +68,15 @@ PlayMode::PlayMode(bool flag){
 	}
 	else{
 		gDotTexture = new LTexture();
-		gWallTexture = new LTexture();
-		player = new Player(100,20,20,gDotTexture);
-		wall = new RigidBody(300,40,gWallTexture,new CollisionRect(300,40,WALL_W,WALL_H));
+		tileMap = new TileMap();
+		player = new Player(100,100,100,gDotTexture);
 		isPaused = false;
 	}
 }
 void PlayMode::ReInit(){
 	gDotTexture = new LTexture();
-	player = new Player(100,20,20,gDotTexture);
-	wall = new RigidBody(300,40,gWallTexture,new CollisionRect(300,40,40,400));
+	player = new Player(100,100,100,gDotTexture);
+	tileMap = new TileMap();
 	loadMediaPlay();
 	isPaused = false;
 }

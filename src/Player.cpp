@@ -8,25 +8,29 @@ void CollisionRect::render(){
     SDL_RenderDrawRect( gEngine->gRenderer, &rect );
 }
 
-Entity::Entity(int pX,int pY, LTexture* pTexture){
+Entity::Entity(int pX,int pY, LTexture* pTexture, SDL_Rect* pClip){
     x = pX;
     y = pY;
     texture = pTexture;
+    if(pClip!=NULL){
+        clip = new SDL_Rect();
+        *clip = *pClip;
+    }
 }
 
 void Entity::render(){
-    texture->render(x,y);
+    texture->render(x,y,clip);
 }
 
-RigidBody::RigidBody(int pX,int pY, LTexture* pTexture, CollisionRect* pCollisonRect):Entity(pX,pY,pTexture){
-    collisionRect = pCollisonRect;
+RigidBody::RigidBody(int pX,int pY, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip):Entity(pX,pY,pTexture,pClip){
+    collisionRect = pCollisionRect;
 }
 
 bool RigidBody::collided(RigidBody* rb){
     return collisionRect->intersects(rb->collisionRect);
 }
 
-KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed, LTexture* pTexture, CollisionRect* pcollisionRect):RigidBody(pX,pY,pTexture,pcollisionRect){
+KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip):RigidBody(pX,pY,pCollisionRect,pTexture,pClip){
     x = pX;
     y = pY;
     velX = pSpeedX;
@@ -73,11 +77,11 @@ void KinematicBody::handleCollision(RigidBody* rb)
     collisionRect->shift(x,y);
 }
 
-Character::Character(int health, int pX,int pY, LTexture* pTexture):KinematicBody(pX,pY,0,0,5, pTexture, new CollisionRect(0,0,SQUARE_SIZE,SQUARE_SIZE)){
+Character::Character(int health, int pX,int pY, LTexture* pTexture, SDL_Rect* clip):KinematicBody(pX,pY,0,0,5, new CollisionRect(0,0,SQUARE_SIZE,SQUARE_SIZE),pTexture, clip){
     this->health=health;
 }
 
-Player::Player(int health, int pX,int pY, LTexture* pTexture): Character(health,pX,pY,pTexture){}
+Player::Player(int health, int pX,int pY, LTexture* pTexture): Character(health,pX,pY,pTexture,NULL){}
 
 
 void Player::handleEvent(SDL_Event &e)

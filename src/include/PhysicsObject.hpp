@@ -11,10 +11,10 @@ class Entity
 protected:
     int x,y;
     LTexture* texture;
+    SDL_Rect* clip;
 public:
     Entity();
-    Entity(int x, int y, LTexture* pTexture);
-    ~Entity();
+    Entity(int x, int y, LTexture* pTexture, SDL_Rect* clip);
 
     bool isActive;
     
@@ -55,8 +55,7 @@ class RigidBody : public Entity{
 protected:
     CollisionRect* collisionRect;
 public:
-    RigidBody(int x, int y, LTexture* pTexture, CollisionRect* pCollisionRect);
-    ~RigidBody();
+    RigidBody(int x, int y, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
     CollisionRect* getCollisionRect();
     void handleCollision(RigidBody* rb){}
@@ -72,8 +71,7 @@ protected:
     int lastVelY=0;
     int speed;
 public:
-    KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, LTexture* pTexture, CollisionRect* pCollisionRect);
-    ~KinematicBody();
+    KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
     void move();
     void handleCollision(RigidBody* rb);
@@ -84,8 +82,7 @@ class Character : public KinematicBody{
 protected:
     int health;
 public:
-    Character(int health, int x, int y, LTexture* pTexture);
-    ~Character();
+    Character(int health, int x, int y, LTexture* pTexture, SDL_Rect* clip);
         
     void damage(int x);
     int getHealth();
@@ -97,7 +94,6 @@ private:
 
 public:
     Player(int health, int x, int y, LTexture* pTexture);
-    ~Player();
     
     void handleEvent( SDL_Event& e );
 };

@@ -25,8 +25,8 @@ class GameEngine
         void setGameMode( GameModeType a);
 };
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 960;
 const int BUTTON_WIDTH = 320;
 const int BUTTON_HEIGHT = 200;
 const int TOTAL_BUTTONS = 2;

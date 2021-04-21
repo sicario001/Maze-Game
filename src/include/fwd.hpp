@@ -8,7 +8,9 @@ class LButton;
 class LTexture;
 class Entity;
 class RigidBody;
+class KinematicBody;
 class Player;
+class TileMap;
 
 enum LButtonSprite
 {
