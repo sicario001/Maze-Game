@@ -8,7 +8,7 @@ void PlayMode::eventHandler(SDL_Event& e){
             case SDLK_ESCAPE: openPauseMenu = true; break;
         }
     }
-	player->handleEvent(e);
+	dot->handleEvent(e);
 }
 
 void PlayMode::update(){
@@ -18,19 +18,18 @@ void PlayMode::update(){
 		gEngine->setGameMode(PAUSE);
 		return;
 	}
-	//Move the dot
-	player->move();
-
-	//check collision
-	player->handleOutOfBounds(SCREEN_WIDTH,SCREEN_HEIGHT);
-	player->handleCollision(wall);
-
+	//Move the dot and check collision
+	// ERROR here
+	
+	dot->move( wall, otherDot->getCollider(), clientObj, serverObj);
+	// std::cout<<"In\n";
 	//Render wall
 	SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
-	wall->render();
+	SDL_RenderDrawRect( gEngine->gRenderer, &wall );
 	
-	//Render player
-	player->render();
+	//Render dots
+	dot->render(*gDotTexture);
+	otherDot->render(*gDotTexture);
 }
 
 bool PlayMode::loadMediaPlay()
@@ -39,15 +38,9 @@ bool PlayMode::loadMediaPlay()
 	bool success = true;
 
 	//Load dot texture
-	if( !gDotTexture->loadFromFile( "media/texture/square.bmp" ) )
+	if( !gDotTexture->loadFromFile( "media/texture/dot.bmp" ) )
 	{
 		printf( "Failed to load dot texture!\n" );
-		success = false;
-	}
-	//Load wall texture
-	if( !gWallTexture->loadFromFile( "media/texture/wall.bmp" ) )
-	{
-		printf( "Failed to load wall texture!\n" );
 		success = false;
 	}
 	return success;
@@ -57,28 +50,52 @@ void PlayMode::freePlayMode(){
 }
 
 PlayMode::PlayMode(){
+	dot = new Dot();
+	otherDot =new Dot();
 	gDotTexture = new LTexture();
-	gWallTexture = new LTexture();
-	player = new Player(100,20,20,gDotTexture);
 };
 
-PlayMode::PlayMode(bool flag){
+PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 	if (!flag){
 		PlayMode();
 	}
 	else{
+		// std::cout<<"PlayMode Initialized\n";
+		clientObj = client;
+		serverObj = server;
+		if (clientObj!=NULL){
+			dot = new Dot(Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
+			otherDot = new Dot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
+		}
+		else{
+			otherDot = new Dot(Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
+			dot = new Dot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
+		}
 		gDotTexture = new LTexture();
-		gWallTexture = new LTexture();
-		player = new Player(100,20,20,gDotTexture);
-		wall = new RigidBody(300,40,gWallTexture,new CollisionRect(300,40,WALL_W,WALL_H));
+		wall.x = 300;
+		wall.y = 40;
+		wall.w = 40;
+		wall.h = 400;
 		isPaused = false;
+
+		
 	}
 }
 void PlayMode::ReInit(){
+	if (clientObj!=NULL){
+		dot = new Dot(Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
+		otherDot = new Dot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
+	}
+	else{
+		otherDot = new Dot(Dot::DOT_WIDTH / 2, Dot::DOT_HEIGHT / 2 );
+		dot = new Dot( SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 );
+	}
 	gDotTexture = new LTexture();
-	player = new Player(100,20,20,gDotTexture);
-	wall = new RigidBody(300,40,gWallTexture,new CollisionRect(300,40,40,400));
 	loadMediaPlay();
+	wall.x = 300;
+	wall.y = 40;
+	wall.w = 40;
+	wall.h = 400; 
 	isPaused = false;
 }
 void PlayMode::enterMode(){

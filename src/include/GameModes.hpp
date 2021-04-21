@@ -2,18 +2,24 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include "fwd.hpp"
-#include "PhysicsObject.hpp"
+#include "Dot.hpp"
 #include "LButton.hpp"
 #include "LTexture.hpp"
 #include "GameEngine.hpp"
+#include "ServerNet.hpp"
+#include "ClientNet.hpp"
 
 extern GameEngine* gEngine;
+
+
 
 class GameMode{
 	public:
 		virtual void eventHandler(SDL_Event &e){}
 		virtual void update(){}
 		virtual void enterMode(){}
+
+
 };
 
 class HomeMode :public GameMode{
@@ -45,19 +51,21 @@ class PauseMode :public GameMode{
 class PlayMode :public GameMode{
 	private:
 		bool openPauseMenu = false;
-		Player* player;
-		RigidBody* wall;
+		Dot* dot;
+		
+		SDL_Rect wall;
 		bool isPaused;
 		LTexture* gDotTexture;
-		LTexture* gWallTexture;
-
+		ClientNet* clientObj = NULL;
+		ServerNet* serverObj = NULL;
 
 		bool loadMediaPlay();
 		void eventHandler(SDL_Event& e);
 		void update();
 	public:
+		Dot* otherDot;
 		PlayMode();
-		PlayMode(bool flag);
+		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
 		void ReInit();
 		void enterMode();

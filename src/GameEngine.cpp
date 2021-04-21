@@ -1,10 +1,17 @@
 #include "GameEngine.hpp"
 
-GameEngine::GameEngine(){
-	playMode = new PlayMode(true);
+GameEngine::GameEngine(int c_or_s){
 	pauseMode = new PauseMode();
 	homeMode = new HomeMode() ;
 	gMode = homeMode;
+	currMode = HOME_MODE;
+	if (c_or_s){
+		clientObj = new ClientNet();
+	}
+	else{
+		serverObj = new ServerNet();
+	}
+	playMode = new PlayMode(true, clientObj, serverObj);
 }
 
 bool GameEngine::init()
@@ -101,6 +108,12 @@ void GameEngine::runLoop(){
 	IMG_Quit();
 	SDL_Quit();
 }
+void GameEngine::updateOtherDot(std::vector<int> &data){
+	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
+		playMode->otherDot->setPosVel(data[0], data[1], data[2], data[3]);
+	}
+}
+
 
 void GameEngine::setGameMode(GameModeType a){
 	switch (a)
@@ -110,20 +123,32 @@ void GameEngine::setGameMode(GameModeType a){
 			break;
 		case PLAY:
 			gMode = playMode;
+			currMode = PLAY_MODE;
 			playMode->Reset();
 			playMode->enterMode();
+			if (clientObj!=NULL){
+				clientObj->Connect("127.0.0.1", 7777);
+			}
 			break;
 		case RESUME:
 			gMode = playMode;
+			currMode = PLAY_MODE;
 			playMode->enterMode();
 			break;
 		case PAUSE:
 			gMode = pauseMode;
+			currMode = PAUSE_MODE;
 			pauseMode->enterMode();
 			break;
 		case HOME:
 			gMode = homeMode;
+			currMode = HOME_MODE;
 			homeMode->enterMode();
+			if (clientObj!=NULL){
+				if (clientObj->connected){
+					clientObj->Disconnect();
+				}
+			}
 			break;
 		default:
 		

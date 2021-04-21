@@ -3,6 +3,15 @@
 #include <SDL2/SDL_image.h>
 #include "fwd.hpp"
 #include "GameModes.hpp"
+#include "ClientNet.hpp"
+#include "ServerNet.hpp"
+
+enum GameModes{
+	HOME_MODE = 0,
+	PLAY_MODE = 1,
+	PAUSE_MODE = 2
+};
+
 class GameEngine
 {
     private:
@@ -10,9 +19,14 @@ class GameEngine
         PlayMode* playMode;
         PauseMode* pauseMode;
         HomeMode* homeMode;
-        bool quit_program = false;
+        
+
     public:
-        GameEngine();
+    	GameModes currMode;
+        ClientNet* clientObj = NULL;
+        ServerNet* serverObj = NULL;
+        GameEngine(int c_or_s);
+        bool quit_program = false;
         bool init();
         //The window we'll be rendering to
         SDL_Window* gWindow = NULL;
@@ -23,6 +37,7 @@ class GameEngine
         void runLoop();
 
         void setGameMode( GameModeType a);
+        void updateOtherDot(std::vector<int> &data);
 };
 
 const int SCREEN_WIDTH = 640;

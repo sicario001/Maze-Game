@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -std=c++17 -Wall
-LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lenet -pthread
 TARGET := myapp
 INCDIR = src/include
 SRCS := $(wildcard src/*/*.cpp) $(wildcard src/*.cpp)
