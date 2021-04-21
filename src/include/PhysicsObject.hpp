@@ -1,6 +1,8 @@
 #pragma once
-#include "LTexture.hpp"
 #include <SDL2/SDL_image.h>
+#include "LTexture.hpp"
+#include "ClientNet.hpp"
+#include "ServerNet.hpp"
 
 const int SQUARE_SIZE = 20;
 const int WALL_W = 40;
@@ -73,6 +75,7 @@ protected:
 public:
     KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
+    void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void move();
     void handleCollision(RigidBody* rb);
     void handleOutOfBounds(int scrWidth,int scrHeight);
@@ -95,5 +98,6 @@ private:
 public:
     Player(int health, int x, int y, LTexture* pTexture);
     
+    void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e );
 };

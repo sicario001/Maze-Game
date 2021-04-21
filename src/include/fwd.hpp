@@ -32,7 +32,7 @@ enum ButtonType
 };
 
 enum GameModeType{
-	HOME,
+	HOME=0,
 	PAUSE,
 	RESUME,
 	PLAY,

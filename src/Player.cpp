@@ -77,6 +77,13 @@ void KinematicBody::handleCollision(RigidBody* rb)
     collisionRect->shift(x,y);
 }
 
+void KinematicBody::setPosVel(int pX, int pY, int pVelX, int pVelY){
+    x = pX;
+    y = pY;
+    velX = pVelX;
+    velY = pVelY;
+}
+
 Character::Character(int health, int pX,int pY, LTexture* pTexture, SDL_Rect* clip):KinematicBody(pX,pY,0,0,5, new CollisionRect(0,0,SQUARE_SIZE,SQUARE_SIZE),pTexture, clip){
     this->health=health;
 }
@@ -108,6 +115,20 @@ void Player::handleEvent(SDL_Event &e)
             case SDLK_DOWN: velY -= speed; break;
             case SDLK_LEFT: velX += speed; break;
             case SDLK_RIGHT: velX -= speed; break;
+        }
+    }
+}
+
+void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
+    if (clientObj!=NULL){
+        if ((clientObj->peer)!=NULL){
+            clientObj->SendDataPosVel(clientObj->peer, x, y, velX, velY);
+        }
+    }
+    else{
+        if ((serverObj->peer)!=NULL){
+            // std::cout<<"in\n";
+            serverObj->SendDataPosVel(serverObj->peer, x, y, velX, velY);
         }
     }
 }

@@ -7,14 +7,20 @@
 #include "GameEngine.hpp"
 #include "PhysicsObject.hpp"
 #include "TileMap.hpp"
+#include "ServerNet.hpp"
+#include "ClientNet.hpp"
 
 extern GameEngine* gEngine;
+
+
 
 class GameMode{
 	public:
 		virtual void eventHandler(SDL_Event &e){}
 		virtual void update(){}
 		virtual void enterMode(){}
+
+
 };
 
 class HomeMode :public GameMode{
@@ -49,15 +55,18 @@ class PlayMode :public GameMode{
 		Player* player;
 		TileMap* tileMap;
 		bool isPaused;
-		LTexture* gDotTexture;
+		LTexture* gPlayerTexture;
+		ClientNet* clientObj = NULL;
+		ServerNet* serverObj = NULL;
 
 
 		bool loadMediaPlay();
 		void eventHandler(SDL_Event& e);
 		void update();
 	public:
+		Player* otherPlayer;
 		PlayMode();
-		PlayMode(bool flag);
+		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
 		void ReInit();
 		void enterMode();
