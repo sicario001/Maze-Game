@@ -8,12 +8,30 @@ const int SQUARE_SIZE = 20;
 const int WALL_W = 40;
 const int WALL_H = 400;
 
+const int PLAYER_SPRITE_W = 71;
+const int PLAYER_SPRITE_H = 71;
+const int COLLIDER_SIZE = 45;
+
+enum PlayerSpriteType{
+	HITMAN,
+	MAN_BLUE,
+	MAN_BROWN,
+	MAN_OLD,
+	ROBOT,
+	SOLDIER,
+	SURVIVOR,
+	WOMAN,
+	ZOMBIE
+};
+
 class Entity
 {
 protected:
     int x,y;
+
     LTexture* texture;
     SDL_Rect* clip;
+    double rotation=0.0;
 public:
     Entity();
     Entity(int x, int y, LTexture* pTexture, SDL_Rect* clip);
@@ -39,10 +57,7 @@ class CollisionRect{
             rect.w=w;
             rect.h=h;
         }
-        void shift(int x,int y){
-            rect.x=x;
-            rect.y=y;
-        }
+        void shift(int x,int y);
         int getH(){
             return rect.h;
         }
@@ -50,6 +65,7 @@ class CollisionRect{
             return rect.w;
         }
         bool intersects(CollisionRect* collider);
+        // to debug collision areas
         void render();
 };
 
@@ -59,7 +75,9 @@ protected:
 public:
     RigidBody(int x, int y, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
-    CollisionRect* getCollisionRect();
+    CollisionRect* getCollisionRect(){
+        return collisionRect;
+    }
     void handleCollision(RigidBody* rb){}
     bool collided(RigidBody* rb);
 };
@@ -72,32 +90,28 @@ protected:
     int lastVelX=0;
     int lastVelY=0;
     int speed;
+    // reset rotation based on current velocity
+    void resetRotation();
 public:
     KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void move();
+    // handle collision with a body, move back a step
     void handleCollision(RigidBody* rb);
+    // check if outside window
     void handleOutOfBounds(int scrWidth,int scrHeight);
 };
 
-class Character : public KinematicBody{
-protected:
-    int health;
-public:
-    Character(int health, int x, int y, LTexture* pTexture, SDL_Rect* clip);
-        
-    void damage(int x);
-    int getHealth();
-};
 
-
-class Player : public Character{
+class Player : public KinematicBody{
 private:
 
 public:
-    Player(int health, int x, int y, LTexture* pTexture);
+    Player(int health, int x, int y, LTexture* pTexture,SDL_Rect* pClip);
     
+    void damage(int x);
+    int getHealth();
     void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e );
 };

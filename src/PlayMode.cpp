@@ -21,6 +21,7 @@ void PlayMode::update(){
 	//Move the players
 	player->move();
 	otherPlayer->move();
+	player->sendUpdate(clientObj,serverObj);
 
 	//check collision
 	player->handleOutOfBounds(SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -29,14 +30,16 @@ void PlayMode::update(){
 
 	otherPlayer->handleOutOfBounds(SCREEN_WIDTH,SCREEN_HEIGHT);
 	tileMap->handleCollisions(otherPlayer);
+	otherPlayer->handleCollision(player);
 
-	player->sendUpdate(clientObj,serverObj);
 	//Render wall
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
 	
 	//Render players
 	player->render();
+	// uncomment if you want to see collision area
+	// player->getCollisionRect()->render();
 	otherPlayer->render();
 }
 
@@ -46,7 +49,7 @@ bool PlayMode::loadMediaPlay()
 	bool success = true;
 
 	//Load player texture
-	if( !gPlayerTexture->loadFromFile( "media/texture/square.bmp" ) )
+	if( !gPlayerTexture->loadFromFile( "media/texture/spritesheet.png" ) )
 	{
 		printf( "Failed to load player texture!\n" );
 		success = false;
@@ -63,11 +66,36 @@ void PlayMode::freePlayMode(){
 	gPlayerTexture->free();
 }
 
+void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
+	clip.h= PLAYER_SPRITE_H;
+	clip.w= PLAYER_SPRITE_W;
+	clip.x=0;
+	clip.y = (3 +6*i)*PLAYER_SPRITE_H;
+}
+
+void PlayMode::initPlayers(){
+	SDL_Rect clip1,clip2;
+	int server_start_pos_x = 130;
+	int server_start_pos_y = 180;
+	int client_start_pos_x = 100;
+	int client_start_pos_y = 70;
+	if (clientObj!=NULL){
+		getPlayerClip(SURVIVOR,clip1);
+		getPlayerClip(SOLDIER,clip2);
+		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1);
+		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2);
+	}
+	else{
+		getPlayerClip(SOLDIER,clip1);
+		getPlayerClip(SURVIVOR,clip2);
+		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1);
+		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2);
+	}
+}
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
 	tileMap = new TileMap();
-	player = new Player(100,160,180,gPlayerTexture);
-	otherPlayer = new Player(100,100,100,gPlayerTexture);
+	initPlayers();
 };
 
 PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
@@ -79,28 +107,14 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		clientObj = client;
 		serverObj = server;
 		gPlayerTexture = new LTexture();
-		if (clientObj!=NULL){
-			player = new Player(100,100,100,gPlayerTexture);
-			otherPlayer = new Player(100,160,180,gPlayerTexture);
-		}
-		else{
-			player = new Player(100,160,180,gPlayerTexture);
-			otherPlayer = new Player(100,100,100,gPlayerTexture);
-		}
+		initPlayers();
 		tileMap = new TileMap();
 		isPaused = false;
 	}
 }
 void PlayMode::ReInit(){
 	gPlayerTexture = new LTexture();
-	if (clientObj!=NULL){
-		player = new Player(100,100,100,gPlayerTexture);
-		otherPlayer = new Player(100,160,180,gPlayerTexture);
-	}
-	else{
-		player = new Player(100,160,180,gPlayerTexture);
-		otherPlayer = new Player(100,100,100,gPlayerTexture);
-	}
+	initPlayers();
 	tileMap = new TileMap();
 	loadMediaPlay();
 	isPaused = false;

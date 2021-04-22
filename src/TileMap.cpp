@@ -326,8 +326,16 @@ void TileMap::generateTiles(){
             clip.w = TILE_SIZE;
             clip.h = TILE_SIZE;
             if(map[j][i]==0){
-                clip.x=0;
+                clip.x=(rand()%4)*TILE_SIZE;
                 clip.y=0;
+                switch (floor_type)
+                {
+                    case STONE:
+                        clip.x += 6*TILE_SIZE;
+                        break;
+                    default:
+                        break;
+                }
                 floor.push_back(Entity(i*TILE_SIZE,j*TILE_SIZE,gTileSheet ,&clip));
             } 
             else{
@@ -345,9 +353,23 @@ void TileMap::generateTiles(){
                         }
                     }
                 }
-                // std::cout << i <<" " << j <<" " << bitM << std::endl;
-                getTileClip(bitM,clip);
                 CollisionRect* wallCollider = new CollisionRect(i*TILE_SIZE,j*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+                getTileClip(bitM,clip);
+                switch (wall_type)
+                {
+                    case BROWN:
+                        clip.x += 9*TILE_SIZE;
+                        break;
+                    case SILVER:
+                        clip.x += 9*TILE_SIZE;
+                        clip.y += 6*TILE_SIZE;
+                        break;
+                    case SILVER_FILLED:
+                        clip.y += 6*TILE_SIZE;
+                        break;
+                    default:
+                        break;
+                }
                 walls.push_back(RigidBody(i*TILE_SIZE,j*TILE_SIZE,wallCollider,gTileSheet ,&clip));
             }
         }

@@ -28,6 +28,7 @@ class GameEngine
         GameEngine(int c_or_s);
         bool quit_program = false;
         bool init();
+
         //The window we'll be rendering to
         SDL_Window* gWindow = NULL;
 

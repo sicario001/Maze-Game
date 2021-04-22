@@ -59,10 +59,13 @@ class PlayMode :public GameMode{
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;
 
-
+		void initPlayers();
 		bool loadMediaPlay();
 		void eventHandler(SDL_Event& e);
+		// change positions of objects and render
 		void update();
+
+		void getPlayerClip(int i,SDL_Rect &clip);
 	public:
 		Player* otherPlayer;
 		PlayMode();

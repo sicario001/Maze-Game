@@ -37,7 +37,7 @@ int ClientNet::Connect(const char * host_name, int port_num){
 	    event.type == ENET_EVENT_TYPE_CONNECT)
     {
         // enet_host_flush(client); 
-        std::cout<<"Connection to "<<host_name<<":"<<port_num<<" succeeded.";
+        std::cout<<"Connection to "<<host_name<<":"<<port_num<<" succeeded.\n";
         
         connected = true;
         return 1;
@@ -45,7 +45,7 @@ int ClientNet::Connect(const char * host_name, int port_num){
     else
     {
         enet_peer_reset(peer);
-        std::cout<<"Connection to "<<host_name<<":"<<port_num<<" failed.";
+        std::cout<<"Connection to "<<host_name<<":"<<port_num<<" failed.\n";
         return 0;
     }
 }
