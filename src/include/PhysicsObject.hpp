@@ -13,9 +13,11 @@ class Entity
 protected:
     int x,y;
     LTexture* texture;
-    SDL_Rect* clip;
+    
 public:
+    SDL_Rect* clip = NULL;
     Entity();
+    ~Entity();
     Entity(int x, int y, LTexture* pTexture, SDL_Rect* clip);
 
     bool isActive;
@@ -24,6 +26,7 @@ public:
     int getPosY(){return y;}
 
     void render();
+    void renderCustom(SDL_Rect* renderQuad);
 };
 
 extern GameEngine* gEngine;
@@ -97,7 +100,8 @@ private:
 
 public:
     Player(int health, int x, int y, LTexture* pTexture);
-    
+
+    void renderLocal(Player* player=NULL);
     void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e );
 };

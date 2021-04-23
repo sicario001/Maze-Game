@@ -17,11 +17,16 @@ Entity::Entity(int pX,int pY, LTexture* pTexture, SDL_Rect* pClip){
         *clip = *pClip;
     }
 }
-
+Entity::~Entity(){
+    texture = NULL;
+    clip = NULL;
+}
 void Entity::render(){
     texture->render(x,y,clip);
 }
-
+void Entity::renderCustom(SDL_Rect* renderQuad){
+    texture->renderCustom(x, y, clip, renderQuad);
+}
 RigidBody::RigidBody(int pX,int pY, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip):Entity(pX,pY,pTexture,pClip){
     collisionRect = pCollisionRect;
 }
@@ -130,5 +135,26 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
             // std::cout<<"in\n";
             serverObj->SendDataPosVel(serverObj->peer, x, y, velX, velY);
         }
+    }
+}
+
+void Player::renderLocal(Player* player){
+    if (player==NULL){
+        SDL_Rect renderQuad ={ 4*(x%320), 4*(y%240), 4*20, 4*20 };
+        renderCustom(&renderQuad);
+    }
+    else{
+        int x_player = player->getPosX();
+        int y_player = player->getPosY();
+        int hor_reg = x_player/320;
+        int ver_reg = y_player/240;
+        int ver1 = y/240;
+        int ver2 = (y+20-1)/240;
+        int hor1 = x/320;
+        int hor2 = (x+20-1)/320;
+        if ((hor_reg==hor1||hor_reg==hor2) && (ver_reg==ver1||ver_reg==ver2)){
+            SDL_Rect renderQuad = { 4*(x-320*hor_reg), 4*(y-240*ver_reg), 4*20, 4*20 }; 
+            renderCustom(&renderQuad);
+        } 
     }
 }

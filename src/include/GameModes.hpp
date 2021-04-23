@@ -52,19 +52,22 @@ class PauseMode :public GameMode{
 class PlayMode :public GameMode{
 	private:
 		bool openPauseMenu = false;
-		Player* player;
-		TileMap* tileMap;
+		Player* player = NULL;
+		
 		bool isPaused;
 		LTexture* gPlayerTexture;
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;
 
-
+		pthread_mutex_t mutex;
+    	pthread_cond_t initTileMapSignal;
 		bool loadMediaPlay();
 		void eventHandler(SDL_Event& e);
 		void update();
 	public:
-		Player* otherPlayer;
+		Player* otherPlayer = NULL;
+		TileMap* tileMap = NULL;
+		bool tileMapInit = false;
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
@@ -74,4 +77,8 @@ class PlayMode :public GameMode{
 		void unPause();
 		void Reset();
 		void freePlayMode();
+		void initTileMap();
+		bool isInitTileMap();
+		void deInitTileMap();
+		void waitForInitTileMap();
 };

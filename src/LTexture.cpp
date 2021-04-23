@@ -138,6 +138,11 @@ void LTexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* ce
 	SDL_RenderCopyEx( gEngine->gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
 
+void LTexture::renderCustom(int x, int y, SDL_Rect* clip,SDL_Rect* renderQuad, double angle, SDL_Point* center, SDL_RendererFlip flip){
+	//Render to screen
+	SDL_RenderCopyEx( gEngine->gRenderer, mTexture, clip, renderQuad, angle, center, flip );
+}
+
 int LTexture::getWidth()
 {
 	return mWidth;

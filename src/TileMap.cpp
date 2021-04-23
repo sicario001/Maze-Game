@@ -1,8 +1,26 @@
 #include "TileMap.hpp"
 
-TileMap::TileMap(){
+
+TileMap::TileMap(ClientNet* client, ServerNet* server){
     gTileSheet = new LTexture();
-    generateTiles();
+    pthread_mutex_init( &mutex, NULL);
+    pthread_mutex_init( &mutex1, NULL);
+    pthread_cond_init( &receiveMapSignal, NULL);
+    if (client!=NULL){
+        setNotReceived();
+    }
+    else{
+        setReceived();
+    }
+    
+    // generateTiles(client, server);
+}
+TileMap::~TileMap(){
+    delete(gTileSheet);
+    pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&mutex1);
+    pthread_cond_destroy(&receiveMapSignal);
+
 }
 
 bool TileMap::getWhenZero(int i,vector<int> zero, vector<int> one){
@@ -291,6 +309,17 @@ void TileMap::generateMap(){
 
         };
 }
+void TileMap::generateRandMap(){
+    srand(time(NULL));
+    initializeMap(15, 20);
+    for (int i=0; i<15; i++){
+        for (int j=0; j<20; j++){
+            setMap(i, j, rand()%2);
+        }
+    }
+    setMap(0, 0, 0);
+    setMap(14, 19, 0);
+}
 
 bool TileMap::loadTexture(){
 	//Load wall texture
@@ -310,22 +339,67 @@ void TileMap::render(){
     }
 }
 
+void TileMap::renderLocal(Player* player){
+    int x = player->getPosX();
+    int y = player->getPosY();
+    int ver_reg = y/240;
+    int hor_reg = x/320;
+    for(int i = 0; i < (int) floor.size();i++){
+        int x_floor = floor[i].getPosX();
+        int y_floor = floor[i].getPosY();
+        int ver1 = y_floor/240;
+        int ver2 = (y_floor+TILE_SIZE-1)/240;
+        int hor1 = x_floor/320;
+        int hor2 = (x_floor+TILE_SIZE-1)/320;
+        if ((hor_reg==hor1||hor_reg==hor2) && (ver_reg==ver1||ver_reg==ver2)){
+            SDL_Rect renderQuad = { 4*(x_floor-320*hor_reg), 4*(y_floor-240*ver_reg), 4*TILE_SIZE, 4*TILE_SIZE }; 
+            floor[i].renderCustom(&renderQuad);
+        } 
+    }
+    for(int i = 0; i < (int) walls.size();i++){
+        int x_walls = walls[i].getPosX();
+        int y_walls = walls[i].getPosY();
+        int ver1 = y_walls/240;
+        int ver2 = (y_walls+TILE_SIZE-1)/240;
+        int hor1 = x_walls/320;
+        int hor2 = (x_walls+TILE_SIZE-1)/320;
+        if ((hor_reg==hor1||hor_reg==hor2) && (ver_reg==ver1||ver_reg==ver2)){
+            SDL_Rect renderQuad = { 4*(x_walls-320*hor_reg), 4*(y_walls-240*ver_reg), 4*TILE_SIZE, 4*TILE_SIZE }; 
+            walls[i].renderCustom(&renderQuad);
+        } 
+    }
+    
+
+}
+
 void TileMap::handleCollisions(KinematicBody* body){
     for(int i = 0; i < (int) walls.size(); i++){
 	    body->handleCollision(&walls[i]);
     }
 }
 
-void TileMap::generateTiles(){
-    generateMap();
-    int mapRows = (int) map.size();
-    int mapCols = (int) map[0].size();
+void TileMap::generateTiles(ClientNet* client, ServerNet* server){
+    
+    if (server!=NULL){
+        generateRandMap();
+        // cout<<"\nWait for Connected\n";
+        server->waitForConnection();
+        
+        vector<vector<bool>> map_clone;
+        
+        cloneMap(map_clone);
+        
+        server->SendMap(server->peer, map_clone);
+        
+    }
+    int mapRows = (int) getMapSize().first;
+    int mapCols = (int) getMapSize().second;
     for(int i=0;i< mapCols;i++){
         for(int j=0;j< mapRows;j++){
             SDL_Rect clip;
             clip.w = TILE_SIZE;
             clip.h = TILE_SIZE;
-            if(map[j][i]==0){
+            if(getMap(j, i)==0){
                 clip.x=0;
                 clip.y=0;
                 floor.push_back(Entity(i*TILE_SIZE,j*TILE_SIZE,gTileSheet ,&clip));
@@ -338,18 +412,82 @@ void TileMap::generateTiles(){
                         if((x!=0) || (y!=0)){
                             if((i+x>=0) && (i+x<mapCols)){
                                 if((j+y>=0) && (j+y<mapRows)){
-                                    bitM+=bitVal*map[j+y][i+x];
+                                    bitM+=bitVal*getMap(j+y, i+x);
                                 }
                             }
                             bitVal*=2;
                         }
                     }
                 }
-                // std::cout << i <<" " << j <<" " << bitM << std::endl;
                 getTileClip(bitM,clip);
                 CollisionRect* wallCollider = new CollisionRect(i*TILE_SIZE,j*TILE_SIZE,TILE_SIZE,TILE_SIZE);
                 walls.push_back(RigidBody(i*TILE_SIZE,j*TILE_SIZE,wallCollider,gTileSheet ,&clip));
             }
         }
     }
+}
+
+bool TileMap::getReceived(){
+    pthread_mutex_lock(&mutex);
+    bool rec_val = received;
+    pthread_mutex_unlock(&mutex);
+    return rec_val;
+}
+
+void TileMap::setReceived(){
+    pthread_mutex_lock(&mutex);
+    received = true;
+    pthread_cond_signal(&receiveMapSignal);
+    pthread_mutex_unlock(&mutex);
+}
+void TileMap::setNotReceived(){
+    pthread_mutex_lock(&mutex);
+    received = false;
+    pthread_mutex_unlock(&mutex);
+}
+
+void TileMap::waitToReceiveMap(){
+    pthread_mutex_lock(&mutex);
+    while (!received){
+        pthread_cond_wait(&receiveMapSignal, &mutex);
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
+bool TileMap::getMap(int i, int j){
+    pthread_mutex_lock(&mutex1);
+    bool val = map[i][j];
+    pthread_mutex_unlock(&mutex1);
+    return val;
+}
+
+void TileMap::setMap(int i, int j, bool val){
+    pthread_mutex_lock(&mutex1);
+    map[i][j] = val;
+    pthread_mutex_unlock(&mutex1);
+}
+void TileMap::initializeMap(int i, int j){
+    pthread_mutex_lock(&mutex1);
+    // std::cout<<"in"<<endl;
+    // cout<<TILE_SIZE<<" "<<received<<endl;
+    map = vector<vector<bool>>(i, vector<bool>(j));
+    // std::cout<<"out"<<endl;
+    pthread_mutex_unlock(&mutex1);
+}
+pair<int, int> TileMap::getMapSize(){
+    pthread_mutex_lock(&mutex1);
+    int size_1 = map.size();
+    int size_2 = map[0].size();
+    pthread_mutex_unlock(&mutex1);
+    return {size_1, size_2};
+}
+void TileMap::cloneMap(vector<vector<bool>> &vec_to_clone){
+    pthread_mutex_lock(&mutex1);
+    vec_to_clone = vector<vector<bool>>(map.size(), vector<bool>(map[0].size()));
+    for (int i=0; i<(int)map.size(); i++){
+        for (int j=0; j<(int)map[0].size(); j++){
+            vec_to_clone[i][j] = map[i][j];
+        }
+    }
+    pthread_mutex_unlock(&mutex1);
 }

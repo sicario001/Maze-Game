@@ -16,12 +16,13 @@ class GameEngine
 {
     private:
         GameMode* gMode;
-        PlayMode* playMode;
         PauseMode* pauseMode;
         HomeMode* homeMode;
+
         
 
     public:
+        PlayMode* playMode;
     	GameModes currMode;
         ClientNet* clientObj = NULL;
         ServerNet* serverObj = NULL;
@@ -38,6 +39,7 @@ class GameEngine
 
         void setGameMode( GameModeType a);
         void updateOtherPlayer(std::vector<int> &data);
+        void updateMapfromServer(std::vector<int> &received_data);
 };
 
 const int SCREEN_WIDTH = 1280;
