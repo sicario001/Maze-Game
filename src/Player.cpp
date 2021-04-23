@@ -22,9 +22,21 @@ Entity::Entity(int pX,int pY, LTexture* pTexture, SDL_Rect* pClip){
         *clip = *pClip;
     }
 }
-
+Entity::~Entity(){
+    texture = NULL;
+    clip = NULL;
+}
 void Entity::render(){
-    texture->render(x,y,clip,rotation);
+    if((x < gEngine->camera->x - TILE_SIZE) || (x > gEngine->camera->x + gEngine->camera->w + TILE_SIZE)){
+        return;
+    }
+    if((y < gEngine->camera->y - TILE_SIZE) || (y > gEngine->camera->y + gEngine->camera->h + TILE_SIZE)){
+        return;
+    }
+    double scale = 1.0 * SCREEN_WIDTH / gEngine->camera->w;
+    double xOnCamera = 1.0 * (x - gEngine->camera->x)/gEngine->camera->w*SCREEN_WIDTH;
+    double yOnCamera = 1.0 * (y - gEngine->camera->y)/gEngine->camera->h*SCREEN_HEIGHT;
+    texture->render((int)xOnCamera,(int)yOnCamera,clip,scale,rotation);
 }
 
 RigidBody::RigidBody(int pX,int pY, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip):Entity(pX,pY,pTexture,pClip){
@@ -64,12 +76,12 @@ void KinematicBody::move()
     collisionRect->shift(x,y);
 }
 
-void KinematicBody::handleOutOfBounds(int scrWidth,int scrHeight){
-    if(( x < 0 ) || ( x + collisionRect->getW() > SCREEN_WIDTH )){
+void KinematicBody::handleOutOfBounds(){
+    if(( x < 0 ) || ( x + collisionRect->getW() > LEVEL_WIDTH )){
         x -= lastVelX;
         lastVelX = 0;
     }
-    if(( y < 0 ) || ( y + collisionRect->getH()> SCREEN_HEIGHT)){
+    if(( y < 0 ) || ( y + collisionRect->getH() > LEVEL_HEIGHT)){
         y -= lastVelY;
         lastVelY = 0;
     }
@@ -142,4 +154,15 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
             serverObj->SendDataPosVel(serverObj->peer, x, y, lastVelX, lastVelY);
         }
     }
+}
+
+void Player::resetCamera(){
+    gEngine->camera->h = CAMERA_HEIGHT;
+    gEngine->camera->w = CAMERA_WIDTH;
+    gEngine->camera->x = x + PLAYER_SPRITE_W/2 - CAMERA_WIDTH/2;
+    gEngine->camera->y = y + PLAYER_SPRITE_H/2 - CAMERA_HEIGHT/2;
+    gEngine->camera->x = max(gEngine->camera->x,0);
+    gEngine->camera->y = max(gEngine->camera->y,0);
+    gEngine->camera->x = min(gEngine->camera->x,LEVEL_WIDTH);
+    gEngine->camera->y = min(gEngine->camera->y,LEVEL_HEIGHT);
 }

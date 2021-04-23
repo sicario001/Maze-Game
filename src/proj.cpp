@@ -13,7 +13,7 @@ void* RunLoop(void* param){
     GameEngine* gEngine = (GameEngine*) param;
     while(!(gEngine->quit_program))
     {
-		if (gEngine->serverObj->running){
+		if (gEngine->serverObj->isRunning()){
 			ENetEvent event;
 			while (enet_host_service (gEngine->serverObj->server, & event, 0) > 0)
 			{
@@ -22,11 +22,14 @@ void* RunLoop(void* param){
 					case ENET_EVENT_TYPE_CONNECT:
 					{   
 						// enet_host_flush(serverObj->server);
-						gEngine->serverObj->connected = true;
+						// cout<<"in_connect\n";
+						
 						gEngine->serverObj->peer = event.peer;
 						printf ("A new client connected from %x:%u.\n",
 						event.peer -> address.host,
 						event.peer -> address.port);
+						gEngine->serverObj->setConnected();
+						// cout<<"connected\n";
 						break;
 					}
 
@@ -34,13 +37,15 @@ void* RunLoop(void* param){
 						// enet_host_flush(serverObj->server);
 					{
 						std::vector<int> received_data = gEngine->serverObj->Parsedata(0, (char*)event.packet->data); // Parse the receiving data.
-						gEngine->updateOtherPlayer(received_data);
+						if (received_data[0]==0){
+							gEngine->updateOtherPlayer(received_data);
+						}
 						enet_packet_destroy(event.packet);
 						break;
 					}
 
 					case ENET_EVENT_TYPE_DISCONNECT:
-						gEngine->serverObj->connected = false;
+						gEngine->serverObj->setNotConnected();
 						printf ("%x:%u disconnected.\n",
 						event.peer -> address.host,
 						event.peer -> address.port);
@@ -58,16 +63,23 @@ void* RunLoop(void* param){
 void* ReceiveLoop(void* param){
     GameEngine* gEngine = (GameEngine*) param;
   	while(!(gEngine->quit_program)){
-		if (gEngine->clientObj->connected){
+		if (gEngine->clientObj->isConnected()){
 			ENetEvent event;
 			while(enet_host_service(gEngine->clientObj->client, &event, 0) > 0){
 				switch(event.type){
 					case ENET_EVENT_TYPE_RECEIVE:
 					{
 						// enet_host_flush(ClientObj->client);
-
+						
 						std::vector<int> received_data = gEngine->clientObj->Parsedata((char*)event.packet->data); // Parse the receiving data.
-						gEngine->updateOtherPlayer(received_data);
+						if (received_data[0]==0){
+							gEngine->updateOtherPlayer(received_data);
+						}
+						else{
+							gEngine->playMode->waitForInitTileMap();
+
+							gEngine->updateMapfromServer(received_data);
+						}
 						enet_packet_destroy(event.packet);
 
 						break;
@@ -95,6 +107,7 @@ int main( int argc, char* args[] )
 		printf( "Failed to initialize!\n" );
 	}
 	else{
+		// cout<<"in\n";
 		pthread_t thread;
 		if (gEngine->clientObj!=NULL){
   			pthread_create(&thread, NULL, ReceiveLoop, gEngine);

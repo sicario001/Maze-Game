@@ -7,8 +7,7 @@
 
 class ClientNet{
     private:
-        
-
+        pthread_mutex_t mutex;
 
     public:
         ENetHost* client = NULL;
@@ -16,6 +15,9 @@ class ClientNet{
         ENetEvent event;
         ENetPeer* peer = NULL;
         bool connected;
+        bool isConnected();
+        void setConnected();
+        void setNotConnected();
         ClientNet();
         int Init();
         int Connect(const char * host_name, int port_num);

@@ -16,12 +16,15 @@ class GameEngine
 {
     private:
         GameMode* gMode;
-        PlayMode* playMode;
         PauseMode* pauseMode;
         HomeMode* homeMode;
+
         
 
     public:
+        SDL_Rect* camera;
+
+        PlayMode* playMode;
     	GameModes currMode;
         ClientNet* clientObj = NULL;
         ServerNet* serverObj = NULL;
@@ -39,10 +42,18 @@ class GameEngine
 
         void setGameMode( GameModeType a);
         void updateOtherPlayer(std::vector<int> &data);
+        void updateMapfromServer(std::vector<int> &received_data);
 };
 
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 960;
+const int SCREEN_WIDTH = 960;
+const int SCREEN_HEIGHT = 540;
+
+const int CAMERA_WIDTH = 480;
+const int CAMERA_HEIGHT = 270;
+
+const int LEVEL_WIDTH = 2560;
+const int LEVEL_HEIGHT = 1920;
+
 const int BUTTON_WIDTH = 320;
 const int BUTTON_HEIGHT = 200;
 const int TOTAL_BUTTONS = 2;

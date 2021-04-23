@@ -1,7 +1,8 @@
 #include "ClientNet.hpp"
 
 ClientNet::ClientNet(){
-    connected = false;
+    pthread_mutex_init( &mutex, NULL);
+    setNotConnected();
     ClientNet::Init();
 }
 int ClientNet::Init(){
@@ -39,7 +40,7 @@ int ClientNet::Connect(const char * host_name, int port_num){
         // enet_host_flush(client); 
         std::cout<<"Connection to "<<host_name<<":"<<port_num<<" succeeded.\n";
         
-        connected = true;
+        setConnected();
         return 1;
     }
     else
@@ -51,8 +52,9 @@ int ClientNet::Connect(const char * host_name, int port_num){
 }
 
 int ClientNet::Disconnect(){
+    setNotConnected();
     enet_peer_disconnect(peer, 0);
-    while(enet_host_service(client, &event, 3000)>0){
+    while(enet_host_service(client, &event, 100)>0){
         switch(event.type)
         {
             case ENET_EVENT_TYPE_RECEIVE:
@@ -64,13 +66,12 @@ int ClientNet::Disconnect(){
             default:
                 break;
         }
-    }
-    connected = false;
+    }  
     return 1;
 }
 void ClientNet::SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY){
     char send_data[1024] = {'\0'};
-    sprintf(send_data, "%d|%d|%d|%d", x, y, velX, velY);
+    sprintf(send_data, "0|%d|%d|%d|%d", x, y, velX, velY);
     SendPacket(peer, send_data);
 }
 
@@ -86,11 +87,49 @@ void ClientNet::SendPacket(ENetPeer* peer, const char* data)
 }
 
 std::vector<int> ClientNet::Parsedata(char* data){
-    // std::cout<<"PARSE: "<<data<<"\n";
+    // std::cout<<data<<"\n";
+    int data_type;
+    sscanf(data, "%d|", &data_type);
+    switch(data_type){
+        case 0:
+        {
+            int x, y, velX, velY;
+            sscanf(data, "0|%d|%d|%d|%d", &x, &y, &velX, &velY);
+            return{0, x, y, velX, velY};
+        }
+            
+        case 1:
+        {
+            char map_arr[1024];
+            int total_len;
+            sscanf(data, "1|%d|%s", &total_len, map_arr);
+            std::vector<int> ret_vec(total_len+1);
+            ret_vec[0] = 1;
+            for (int i=1; i<total_len+1; i++){
+                ret_vec[i] = (map_arr[i-1]=='1' ? 1:0);
+            }
+            return ret_vec;
+        }
+        default:
+            return {};
+    }
+}
 
-    int x, y, velX, velY;
-    sscanf(data, "%d|%d|%d|%d", &x, &y, &velX, &velY);
-    return{x, y, velX, velY};
+bool ClientNet::isConnected(){
+    pthread_mutex_lock(&mutex);
+    bool conn_val = connected;
+    pthread_mutex_unlock(&mutex);
+    return conn_val;
 }
 
 
+void ClientNet::setConnected(){
+    pthread_mutex_lock(&mutex);
+    connected = true;
+    pthread_mutex_unlock(&mutex);
+}
+void ClientNet::setNotConnected(){
+    pthread_mutex_lock(&mutex);
+    connected = false;
+    pthread_mutex_unlock(&mutex);
+}

@@ -4,10 +4,6 @@
 #include "ClientNet.hpp"
 #include "ServerNet.hpp"
 
-const int SQUARE_SIZE = 20;
-const int WALL_W = 40;
-const int WALL_H = 400;
-
 const int PLAYER_SPRITE_W = 71;
 const int PLAYER_SPRITE_H = 71;
 const int COLLIDER_SIZE = 45;
@@ -30,10 +26,11 @@ protected:
     int x,y;
 
     LTexture* texture;
-    SDL_Rect* clip;
     double rotation=0.0;
 public:
+    SDL_Rect* clip = NULL;
     Entity();
+    ~Entity();
     Entity(int x, int y, LTexture* pTexture, SDL_Rect* clip);
 
     bool isActive;
@@ -42,6 +39,7 @@ public:
     int getPosY(){return y;}
 
     void render();
+    void renderCustom(SDL_Rect* renderQuad);
 };
 
 extern GameEngine* gEngine;
@@ -100,7 +98,7 @@ public:
     // handle collision with a body, move back a step
     void handleCollision(RigidBody* rb);
     // check if outside window
-    void handleOutOfBounds(int scrWidth,int scrHeight);
+    void handleOutOfBounds();
 };
 
 
@@ -114,4 +112,5 @@ public:
     int getHealth();
     void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e );
+    void resetCamera();
 };

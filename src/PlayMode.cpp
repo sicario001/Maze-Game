@@ -18,28 +18,31 @@ void PlayMode::update(){
 		gEngine->setGameMode(PAUSE);
 		return;
 	}
+	// cout<<"in\n";
 	//Move the players
 	player->move();
 	otherPlayer->move();
 	player->sendUpdate(clientObj,serverObj);
 
 	//check collision
-	player->handleOutOfBounds(SCREEN_WIDTH,SCREEN_HEIGHT);
+	player->handleOutOfBounds();
 	tileMap->handleCollisions(player);
 	player->handleCollision(otherPlayer);
+	
 
-	otherPlayer->handleOutOfBounds(SCREEN_WIDTH,SCREEN_HEIGHT);
+	otherPlayer->handleOutOfBounds();
 	tileMap->handleCollisions(otherPlayer);
 	otherPlayer->handleCollision(player);
+
+	player->resetCamera();
 
 	//Render wall
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
 	
+	
 	//Render players
 	player->render();
-	// uncomment if you want to see collision area
-	// player->getCollisionRect()->render();
 	otherPlayer->render();
 }
 
@@ -64,6 +67,12 @@ bool PlayMode::loadMediaPlay()
 }
 void PlayMode::freePlayMode(){
 	gPlayerTexture->free();
+	delete (player);
+	delete (otherPlayer);
+	delete (tileMap);
+	player = NULL;
+	otherPlayer = NULL;
+	tileMap = NULL;
 }
 
 void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
@@ -94,7 +103,6 @@ void PlayMode::initPlayers(){
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
-	tileMap = new TileMap();
 	initPlayers();
 };
 
@@ -108,14 +116,24 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		serverObj = server;
 		gPlayerTexture = new LTexture();
 		initPlayers();
-		tileMap = new TileMap();
 		isPaused = false;
+		pthread_mutex_init( &mutex, NULL);
+    	pthread_cond_init( &initTileMapSignal, NULL);
 	}
 }
 void PlayMode::ReInit(){
+	
 	gPlayerTexture = new LTexture();
 	initPlayers();
-	tileMap = new TileMap();
+	deInitTileMap();
+	
+	tileMap = new TileMap(clientObj, serverObj);
+	// cout<<"in\n";
+	tileMap->waitToReceiveMap();
+	// cout<<"in\n";
+	tileMap->generateTiles(clientObj, serverObj);
+
+	// cout<<"in play\n";
 	loadMediaPlay();
 	isPaused = false;
 }
@@ -125,6 +143,7 @@ void PlayMode::enterMode(){
 	}
 	else{
 		ReInit();
+
 	}
 }
 
@@ -138,3 +157,28 @@ void PlayMode::Reset(){
 	isPaused = false;
 }
 
+void PlayMode::initTileMap(){
+	pthread_mutex_lock(&mutex);
+    tileMapInit = true;
+	pthread_cond_signal(&initTileMapSignal);
+    pthread_mutex_unlock(&mutex);
+}
+bool PlayMode::isInitTileMap(){
+	pthread_mutex_lock(&mutex);
+    bool init_val = tileMapInit;
+    pthread_mutex_unlock(&mutex);
+    return init_val;
+}
+void PlayMode::deInitTileMap(){
+	pthread_mutex_lock(&mutex);
+    tileMapInit = true;
+    pthread_mutex_unlock(&mutex);
+}
+
+void PlayMode::waitForInitTileMap(){
+	pthread_mutex_lock(&mutex);
+    while (!tileMapInit){
+        pthread_cond_wait(&initTileMapSignal, &mutex);
+    }
+    pthread_mutex_unlock(&mutex);
+}

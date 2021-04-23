@@ -1,8 +1,26 @@
 #include "TileMap.hpp"
 
-TileMap::TileMap(){
+
+TileMap::TileMap(ClientNet* client, ServerNet* server){
     gTileSheet = new LTexture();
-    generateTiles();
+    pthread_mutex_init( &mutex, NULL);
+    pthread_mutex_init( &mutex1, NULL);
+    pthread_cond_init( &receiveMapSignal, NULL);
+    if (client!=NULL){
+        setNotReceived();
+    }
+    else{
+        setReceived();
+    }
+    
+    // generateTiles(client, server);
+}
+TileMap::~TileMap(){
+    delete(gTileSheet);
+    pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&mutex1);
+    pthread_cond_destroy(&receiveMapSignal);
+
 }
 
 bool TileMap::getWhenZero(int i,vector<int> zero, vector<int> one){
@@ -272,24 +290,17 @@ void TileMap::getTileClip(int bitmask, SDL_Rect& clip){
 }
 
 void TileMap::generateMap(){
-    map = {
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-        {1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1},
-        {1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1},
-        {1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1},
-        {1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1},
-        {1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1},
-        {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1},
-        {1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1},
-        {1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1},
-        {1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1},
-        {1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1},
-        {1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1},
-        {1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1},
-        {1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1},
-        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-
-        };
+    srand(time(NULL));
+    int numRows = LEVEL_HEIGHT/TILE_SIZE;
+    int numCols = LEVEL_WIDTH/TILE_SIZE;
+    initializeMap(numRows, numCols);
+    for (int i=0; i<numRows; i++){
+        for (int j=0; j<numCols; j++){
+            setMap(i, j, rand()%2);
+        }
+    }
+    setMap(0, 0, 0);
+    setMap(numRows-1, numCols-1, 0);
 }
 
 bool TileMap::loadTexture(){
@@ -310,16 +321,29 @@ void TileMap::render(){
     }
 }
 
+
 void TileMap::handleCollisions(KinematicBody* body){
     for(int i = 0; i < (int) walls.size(); i++){
 	    body->handleCollision(&walls[i]);
     }
 }
 
-void TileMap::generateTiles(){
-    generateMap();
-    int mapRows = (int) map.size();
-    int mapCols = (int) map[0].size();
+void TileMap::generateTiles(ClientNet* client, ServerNet* server){
+    
+    if (server!=NULL){
+        generateMap();
+        // cout<<"\nWait for Connected\n";
+        server->waitForConnection();
+        
+        vector<vector<bool>> map_clone;
+        
+        cloneMap(map_clone);
+        
+        server->SendMap(server->peer, map_clone);
+        
+    }
+    int mapRows = (int) getMapSize().first;
+    int mapCols = (int) getMapSize().second;
     for(int i=0;i< mapCols;i++){
         for(int j=0;j< mapRows;j++){
             SDL_Rect clip;
@@ -346,7 +370,7 @@ void TileMap::generateTiles(){
                         if((x!=0) || (y!=0)){
                             if((i+x>=0) && (i+x<mapCols)){
                                 if((j+y>=0) && (j+y<mapRows)){
-                                    bitM+=bitVal*map[j+y][i+x];
+                                    bitM+=bitVal*getMap(j+y, i+x);
                                 }
                             }
                             bitVal*=2;
@@ -374,4 +398,69 @@ void TileMap::generateTiles(){
             }
         }
     }
+}
+
+bool TileMap::getReceived(){
+    pthread_mutex_lock(&mutex);
+    bool rec_val = received;
+    pthread_mutex_unlock(&mutex);
+    return rec_val;
+}
+
+void TileMap::setReceived(){
+    pthread_mutex_lock(&mutex);
+    received = true;
+    pthread_cond_signal(&receiveMapSignal);
+    pthread_mutex_unlock(&mutex);
+}
+void TileMap::setNotReceived(){
+    pthread_mutex_lock(&mutex);
+    received = false;
+    pthread_mutex_unlock(&mutex);
+}
+
+void TileMap::waitToReceiveMap(){
+    pthread_mutex_lock(&mutex);
+    while (!received){
+        pthread_cond_wait(&receiveMapSignal, &mutex);
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
+bool TileMap::getMap(int i, int j){
+    pthread_mutex_lock(&mutex1);
+    bool val = map[i][j];
+    pthread_mutex_unlock(&mutex1);
+    return val;
+}
+
+void TileMap::setMap(int i, int j, bool val){
+    pthread_mutex_lock(&mutex1);
+    map[i][j] = val;
+    pthread_mutex_unlock(&mutex1);
+}
+void TileMap::initializeMap(int i, int j){
+    pthread_mutex_lock(&mutex1);
+    // std::cout<<"in"<<endl;
+    // cout<<TILE_SIZE<<" "<<received<<endl;
+    map = vector<vector<bool>>(i, vector<bool>(j));
+    // std::cout<<"out"<<endl;
+    pthread_mutex_unlock(&mutex1);
+}
+pair<int, int> TileMap::getMapSize(){
+    pthread_mutex_lock(&mutex1);
+    int size_1 = map.size();
+    int size_2 = map[0].size();
+    pthread_mutex_unlock(&mutex1);
+    return {size_1, size_2};
+}
+void TileMap::cloneMap(vector<vector<bool>> &vec_to_clone){
+    pthread_mutex_lock(&mutex1);
+    vec_to_clone = vector<vector<bool>>(map.size(), vector<bool>(map[0].size()));
+    for (int i=0; i<(int)map.size(); i++){
+        for (int j=0; j<(int)map[0].size(); j++){
+            vec_to_clone[i][j] = map[i][j];
+        }
+    }
+    pthread_mutex_unlock(&mutex1);
 }

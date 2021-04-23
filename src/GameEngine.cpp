@@ -1,6 +1,11 @@
 #include "GameEngine.hpp"
 
 GameEngine::GameEngine(int c_or_s){
+	camera = new SDL_Rect();
+	camera->x = 0;
+	camera->y = 0;
+	camera->w = CAMERA_WIDTH;
+	camera->h = CAMERA_HEIGHT;
 	pauseMode = new PauseMode();
 	homeMode = new HomeMode() ;
 	gMode = homeMode;
@@ -11,6 +16,7 @@ GameEngine::GameEngine(int c_or_s){
 	else{
 		serverObj = new ServerNet();
 	}
+	// cout<<"in\n";
 	playMode = new PlayMode(true, clientObj, serverObj);
 }
 
@@ -91,9 +97,10 @@ void GameEngine::runLoop(){
 		SDL_RenderClear( gEngine->gRenderer );
 
 		gMode->update();
-
+		// cout<<currMode<<"\n";
 		//Update screen
 		SDL_RenderPresent( gEngine->gRenderer );
+		// if (currMode == 1)cout<<"in\n";
 	}
 	//Free loaded images
 	playMode->freePlayMode();
@@ -110,8 +117,23 @@ void GameEngine::runLoop(){
 }
 void GameEngine::updateOtherPlayer(std::vector<int> &data){
 	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-		playMode->otherPlayer->setPosVel(data[0], data[1], data[2], data[3]);
+		playMode->otherPlayer->setPosVel(data[1], data[2], data[3], data[4]);
 	}
+}
+void GameEngine::updateMapfromServer(vector<int> &map_vec){
+	
+	playMode->tileMap->initializeMap(LEVEL_HEIGHT/TILE_SIZE, LEVEL_WIDTH/TILE_SIZE);
+	
+    for (int i=1; i<(int)map_vec.size(); i++){
+        if (map_vec[i]==1){
+            playMode->tileMap->setMap((i-1)/20, (i-1)%20, true);
+        }
+        else{
+            playMode->tileMap->setMap((i-1)/20, (i-1)%20, false);
+        }
+    }
+    // std::cout<<"all good"<<endl;
+    playMode->tileMap->setReceived();
 }
 
 
@@ -124,11 +146,12 @@ void GameEngine::setGameMode(GameModeType a){
 		case PLAY:
 			gMode = playMode;
 			currMode = PLAY_MODE;
+			
 			playMode->Reset();
-			playMode->enterMode();
 			if (clientObj!=NULL){
 				clientObj->Connect("127.0.0.1", 7777);
 			}
+			playMode->enterMode();
 			break;
 		case RESUME:
 			gMode = playMode;
@@ -141,6 +164,7 @@ void GameEngine::setGameMode(GameModeType a){
 			pauseMode->enterMode();
 			break;
 		case HOME:
+			playMode->freePlayMode();
 			gMode = homeMode;
 			currMode = HOME_MODE;
 			homeMode->enterMode();
