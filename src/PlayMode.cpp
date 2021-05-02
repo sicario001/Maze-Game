@@ -84,10 +84,10 @@ void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
 
 void PlayMode::initPlayers(){
 	SDL_Rect clip1,clip2;
-	int server_start_pos_x = 130;
-	int server_start_pos_y = 180;
-	int client_start_pos_x = 100;
-	int client_start_pos_y = 70;
+	int server_start_pos_x = 0;
+	int server_start_pos_y = 0;
+	int client_start_pos_x = 2500;
+	int client_start_pos_y = 1860;
 	if (clientObj!=NULL){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);

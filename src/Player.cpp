@@ -163,6 +163,6 @@ void Player::resetCamera(){
     gEngine->camera->y = y + PLAYER_SPRITE_H/2 - CAMERA_HEIGHT/2;
     gEngine->camera->x = max(gEngine->camera->x,0);
     gEngine->camera->y = max(gEngine->camera->y,0);
-    gEngine->camera->x = min(gEngine->camera->x,LEVEL_WIDTH);
-    gEngine->camera->y = min(gEngine->camera->y,LEVEL_HEIGHT);
+    gEngine->camera->x = min(gEngine->camera->x,LEVEL_WIDTH-CAMERA_WIDTH);
+    gEngine->camera->y = min(gEngine->camera->y,LEVEL_HEIGHT-CAMERA_HEIGHT);
 }

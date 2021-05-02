@@ -288,6 +288,64 @@ void TileMap::getTileClip(int bitmask, SDL_Rect& clip){
         clip.y = 6*TILE_SIZE;
     }
 }
+void dfs(int x, int y, vector<vector<bool>> &m){
+    m[x][y] = true;
+    for (int i=-1; i<2; i++){
+        for (int j=-1; j<2; j++){
+            if ((i!=0 || j!=0) && (i==0 || j==0) && ((x+i)>=0 && (x+i)<(int)m.size() && (y+j)>=0 && (y+j)<(int)m[0].size())){
+                if (!m[x+i][y+j]){
+                    dfs(x+i, y+j, m);
+                }
+            }
+        }
+    }
+}
+bool checkConnected(vector<vector<bool>> &m){
+    int cnt = 0;
+    for (int i=0; i<(int)m.size(); i++){
+        for (int j=0; j<(int)m[0].size(); j++){
+            if (!m[i][j]){
+                cnt++;
+                dfs(i, j, m);
+            }
+        }
+    }
+    if (cnt<=1){
+        return true;
+    }
+    return false;
+    
+}
+void TileMap::generateMap1(double density){
+    srand(time(NULL));
+    int numRows = LEVEL_HEIGHT/TILE_SIZE;
+    int numCols = LEVEL_WIDTH/TILE_SIZE;
+    initializeMap(numRows, numCols);
+    int numWalls = density*(numRows*numCols);
+    int s1_x = 0;
+    int s1_y = 0;
+    int s2_x = numRows-1;
+    int s2_y = numCols-1;
+    while (numWalls>0){
+        int x = rand()%numRows;
+        int y = rand()%numCols;
+        if (getMap(x, y) || (x==s1_x && y==s1_y) || (x==s2_x && y ==s2_y)){
+            continue;
+        }
+        vector<vector<bool>> m;
+        cloneMap(m);
+        m[x][y] = true;
+        if (!checkConnected(m)){
+            continue;
+        }
+        setMap(x, y, true);
+        numWalls--;
+    }
+    setMap(0, 0, 0);
+    setMap(numRows-1, numCols-1, 0);
+}
+
+
 
 void TileMap::generateMap(){
     srand(time(NULL));
@@ -331,7 +389,7 @@ void TileMap::handleCollisions(KinematicBody* body){
 void TileMap::generateTiles(ClientNet* client, ServerNet* server){
     
     if (server!=NULL){
-        generateMap();
+        generateMap1(0.5);
         // cout<<"\nWait for Connected\n";
         server->waitForConnection();
         

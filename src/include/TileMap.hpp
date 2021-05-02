@@ -44,6 +44,7 @@ private:
 
     // generate the vector of 0s and 1s denoting w=positions with walls
     void generateMap();
+    void generateMap1(double density);
     // generate floors and walls
     void generateTiles();
 public:
