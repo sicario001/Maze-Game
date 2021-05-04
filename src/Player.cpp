@@ -94,10 +94,9 @@ void CollisionRect::render(){
     }
 }
 
-void CollisionRect::shift(int px,int py, double pangle){
+void CollisionRect::shift(int px,int py){
     x = px;
     y = py;
-    angle = pangle;
 }
 
 Entity::Entity(int pX,int pY, LTexture* pTexture, SDL_Rect* pClip){
@@ -140,11 +139,8 @@ KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed
     velX = pSpeedX;
     velY = pSpeedY;
     speed = pSpeed;
-}
-
-void KinematicBody::resetRotation(){
-    if(lastVelX!=0 || lastVelY!=0){
-        rotation = atan2(lastVelY,lastVelX);
+    if(pSpeedX!=0 || pSpeedY!=0){
+        rotation = atan2(pSpeedY,pSpeedX);
     }
 }
 
@@ -159,8 +155,7 @@ void KinematicBody::move()
     lastVelX = velX;
     lastVelY = velY;
 
-    resetRotation();
-    collisionRect->shift(x,y,rotation);
+    collisionRect->shift(x,y);
 }
 
 bool KinematicBody::handleOutOfBounds(){
@@ -176,8 +171,7 @@ bool KinematicBody::handleOutOfBounds(){
         isOut = true;
     }
 
-    resetRotation();
-    collisionRect->shift(x,y,rotation);
+    collisionRect->shift(x,y);
     return isOut;
 }
 
@@ -192,8 +186,7 @@ bool KinematicBody::handleCollision(RigidBody* rb)
         collisionOccured = true;
     }
 
-    resetRotation();
-    collisionRect->shift(x,y,rotation);
+    collisionRect->shift(x,y);
     return collisionOccured;
 }
 
@@ -202,10 +195,9 @@ void KinematicBody::setPosVel(int pX, int pY, int pVelX, int pVelY){
     y = pY;
     velX = pVelX;
     velY = pVelY;
-    resetRotation();
 }
 
-Bullet::Bullet(int pX, int pY, int pSpeedX, int pSpeedY, int damage,LTexture* pTexture,  BulletType pType):KinematicBody(pX,pY,pSpeedX,pSpeedY,10,new CollisionRect(0,0,BULLET_COLLIDER_W,BULLET_COLLIDER_H,BULLET_SPRITE_W,BULLET_SPRITE_H),pTexture,new SDL_Rect()){
+Bullet::Bullet(int pX, int pY, int pSpeed, double rotation, int damage,LTexture* pTexture):KinematicBody(pX,pY,pSpeed * cos(rotation),pSpeed * sin(rotation),10,new CollisionRect(0,0,BULLET_COLLIDER_W,BULLET_COLLIDER_H,rotation,BULLET_SPRITE_W,BULLET_SPRITE_H),pTexture,new SDL_Rect()){
     clip = new SDL_Rect();
     clip->x=0;
     clip->y=0;
@@ -213,14 +205,67 @@ Bullet::Bullet(int pX, int pY, int pSpeedX, int pSpeedY, int damage,LTexture* pT
     clip->h=BULLET_SPRITE_H;
 }
 
-Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, BulletType bt)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip),shoot(sf){
+void Bullet::move(){
+    if (numFramesEnd > 0)
+    {
+        numFramesEnd++;
+        clip->x = 64 + numFramesEnd/2 * 16;
+        if(numFramesEnd==6){
+            isActive=false;
+        }
+    }
+    else{
+        KinematicBody::move();
+    }
+}
+
+void Bullet::onHit(){
+    if (numFramesEnd == 0)
+    {   
+        x+=velX;
+        y+=velY;
+        velX = 0;
+        velY = 0;
+        numFramesEnd = 1;
+        clip->x = 64;
+    }
+    
+}
+
+Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip),shoot(sf){
+}
+
+void Player::resetRotation(){
+    // angle formed right shoulder to pointer = angle of texture
+    double cx = 0;
+    double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+    double d = sqrt(cx*cx+cy*cy);
+    double a = atan2(cy,cx);
+    cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation);
+    cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation);
+    cx = (cx - gEngine->camera->x)*SCREEN_WIDTH/gEngine->camera->w;
+    cy = (cy - gEngine->camera->y)*SCREEN_HEIGHT/gEngine->camera->h;
+    rotation = atan2(yMouse-cy,xMouse-cx);
 }
 
 void Player::handleEvent(SDL_Event &e)
 {
+    if(e.type == SDL_MOUSEMOTION)
+    {   
+        SDL_GetMouseState(&xMouse,&yMouse);
+    }
+    
+    // left click to shoot
     if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0){
-        cout << "SHOOT!" << endl;
-        shoot(x,y,10,rotation,BROWN_BULLET);
+        // spawn at tip
+        // cout << "SHOOT!" << endl;
+        double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
+        double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+        double d = sqrt(cx*cx+cy*cy);
+        double a = atan2(cy,cx);
+        cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - 7;
+        cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - 4;
+        shoot(cx,cy,10,rotation);
     }
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
@@ -246,6 +291,7 @@ void Player::handleEvent(SDL_Event &e)
             case SDLK_RIGHT: velX -= speed; break;
         }
     }
+    resetRotation();
 }
 
 void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){

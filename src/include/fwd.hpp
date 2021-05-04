@@ -39,7 +39,3 @@ enum GameModeType{
 	PLAY,
 	QUIT
 };
-enum BulletType{
-    BROWN_BULLET,
-    RED_BULLET
-};

@@ -1,9 +1,7 @@
 #include "GameModes.hpp"
 
-void PlayMode::spawnBullet(int x, int y, int speed, double angle,BulletType bt){
-	int speedX = (int) speed * cos(angle);
-	int speedY = (int) speed * sin(angle);
-	bullets.push_back(Bullet(x,y,speedX,speedY,10,pbTexture,bt));
+void PlayMode::spawnBullet(int x, int y, int speed, double angle){
+	bullets.push_back(Bullet(x,y,speed,angle,10,pbTexture));
 }
 
 void PlayMode::eventHandler(SDL_Event& e){
@@ -46,7 +44,7 @@ void PlayMode::update(){
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
 	
-	player->getCollisionRect()->render();
+	// player->getCollisionRect()->render();
 	
 	for (Bullet& x : bullets)
 	{
@@ -56,7 +54,7 @@ void PlayMode::update(){
 		if(x.isActive){
 			// cout << x.getPosX() << " " << x.getPosY() << endl;
 			x.render();
-			x.getCollisionRect()->render();
+			// x.getCollisionRect()->render();
 		}
 	}
 	
@@ -80,7 +78,7 @@ bool PlayMode::loadMediaPlay()
 	//Loading success flag
 	bool success = true;
 	//Load player bullet texture
-	if( !pbTexture->loadFromFile( "media/texture/bulletBeige_outline.png" ) )
+	if( !pbTexture->loadFromFile( "media/texture/bullet.png" ) )
 	{
 		printf( "Failed to load player texture!\n" );
 		success = false;
@@ -114,12 +112,12 @@ void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
 	clip.h= PLAYER_SPRITE_SIZE;
 	clip.w= PLAYER_SPRITE_SIZE;
 	clip.x=0;
-	clip.y = (3 +6*i)*PLAYER_SPRITE_SIZE;
+	clip.y = (2 +6*i)*PLAYER_SPRITE_SIZE;
 }
 
 void PlayMode::initPlayers(){
-	auto sf = [this](int x, int y, int speed, double angle, BulletType bt){
-		spawnBullet(x,y,speed,angle,bt);
+	auto sf = [this](int x, int y, int speed, double angle){
+		spawnBullet(x,y,speed,angle);
 	};
 	SDL_Rect clip1,clip2;
 	int server_start_pos_x = 0;

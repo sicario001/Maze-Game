@@ -78,7 +78,7 @@ class PlayMode :public GameMode{
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
-		void spawnBullet(int x, int y, int speed, double angle, BulletType bt);
+		void spawnBullet(int x, int y, int speed, double angle);
 		void ReInit();
 		void enterMode();
 		void Pause();

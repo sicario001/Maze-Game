@@ -10,10 +10,10 @@ using namespace std;
 
 const int PLAYER_SPRITE_SIZE = 71;
 const int PLAYER_COLLIDER_SIZE = 45;
-const int BULLET_SPRITE_H = 20;
-const int BULLET_SPRITE_W = 34;
-const int BULLET_COLLIDER_H = 18;
-const int BULLET_COLLIDER_W = 36;
+const int BULLET_SPRITE_H = 16;
+const int BULLET_SPRITE_W = 16;
+const int BULLET_COLLIDER_H = 8;
+const int BULLET_COLLIDER_W = 14;
 
 enum PlayerSpriteType{
 	HITMAN,
@@ -58,13 +58,14 @@ class CollisionRect{
         pair<int,int> getVertex(int i);
     public:
         CollisionRect();
-        CollisionRect(int px,int py, int pw,int ph, int puw=-1,int puh=-1){
+        CollisionRect(int px,int py, int pw,int ph, double pangle = 0.0, int puw=-1,int puh=-1){
             x=px;
             y=py;
             w=pw;
             h=ph;
             uw = puw;
             uh = puh;
+            angle = pangle;
             if(puw==-1){
                 uw=w;
             }
@@ -72,7 +73,7 @@ class CollisionRect{
                 uh=h;
             }
         }
-        void shift(int x,int y, double angle);
+        void shift(int x,int y);
         int getH(){
             return h;
         }
@@ -105,8 +106,6 @@ protected:
     int lastVelX=0;
     int lastVelY=0;
     int speed;
-    // reset rotation based on current velocity
-    void resetRotation();
 public:
     KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
@@ -121,17 +120,21 @@ public:
 class Bullet : public KinematicBody{
 private:
     int damage;
+    int numFramesEnd = 0;
 public:
     Bullet();
-    Bullet(int x, int y, int pSpeedX, int pSpeedY,int damage,LTexture* pTexture, BulletType pType);
+    Bullet(int x, int y, int pSpeed, double rotation,int damage,LTexture* pTexture);
+    void move();
+    void onHit();
 };
 
 class Player : public KinematicBody{
 private:
-    function <void(int x,int y, int speed, double angle, BulletType bt)> shoot;
-
+    function <void(int x,int y, int speed, double angle)> shoot;
+    int xMouse,yMouse;
+    void resetRotation();
 public:
-    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, BulletType bt)> shootFunc);
+    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle)> shootFunc);
     
     void damage(int x);
     int getHealth();
