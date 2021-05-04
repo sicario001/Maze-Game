@@ -46,6 +46,7 @@ void PlayMode::update(){
 	otherPlayer->render();
 	healthBar->setHealth(player->getHealth());
 	healthBar->render();
+	clock->render();
 
 }
 
@@ -66,6 +67,8 @@ bool PlayMode::loadMediaPlay()
 		printf( "Failed to load tile sheet texture!\n" );
 		success = false;
 	}
+	clock->loadMediaClock();
+	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
 }
 void PlayMode::freePlayMode(){
@@ -120,6 +123,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		serverObj = server;
 		gPlayerTexture = new LTexture();
 		healthBar = new HealthBar();
+		clock = new Clock(RoundTime);
 		initPlayers();
 		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
@@ -137,7 +141,7 @@ void PlayMode::ReInit(){
 	tileMap->waitToReceiveMap();
 	// cout<<"in\n";
 	tileMap->generateTiles(clientObj, serverObj);
-
+	clock->start();
 	// cout<<"in play\n";
 	loadMediaPlay();
 	isPaused = false;

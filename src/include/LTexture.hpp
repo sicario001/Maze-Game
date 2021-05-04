@@ -2,7 +2,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <stdio.h>
+#include <SDL2/SDL_ttf.h>
+#include <iostream>
 #include <string>
 
 #include "fwd.hpp"
@@ -24,7 +25,7 @@ class LTexture
 		
 		#if defined(SDL_TTF_MAJOR_VERSION)
 		//Creates image from font string
-		bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
+		bool loadFromRenderedText( std::string textureText, SDL_Color textColor, TTF_Font *gFont );
 		#endif
 
 		//Deallocates texture

@@ -14,16 +14,16 @@ HealthBar::HealthBar(){
     damageBar->y = y;
     BarBoundary->x = x;
     BarBoundary->y = y;
-    BarBoundary->w = (health*5);
+    BarBoundary->w = (health*SCREEN_WIDTH*2)/500;
     BarBoundary->h = (20);
     UpdateBar();
 }
 
 void HealthBar::UpdateBar(){
-    healthBar->w = (health*5);
+    healthBar->w = ((health*SCREEN_WIDTH*2)/500);
     healthBar->h = (20);
 
-    damageBar->w = ((health+damage)*5);
+    damageBar->w = ((health+damage)*SCREEN_WIDTH*2)/500;
     damageBar->h = (20);
 }
 void HealthBar::setHealth(int h){

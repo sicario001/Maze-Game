@@ -12,6 +12,8 @@ class KinematicBody;
 class Player;
 class HealthBar;
 class TileMap;
+class Clock;
+class LTimer;
 
 enum LButtonSprite
 {

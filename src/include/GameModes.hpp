@@ -10,7 +10,9 @@
 #include "TileMap.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
-
+#include "Clock.hpp"
+#include <string>
+#include <sstream>
 
 extern GameEngine* gEngine;
 
@@ -56,6 +58,7 @@ class PlayMode :public GameMode{
 		Player* player = NULL;
 		
 		bool isPaused;
+		
 		LTexture* gPlayerTexture;
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;
@@ -70,9 +73,14 @@ class PlayMode :public GameMode{
 
 		void getPlayerClip(int i,SDL_Rect &clip);
 	public:
+		int RoundTime = 120000;
+		Clock* clock = NULL;
 		Player* otherPlayer = NULL;
 		HealthBar* healthBar = NULL;
 		TileMap* tileMap = NULL;
+		LTexture* messageTextTexture = NULL;
+		TTF_Font *gFont = NULL;
+		std::stringstream messageText;
 		bool tileMapInit = false;
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
