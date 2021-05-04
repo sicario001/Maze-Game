@@ -10,6 +10,7 @@ class Entity;
 class RigidBody;
 class KinematicBody;
 class Player;
+class HealthBar;
 class TileMap;
 
 enum LButtonSprite

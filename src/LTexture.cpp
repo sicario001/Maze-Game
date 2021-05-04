@@ -150,3 +150,12 @@ int LTexture::getHeight()
 {
 	return mHeight;
 }
+void LTexture::setWidth(int w)
+{
+	mWidth = w;
+}
+
+void LTexture::setHeight(int h)
+{
+	mHeight = h;
+}

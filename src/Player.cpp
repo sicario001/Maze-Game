@@ -77,14 +77,30 @@ void KinematicBody::move()
 }
 
 void KinematicBody::handleOutOfBounds(){
-    if(( x < 0 ) || ( x + collisionRect->getW() > LEVEL_WIDTH )){
+    if(( x < -13) || ( x + collisionRect->getW() > -13 + LEVEL_WIDTH )){
         x -= lastVelX;
         lastVelX = 0;
     }
-    if(( y < 0 ) || ( y + collisionRect->getH() > LEVEL_HEIGHT)){
+    if(( y < -13 ) || ( y + collisionRect->getH() > -13 + LEVEL_HEIGHT)){
         y -= lastVelY;
         lastVelY = 0;
     }
+    // if (x<0){
+    //     x = 0;
+    //     lastVelX = 0;
+    // }
+    // else if (x + collisionRect->getW() > LEVEL_WIDTH){
+    //     x = LEVEL_WIDTH - collisionRect->getW();
+    //     lastVelX = 0;
+    // }
+    // if (y<0){
+    //     y = 0;
+    //     lastVelY = 0;
+    // }
+    // else if (y + collisionRect->getH() > LEVEL_HEIGHT){
+    //     y = LEVEL_HEIGHT - collisionRect->getH();
+    //     lastVelY = 0;
+    // }
 
     resetRotation();
     collisionRect->shift(x,y);
@@ -111,7 +127,9 @@ void KinematicBody::setPosVel(int pX, int pY, int pVelX, int pVelY){
     resetRotation();
 }
 
-Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,COLLIDER_SIZE,COLLIDER_SIZE),pTexture,pClip){}
+Player::Player(int Health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,COLLIDER_SIZE,COLLIDER_SIZE),pTexture,pClip){
+    health = Health;
+}
 
 
 void Player::handleEvent(SDL_Event &e)
@@ -155,7 +173,9 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
         }
     }
 }
-
+int Player::getHealth(){
+    return health;
+}
 void Player::resetCamera(){
     gEngine->camera->h = CAMERA_HEIGHT;
     gEngine->camera->w = CAMERA_WIDTH;

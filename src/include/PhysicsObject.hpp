@@ -104,7 +104,7 @@ public:
 
 class Player : public KinematicBody{
 private:
-
+    int health;
 public:
     Player(int health, int x, int y, LTexture* pTexture,SDL_Rect* pClip);
     

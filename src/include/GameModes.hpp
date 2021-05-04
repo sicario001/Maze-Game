@@ -6,12 +6,13 @@
 #include "LTexture.hpp"
 #include "GameEngine.hpp"
 #include "PhysicsObject.hpp"
+#include "HealthBar.hpp"
 #include "TileMap.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
 
-extern GameEngine* gEngine;
 
+extern GameEngine* gEngine;
 
 
 class GameMode{
@@ -70,6 +71,7 @@ class PlayMode :public GameMode{
 		void getPlayerClip(int i,SDL_Rect &clip);
 	public:
 		Player* otherPlayer = NULL;
+		HealthBar* healthBar = NULL;
 		TileMap* tileMap = NULL;
 		bool tileMapInit = false;
 		PlayMode();

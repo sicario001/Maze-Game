@@ -44,6 +44,9 @@ void PlayMode::update(){
 	//Render players
 	player->render();
 	otherPlayer->render();
+	healthBar->setHealth(player->getHealth());
+	healthBar->render();
+
 }
 
 bool PlayMode::loadMediaPlay()
@@ -103,6 +106,7 @@ void PlayMode::initPlayers(){
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
+	healthBar = new HealthBar();
 	initPlayers();
 };
 
@@ -115,6 +119,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		clientObj = client;
 		serverObj = server;
 		gPlayerTexture = new LTexture();
+		healthBar = new HealthBar();
 		initPlayers();
 		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
