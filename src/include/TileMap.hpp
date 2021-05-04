@@ -56,6 +56,7 @@ public:
     void render();
     void generateTiles(ClientNet* client, ServerNet* server);
     void handleCollisions(KinematicBody* body);
+    void handleBullets(KinematicBody* x);
     void updateMapfromServer(vector<int> map_vec);
     bool getReceived();
     void setReceived();

@@ -11,6 +11,7 @@ class RigidBody;
 class KinematicBody;
 class Player;
 class TileMap;
+class Bullet;
 
 enum LButtonSprite
 {
@@ -37,4 +38,8 @@ enum GameModeType{
 	RESUME,
 	PLAY,
 	QUIT
+};
+enum BulletType{
+    BROWN_BULLET,
+    RED_BULLET
 };

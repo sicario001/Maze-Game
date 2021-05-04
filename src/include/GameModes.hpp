@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <algorithm>
 #include "fwd.hpp"
 #include "LButton.hpp"
 #include "LTexture.hpp"
@@ -12,8 +13,7 @@
 
 extern GameEngine* gEngine;
 
-
-
+using namespace std;
 class GameMode{
 	public:
 		virtual void eventHandler(SDL_Event &e){}
@@ -52,12 +52,15 @@ class PauseMode :public GameMode{
 class PlayMode :public GameMode{
 	private:
 		bool openPauseMenu = false;
-		Player* player = NULL;
-		
 		bool isPaused;
-		LTexture* gPlayerTexture;
+		
+		Player* player = NULL;
+		LTexture* gPlayerTexture;    
+		LTexture* pbTexture;
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;
+
+		vector<Bullet> bullets;
 
 		void initPlayers();
 		pthread_mutex_t mutex;
@@ -75,6 +78,7 @@ class PlayMode :public GameMode{
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
+		void spawnBullet(int x, int y, int speed, double angle, BulletType bt);
 		void ReInit();
 		void enterMode();
 		void Pause();

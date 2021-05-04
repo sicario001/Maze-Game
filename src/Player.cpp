@@ -1,16 +1,103 @@
 #include "PhysicsObject.hpp"
 
+pair<int,int> CollisionRect::getVertex(int i){
+    double pi =3.1415926535;
+    double diag = sqrt(1.0*w*w+h*h)/2;
+    // if(w==36){
+    //     cout << w << " " << h << " " <<uw << " " << uh << endl;
+    // }
+    double dangle = atan2(h,w);
+    switch (i)
+    {
+    case 0:
+        dangle -= pi;
+        break;
+    case 1:
+        dangle = - dangle;
+        break;
+    case 3:
+        dangle = pi - dangle;
+        break;
+    
+    default:
+        break;
+    }
+    double x1 = 1.0*x+uw/2 + diag * cos(dangle + angle);
+    double y1 = 1.0*y+uh/2 + diag * sin(dangle + angle);
+    return {(int) x1,(int) y1};
+}
+
 bool CollisionRect::intersects(CollisionRect* collider){
-    return SDL_HasIntersection(&rect,&(collider->rect));
+    for (int x=0; x<2; x++)
+    {
+        CollisionRect* polygon = (x==0) ? this : collider;
+
+        for (int i1=0; i1<4; i1++)
+        {
+            int   i2 = (i1 + 1) % 4;
+            pair<int,int> p1 = polygon->getVertex(i1);
+            pair<int,int> p2 = polygon->getVertex(i2);
+
+            pair<int,int> normal(p2.second - p1.second, p1.first - p2.first);
+
+            double minA = __DBL_MAX__;
+            double maxA = - __DBL_MAX__;
+
+            for (int i = 0; i< 4;i++)
+            {
+                pair<int,int> p = this->getVertex(i);
+                double projected = normal.first * p.first + normal.second * p.second;
+
+                if (projected < minA)
+                    minA = projected;
+                if (projected > maxA)
+                    maxA = projected;
+            }
+
+            double minB = __DBL_MAX__;
+            double maxB = - __DBL_MAX__;
+
+            for (int i = 0; i< 4;i++)
+            {
+                pair<int,int> p = collider->getVertex(i);
+                double projected = normal.first * p.first + normal.second * p.second;
+
+                if (projected < minB)
+                    minB = projected;
+                if (projected > maxB)
+                    maxB = projected;
+            }
+
+            if (maxA < minB || maxB < minA)
+                return false;
+        }
+    }
+
+    return true;
 }
 
 void CollisionRect::render(){
-    SDL_RenderDrawRect( gEngine->gRenderer, &rect );
+    if((x < gEngine->camera->x - TILE_SIZE) || (x > gEngine->camera->x + gEngine->camera->w + TILE_SIZE)){
+        return;
+    }
+    if((y < gEngine->camera->y - TILE_SIZE) || (y > gEngine->camera->y + gEngine->camera->h + TILE_SIZE)){
+        return;
+    }
+    for(int i =0;i<4;i++){
+        pair<int,int> p1 = getVertex(i);
+        pair<int,int> p2 = getVertex((i+1)%4);
+        int x1 = (p1.first - gEngine->camera->x)*SCREEN_WIDTH/gEngine->camera->w;
+        int y1 = (p1.second - gEngine->camera->y)*SCREEN_HEIGHT/gEngine->camera->h;
+        int x2 = (p2.first - gEngine->camera->x)*SCREEN_WIDTH/gEngine->camera->w;
+        int y2 = (p2.second - gEngine->camera->y)*SCREEN_HEIGHT/gEngine->camera->h;
+        SDL_RenderDrawLine( gEngine->gRenderer, x1,y1,x2,y2 );
+    }
 }
 
-void CollisionRect::shift(int x,int y){
-    rect.x = x + PLAYER_SPRITE_W/2 - COLLIDER_SIZE/2;
-    rect.y = y + PLAYER_SPRITE_H/2 - COLLIDER_SIZE/2;
+void CollisionRect::shift(int px,int py, double pangle){
+    x = px;
+    y = py;
+    angle = pangle;
 }
 
 Entity::Entity(int pX,int pY, LTexture* pTexture, SDL_Rect* pClip){
@@ -34,9 +121,9 @@ void Entity::render(){
         return;
     }
     double scale = 1.0 * SCREEN_WIDTH / gEngine->camera->w;
-    double xOnCamera = 1.0 * (x - gEngine->camera->x)/gEngine->camera->w*SCREEN_WIDTH;
-    double yOnCamera = 1.0 * (y - gEngine->camera->y)/gEngine->camera->h*SCREEN_HEIGHT;
-    texture->render((int)xOnCamera,(int)yOnCamera,clip,scale,rotation);
+    int xOnCamera = (x - gEngine->camera->x)*SCREEN_WIDTH/gEngine->camera->w;
+    int yOnCamera = (y - gEngine->camera->y)*SCREEN_HEIGHT/gEngine->camera->h;
+    texture->render(xOnCamera,yOnCamera,clip,scale,rotation * 180 / 3.1415926535);
 }
 
 RigidBody::RigidBody(int pX,int pY, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip):Entity(pX,pY,pTexture,pClip){
@@ -57,7 +144,7 @@ KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed
 
 void KinematicBody::resetRotation(){
     if(lastVelX!=0 || lastVelY!=0){
-        rotation = atan2(lastVelY,lastVelX) * 180/3.1415926535;
+        rotation = atan2(lastVelY,lastVelX);
     }
 }
 
@@ -73,34 +160,41 @@ void KinematicBody::move()
     lastVelY = velY;
 
     resetRotation();
-    collisionRect->shift(x,y);
+    collisionRect->shift(x,y,rotation);
 }
 
-void KinematicBody::handleOutOfBounds(){
+bool KinematicBody::handleOutOfBounds(){
+    bool isOut = false;
     if(( x < 0 ) || ( x + collisionRect->getW() > LEVEL_WIDTH )){
         x -= lastVelX;
         lastVelX = 0;
+        isOut = true;
     }
     if(( y < 0 ) || ( y + collisionRect->getH() > LEVEL_HEIGHT)){
         y -= lastVelY;
         lastVelY = 0;
+        isOut = true;
     }
 
     resetRotation();
-    collisionRect->shift(x,y);
+    collisionRect->shift(x,y,rotation);
+    return isOut;
 }
 
-void KinematicBody::handleCollision(RigidBody* rb)
+bool KinematicBody::handleCollision(RigidBody* rb)
 {
+    bool collisionOccured = false;
     if(collided(rb)){
         x -= lastVelX;
         y -= lastVelY;
         lastVelX = 0;
         lastVelY = 0;
+        collisionOccured = true;
     }
 
     resetRotation();
-    collisionRect->shift(x,y);
+    collisionRect->shift(x,y,rotation);
+    return collisionOccured;
 }
 
 void KinematicBody::setPosVel(int pX, int pY, int pVelX, int pVelY){
@@ -111,11 +205,23 @@ void KinematicBody::setPosVel(int pX, int pY, int pVelX, int pVelY){
     resetRotation();
 }
 
-Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,COLLIDER_SIZE,COLLIDER_SIZE),pTexture,pClip){}
+Bullet::Bullet(int pX, int pY, int pSpeedX, int pSpeedY, int damage,LTexture* pTexture,  BulletType pType):KinematicBody(pX,pY,pSpeedX,pSpeedY,10,new CollisionRect(0,0,BULLET_COLLIDER_W,BULLET_COLLIDER_H,BULLET_SPRITE_W,BULLET_SPRITE_H),pTexture,new SDL_Rect()){
+    clip = new SDL_Rect();
+    clip->x=0;
+    clip->y=0;
+    clip->w=BULLET_SPRITE_W;
+    clip->h=BULLET_SPRITE_H;
+}
 
+Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, BulletType bt)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip),shoot(sf){
+}
 
 void Player::handleEvent(SDL_Event &e)
 {
+    if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0){
+        cout << "SHOOT!" << endl;
+        shoot(x,y,10,rotation,BROWN_BULLET);
+    }
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
     {
@@ -159,8 +265,8 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
 void Player::resetCamera(){
     gEngine->camera->h = CAMERA_HEIGHT;
     gEngine->camera->w = CAMERA_WIDTH;
-    gEngine->camera->x = x + PLAYER_SPRITE_W/2 - CAMERA_WIDTH/2;
-    gEngine->camera->y = y + PLAYER_SPRITE_H/2 - CAMERA_HEIGHT/2;
+    gEngine->camera->x = x + PLAYER_SPRITE_SIZE/2 - CAMERA_WIDTH/2;
+    gEngine->camera->y = y + PLAYER_SPRITE_SIZE/2 - CAMERA_HEIGHT/2;
     gEngine->camera->x = max(gEngine->camera->x,0);
     gEngine->camera->y = max(gEngine->camera->y,0);
     gEngine->camera->x = min(gEngine->camera->x,LEVEL_WIDTH-CAMERA_WIDTH);

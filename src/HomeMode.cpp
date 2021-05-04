@@ -1,5 +1,4 @@
 #include "GameModes.hpp"
-
 HomeMode::HomeMode(){
 	gButtonSpriteSheetTexture = new LTexture();
 	//Set sprites

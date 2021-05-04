@@ -1,5 +1,11 @@
 #include "GameModes.hpp"
 
+void PlayMode::spawnBullet(int x, int y, int speed, double angle,BulletType bt){
+	int speedX = (int) speed * cos(angle);
+	int speedY = (int) speed * sin(angle);
+	bullets.push_back(Bullet(x,y,speedX,speedY,10,pbTexture,bt));
+}
+
 void PlayMode::eventHandler(SDL_Event& e){
 	if( e.type == SDL_KEYDOWN && e.key.repeat==0)
     {
@@ -40,7 +46,30 @@ void PlayMode::update(){
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
 	
+	player->getCollisionRect()->render();
 	
+	for (Bullet& x : bullets)
+	{
+		// cout << "BULLET!" << endl;
+		x.move();
+		tileMap->handleBullets(&x);
+		if(x.isActive){
+			// cout << x.getPosX() << " " << x.getPosY() << endl;
+			x.render();
+			x.getCollisionRect()->render();
+		}
+	}
+	
+	bullets.erase(std::remove_if(bullets.begin(),bullets.end(),[](Bullet x){
+		// if(x.isActive || x.handleOutOfBounds()){
+		// 	cout << "active"<<endl;
+		// }
+		// else{
+		// 	cout << "inactive" << endl;
+		// }
+		return !x.isActive || x.handleOutOfBounds();
+	}),bullets.end());
+	// cout << bullets.size();
 	//Render players
 	player->render();
 	otherPlayer->render();
@@ -50,7 +79,12 @@ bool PlayMode::loadMediaPlay()
 {
 	//Loading success flag
 	bool success = true;
-
+	//Load player bullet texture
+	if( !pbTexture->loadFromFile( "media/texture/bulletBeige_outline.png" ) )
+	{
+		printf( "Failed to load player texture!\n" );
+		success = false;
+	}
 	//Load player texture
 	if( !gPlayerTexture->loadFromFile( "media/texture/spritesheet.png" ) )
 	{
@@ -67,6 +101,7 @@ bool PlayMode::loadMediaPlay()
 }
 void PlayMode::freePlayMode(){
 	gPlayerTexture->free();
+	pbTexture->free();
 	delete (player);
 	delete (otherPlayer);
 	delete (tileMap);
@@ -76,13 +111,16 @@ void PlayMode::freePlayMode(){
 }
 
 void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
-	clip.h= PLAYER_SPRITE_H;
-	clip.w= PLAYER_SPRITE_W;
+	clip.h= PLAYER_SPRITE_SIZE;
+	clip.w= PLAYER_SPRITE_SIZE;
 	clip.x=0;
-	clip.y = (3 +6*i)*PLAYER_SPRITE_H;
+	clip.y = (3 +6*i)*PLAYER_SPRITE_SIZE;
 }
 
 void PlayMode::initPlayers(){
+	auto sf = [this](int x, int y, int speed, double angle, BulletType bt){
+		spawnBullet(x,y,speed,angle,bt);
+	};
 	SDL_Rect clip1,clip2;
 	int server_start_pos_x = 0;
 	int server_start_pos_y = 0;
@@ -91,18 +129,19 @@ void PlayMode::initPlayers(){
 	if (clientObj!=NULL){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);
-		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1);
-		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2);
+		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf);
+		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf);
 	}
 	else{
 		getPlayerClip(SOLDIER,clip1);
 		getPlayerClip(SURVIVOR,clip2);
-		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1);
-		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2);
+		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf);
+		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf);
 	}
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
+	pbTexture = new LTexture();
 	initPlayers();
 };
 
@@ -115,6 +154,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		clientObj = client;
 		serverObj = server;
 		gPlayerTexture = new LTexture();
+		pbTexture = new LTexture();
 		initPlayers();
 		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
@@ -124,6 +164,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 void PlayMode::ReInit(){
 	
 	gPlayerTexture = new LTexture();
+	pbTexture = new LTexture();
 	initPlayers();
 	deInitTileMap();
 	

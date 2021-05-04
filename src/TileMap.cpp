@@ -376,6 +376,7 @@ void TileMap::render(){
     }
     for(int i = 0; i < (int) walls.size();i++){
         walls[i].render();
+        walls[i].getCollisionRect()->render();
     }
 }
 
@@ -383,6 +384,15 @@ void TileMap::render(){
 void TileMap::handleCollisions(KinematicBody* body){
     for(int i = 0; i < (int) walls.size(); i++){
 	    body->handleCollision(&walls[i]);
+    }
+}
+
+void TileMap::handleBullets(KinematicBody* x){
+    for(int i = 0; i < (int) walls.size(); i++){
+        if(x->handleCollision(&walls[i])){
+            x->isActive = false;
+            break;
+        }
     }
 }
 

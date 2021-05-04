@@ -1,12 +1,19 @@
 #pragma once
 #include <SDL2/SDL_image.h>
+#include <vector>
+#include <functional>
 #include "LTexture.hpp"
 #include "ClientNet.hpp"
 #include "ServerNet.hpp"
 
-const int PLAYER_SPRITE_W = 71;
-const int PLAYER_SPRITE_H = 71;
-const int COLLIDER_SIZE = 45;
+using namespace std;
+
+const int PLAYER_SPRITE_SIZE = 71;
+const int PLAYER_COLLIDER_SIZE = 45;
+const int BULLET_SPRITE_H = 20;
+const int BULLET_SPRITE_W = 34;
+const int BULLET_COLLIDER_H = 18;
+const int BULLET_COLLIDER_W = 36;
 
 enum PlayerSpriteType{
 	HITMAN,
@@ -33,7 +40,7 @@ public:
     ~Entity();
     Entity(int x, int y, LTexture* pTexture, SDL_Rect* clip);
 
-    bool isActive;
+    bool isActive = true;
     
     int getPosX(){return x;}
     int getPosY(){return y;}
@@ -46,21 +53,31 @@ extern GameEngine* gEngine;
 
 class CollisionRect{
     private:
-        SDL_Rect rect;
+        int x,y,w,h,uw,uh;
+        double angle;
+        pair<int,int> getVertex(int i);
     public:
         CollisionRect();
-        CollisionRect(int x,int y, int w,int h){
-            rect.x=x;
-            rect.y=y;
-            rect.w=w;
-            rect.h=h;
+        CollisionRect(int px,int py, int pw,int ph, int puw=-1,int puh=-1){
+            x=px;
+            y=py;
+            w=pw;
+            h=ph;
+            uw = puw;
+            uh = puh;
+            if(puw==-1){
+                uw=w;
+            }
+            if(puh==-1){
+                uh=h;
+            }
         }
-        void shift(int x,int y);
+        void shift(int x,int y, double angle);
         int getH(){
-            return rect.h;
+            return h;
         }
         int getW(){
-            return rect.w;
+            return w;
         }
         bool intersects(CollisionRect* collider);
         // to debug collision areas
@@ -96,17 +113,25 @@ public:
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void move();
     // handle collision with a body, move back a step
-    void handleCollision(RigidBody* rb);
+    bool handleCollision(RigidBody* rb);
     // check if outside window
-    void handleOutOfBounds();
+    bool handleOutOfBounds();
 };
 
+class Bullet : public KinematicBody{
+private:
+    int damage;
+public:
+    Bullet();
+    Bullet(int x, int y, int pSpeedX, int pSpeedY,int damage,LTexture* pTexture, BulletType pType);
+};
 
 class Player : public KinematicBody{
 private:
+    function <void(int x,int y, int speed, double angle, BulletType bt)> shoot;
 
 public:
-    Player(int health, int x, int y, LTexture* pTexture,SDL_Rect* pClip);
+    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, BulletType bt)> shootFunc);
     
     void damage(int x);
     int getHealth();
