@@ -67,6 +67,11 @@ bool GameEngine::init()
 					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 					success = false;
 				}
+				if( TTF_Init() == -1 )
+				{
+					printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
+					success = false;
+				}
 			}
 		}
 	}
@@ -91,12 +96,16 @@ void GameEngine::runLoop(){
 			//Handle input for the player
 			gMode->eventHandler(e);
 		}
-
+		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
+			if (playMode->clock->timeOver()){
+				setGameMode(HOME);
+			}
+		}
 		//Clear screen
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
-
 		gMode->update();
+		
 		// cout<<currMode<<"\n";
 		//Update screen
 		SDL_RenderPresent( gEngine->gRenderer );
@@ -114,6 +123,7 @@ void GameEngine::runLoop(){
 	//Quit SDL subsystems
 	IMG_Quit();
 	SDL_Quit();
+	TTF_Quit();
 }
 void GameEngine::updateOtherPlayer(std::vector<int> &data){
 	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){

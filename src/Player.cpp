@@ -112,14 +112,14 @@ Entity::~Entity(){
     texture = NULL;
     clip = NULL;
 }
-void Entity::render(){
+void Entity::render(double pre_scale){
     if((x < gEngine->camera->x - TILE_SIZE) || (x > gEngine->camera->x + gEngine->camera->w + TILE_SIZE)){
         return;
     }
     if((y < gEngine->camera->y - TILE_SIZE) || (y > gEngine->camera->y + gEngine->camera->h + TILE_SIZE)){
         return;
     }
-    double scale = 1.0 * SCREEN_WIDTH / gEngine->camera->w;
+    double scale = 1.0 * pre_scale * SCREEN_WIDTH / gEngine->camera->w;
     int xOnCamera = (x - gEngine->camera->x)*SCREEN_WIDTH/gEngine->camera->w;
     int yOnCamera = (y - gEngine->camera->y)*SCREEN_HEIGHT/gEngine->camera->h;
     texture->render(xOnCamera,yOnCamera,clip,scale,rotation * 180 / 3.1415926535);
@@ -146,31 +146,47 @@ KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed
 
 void KinematicBody::move()
 {
-    //Move the body left or right
-    x += velX;
+    if (canMove){
+        //Move the body left or right
+        x += velX;
 
-    //Move the body up or down
-    y += velY;
+        //Move the body up or down
+        y += velY;
 
-    lastVelX = velX;
-    lastVelY = velY;
-
+        lastVelX = velX;
+        lastVelY = velY;
+    }
     collisionRect->shift(x,y);
+}
+
+void KinematicBody::stopMovement(){
+    canMove = false;
+}
+void KinematicBody::allowMovement(){
+    canMove = true;
+}
+bool KinematicBody::inVicinity(std::pair<int, int>obj, int pix_dis){
+    int distance_sq = (x-obj.first)*(x-obj.first)+ (y-obj.second)*(y-obj.second);
+    if (distance_sq<=(pix_dis*pix_dis)){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 bool KinematicBody::handleOutOfBounds(){
     bool isOut = false;
-    if(( x < 0 ) || ( x + collisionRect->getW() > LEVEL_WIDTH )){
+    if(( x < -13) || ( x + collisionRect->getW() > -13 + LEVEL_WIDTH )){
         x -= lastVelX;
         lastVelX = 0;
         isOut = true;
     }
-    if(( y < 0 ) || ( y + collisionRect->getH() > LEVEL_HEIGHT)){
+    if(( y < -13 ) || ( y + collisionRect->getH() > -13 + LEVEL_HEIGHT)){
         y -= lastVelY;
         lastVelY = 0;
         isOut = true;
     }
-
     collisionRect->shift(x,y);
     return isOut;
 }
@@ -238,7 +254,9 @@ void Bullet::onHit(){
     
 }
 
-Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip),shoot(sf){
+Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
+    shoot = sf;
+    health = pHealth;
 }
 
 void Player::damage(int d){
@@ -318,7 +336,9 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
         }
     }
 }
-
+int Player::getHealth(){
+    return health;
+}
 void Player::resetCamera(){
     gEngine->camera->h = CAMERA_HEIGHT;
     gEngine->camera->w = CAMERA_WIDTH;

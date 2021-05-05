@@ -7,9 +7,14 @@
 #include "LTexture.hpp"
 #include "GameEngine.hpp"
 #include "PhysicsObject.hpp"
+#include "HealthBar.hpp"
+#include "ProgressBar.hpp"
 #include "TileMap.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
+#include "Clock.hpp"
+#include <string>
+#include <sstream>
 
 extern GameEngine* gEngine;
 
@@ -73,8 +78,25 @@ class PlayMode :public GameMode{
 		void getPlayerClip(int i,SDL_Rect &clip);
 	public:
 		Player* player = NULL;
+		PlayerObj playerObj;
+		BombState bombState;
+		std::pair<int, int> bombLocation = {-1, -1};
+		int RoundTime = 120000;
+		void sendBombState();
+		void sendBombLocation();
+		void bombPlanted(std::pair<int, int> location);
+		void bombDefused();
+		void updateBombState(int state);
+		LTexture* bombTexture = NULL;
+		Entity* bomb = NULL;
+		Clock* clock = NULL;
 		Player* otherPlayer = NULL;
+		HealthBar* healthBar = NULL;
+		ProgressBar* progressBar = NULL;
 		TileMap* tileMap = NULL;
+		LTexture* messageTextTexture = NULL;
+		TTF_Font *gFont = NULL;
+		std::stringstream messageText;
 		bool tileMapInit = false;
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);

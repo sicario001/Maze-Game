@@ -46,7 +46,8 @@ public:
     int getPosX(){return x;}
     int getPosY(){return y;}
 
-    void render();
+    void render(double pre_scale = 1.0);
+    void renderCustom(SDL_Rect* renderQuad);
 };
 
 extern GameEngine* gEngine;
@@ -108,16 +109,20 @@ protected:
     int lastVelX=0;
     int lastVelY=0;
     int speed;
+    bool canMove = true;
 public:
     KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void setRotation(int deg);
     void move();
+    void stopMovement();
+    void allowMovement();
     // handle collision with a body, move back a step
     bool handleCollision(RigidBody* rb);
     // check if outside window
     bool handleOutOfBounds();
+    bool inVicinity(std::pair<int, int> object, int pix_dis = 30);
 };
 
 class Bullet : public KinematicBody{

@@ -27,5 +27,8 @@ class ClientNet{
         void SendDataPosVelDeg(ENetPeer* peer, int x, int y, int velX, int velY, int deg);
         void SendDataBulletPosVel(ENetPeer* peer, int x, int y, int speedX, int speedY);
         void SendHit(ENetPeer* peer, int damage);
+        void SendBombState(int state);
+        void SendBombLocation(std::pair<int, int> location);
+
 };
 void* ReceiveLoop(void* param);

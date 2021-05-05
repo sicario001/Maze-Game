@@ -2,7 +2,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <stdio.h>
+#include <SDL2/SDL_ttf.h>
+#include <iostream>
 #include <string>
 
 #include "fwd.hpp"
@@ -14,7 +15,7 @@ class LTexture
 {
 	public:
 		//Initializes variables
-		LTexture();
+		LTexture(double scale = 1.0);
 
 		//Deallocates memory
 		~LTexture();
@@ -24,7 +25,7 @@ class LTexture
 		
 		#if defined(SDL_TTF_MAJOR_VERSION)
 		//Creates image from font string
-		bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
+		bool loadFromRenderedText( std::string textureText, SDL_Color textColor, TTF_Font *gFont );
 		#endif
 
 		//Deallocates texture
@@ -45,6 +46,8 @@ class LTexture
 		//Gets image dimensions
 		int getWidth();
 		int getHeight();
+		void setWidth(int w);
+		void setHeight(int h);
 
 	private:
 		//The actual hardware texture
@@ -52,5 +55,6 @@ class LTexture
 
 		//Image dimensions
 		int mWidth;
+		double pre_scale;
 		int mHeight;
 };

@@ -87,7 +87,16 @@ void ClientNet::SendHit(ENetPeer* peer, int damage){
     sprintf(send_data, "3|%d", damage);
     SendPacket(peer, send_data);
 }
-
+void ClientNet::SendBombState(int state){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "4|%d", state);
+    SendPacket(peer, send_data);
+}
+void ClientNet::SendBombLocation(std::pair <int, int> location){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "5|%d|%d", location.first, location.second);
+    SendPacket(peer, send_data);
+}
 void ClientNet::SendPacket(ENetPeer* peer, const char* data)
 {
     // Create the packet using enet_packet_create and the data we want to send
@@ -134,6 +143,18 @@ std::vector<int> ClientNet::Parsedata(char* data){
             int damage;
             sscanf(data, "3|%d", &damage);
             return{3, damage};
+        }
+        case 4:
+        {
+            int state;
+            sscanf(data, "4|%d", &state);
+            return {4, state};
+        }
+        case 5:
+        {
+            int x, y;
+            sscanf(data, "5|%d|%d", &x, &y);
+            return {5, x, y};   
         }
         default:
             return {};

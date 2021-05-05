@@ -72,6 +72,17 @@ void ServerNet::SendHit(ENetPeer* peer, int damage){
     SendPacket(peer, send_data);
 }
 
+void ServerNet::SendBombState(int state){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "4|%d", state);
+    SendPacket(peer, send_data);
+}
+void ServerNet::SendBombLocation(std::pair <int, int> location){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "5|%d|%d", location.first, location.second);
+    SendPacket(peer, send_data);
+}
+
 void ServerNet::SendPacket(ENetPeer* peer, const char* data)
 {
     // Create the packet using enet_packet_create and the data we want to send
@@ -93,6 +104,18 @@ std::vector<int> ServerNet::Parsedata(int id, char* data){
             int x, y, velX, velY, deg;
             sscanf(data, "0|%d|%d|%d|%d|%d", &x, &y, &velX, &velY, &deg);
             return{0, x, y, velX, velY, deg};
+        }            
+        case 1:
+        {
+            char map_arr[1024];
+            int total_len;
+            sscanf(data, "1|%d|%s", &total_len, map_arr);
+            std::vector<int> ret_vec(total_len+1);
+            ret_vec[0] = 1;
+            for (int i=1; i<total_len+1; i++){
+                ret_vec[i] = (map_arr[i-1]=='1' ? 1:0);
+            }
+            return ret_vec;
         }
         case 2:
         {
@@ -105,6 +128,18 @@ std::vector<int> ServerNet::Parsedata(int id, char* data){
             int damage;
             sscanf(data, "3|%d", &damage);
             return{3, damage};
+        }
+        case 4:
+        {
+            int state;
+            sscanf(data, "4|%d", &state);
+            return {4, state};
+        }
+        case 5:
+        {
+            int x, y;
+            sscanf(data, "5|%d|%d", &x, &y);
+            return {5, x, y};   
         }
         default:
             return {};

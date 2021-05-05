@@ -1,11 +1,12 @@
 #include "LTexture.hpp"
 
-LTexture::LTexture()
+LTexture::LTexture(double scale)
 {
 	//Initialize
 	mTexture = NULL;
 	mWidth = 0;
 	mHeight = 0;
+	pre_scale = scale;
 }
 
 LTexture::~LTexture()
@@ -31,7 +32,7 @@ bool LTexture::loadFromFile( std::string path )
 	else
 	{
 		//Color key image
-		SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xFF, 0xFF ) );
+		SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0xFF, 0xFF, 0xFF ) );
 
 		//Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface( gEngine->gRenderer, loadedSurface );
@@ -42,8 +43,8 @@ bool LTexture::loadFromFile( std::string path )
 		else
 		{
 			//Get image dimensions
-			mWidth = loadedSurface->w;
-			mHeight = loadedSurface->h;
+			mWidth = (int)(pre_scale*loadedSurface->w);
+			mHeight = (int)(pre_scale*loadedSurface->h);
 		}
 
 		//Get rid of old loaded surface
@@ -56,8 +57,9 @@ bool LTexture::loadFromFile( std::string path )
 }
 
 #if defined(SDL_TTF_MAJOR_VERSION)
-bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColor )
+bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColor, TTF_Font *gFont)
 {
+	
 	//Get rid of preexisting texture
 	free();
 
@@ -148,4 +150,13 @@ int LTexture::getWidth()
 int LTexture::getHeight()
 {
 	return mHeight;
+}
+void LTexture::setWidth(int w)
+{
+	mWidth = w;
+}
+
+void LTexture::setHeight(int h)
+{
+	mHeight = h;
 }

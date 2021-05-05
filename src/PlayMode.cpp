@@ -22,14 +22,53 @@ void PlayMode::spawnBullet(int x, int y, int speed, double angle, int damage){
 }
 
 void PlayMode::eventHandler(SDL_Event& e){
-	if( e.type == SDL_KEYDOWN && e.key.repeat==0)
+	if( e.type == SDL_KEYDOWN)
     {
         switch( e.key.keysym.sym )
         {
             case SDLK_ESCAPE: openPauseMenu = true; break;
+			case SDLK_e:
+			{
+				if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
+					progressBar = new ProgressBar(10000);
+					if (playerObj==ATTACK){
+						bombState = PLANTING;
+						player->stopMovement();
+						sendBombState();
+					}
+					else{
+						bombState = DEFUSING;
+						player->stopMovement();
+						sendBombState();
+					}
+					player->stopMovement();
+				}
+			}
         }
     }
+	if (e.type == SDL_KEYUP){
+		switch(e.key.keysym.sym){
+			case SDLK_e:
+			{
+				if (progressBar!=NULL){
+					delete(progressBar);
+					progressBar = NULL;
+					if (playerObj==ATTACK){
+						bombState = IDLE;
+						player->allowMovement();
+						sendBombState();
+					}
+					else{
+						bombState = PLANTED;
+						player->allowMovement();
+						sendBombState();
+					}
+				}
+			}
+		}
+	}
 	player->handleEvent(e);
+
 }
 
 void PlayMode::update(){
@@ -40,6 +79,24 @@ void PlayMode::update(){
 		return;
 	}
 	// cout<<"in\n";
+	
+	// handle movement of otherPlayer
+	if (playerObj!=ATTACK){
+		if (bombState==PLANTING){
+			otherPlayer->stopMovement();
+		}
+		else{
+			otherPlayer->allowMovement();
+		}
+	}
+	else{
+		if (bombState==DEFUSING){
+			otherPlayer->stopMovement();
+		}
+		else{
+			otherPlayer->allowMovement();
+		}
+	}
 	//Move the players
 	player->move();
 	otherPlayer->move();
@@ -57,12 +114,17 @@ void PlayMode::update(){
 
 	player->resetCamera();
 
+	
 	//Render wall
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
 	
 	// player->getCollisionRect()->render();
 	// otherPlayer->getCollisionRect()->render();
+
+	if (bomb!=NULL){
+		bomb->render();
+	}
 	
 	otherPlayer->render();
 
@@ -116,6 +178,75 @@ void PlayMode::update(){
 	otherPlayerBullets.erase(std::remove_if(otherPlayerBullets.begin(),otherPlayerBullets.end(),[](Bullet& x){
 		return (!x.isActive) || x.handleOutOfBounds();
 	}),otherPlayerBullets.end());
+	healthBar->setHealth(player->getHealth());
+	healthBar->render();
+	clock->render();
+	if (progressBar!=NULL){
+		if (progressBar->isComplete()){
+			delete(progressBar);
+			progressBar = NULL;
+			if (playerObj==ATTACK){
+				bombState = PLANTED;
+				player->allowMovement();
+				bombPlanted({player->getPosX(), player->getPosY()});
+				sendBombState();
+				sendBombLocation();
+			}
+			else{
+				bombState = DEFUSED;
+				player->allowMovement();
+				sendBombState();
+			}
+		}
+		else{
+			progressBar->render();
+		}
+	}
+}
+
+void PlayMode::sendBombState(){
+	if (clientObj!=NULL){
+		clientObj->SendBombState(bombState);
+	}
+	else{
+		serverObj->SendBombState(bombState);
+	}
+}
+void PlayMode::sendBombLocation(){
+	if (clientObj!=NULL){
+		clientObj->SendBombLocation(bombLocation);
+	}
+	else{
+		serverObj->SendBombLocation(bombLocation);
+	}
+}
+
+void PlayMode::bombPlanted(std::pair<int, int> location){
+	cout << "planted" << endl;
+	bombLocation = location;
+	clock->reset(60000);
+	bomb = new Entity((location.first)+(bombTexture->getWidth())/2, (location.second)+(bombTexture->getHeight())/2, bombTexture, NULL);
+}
+void PlayMode::bombDefused(){
+
+}
+void PlayMode::updateBombState(int state){
+	if (state==0){
+		bombState = IDLE;
+	}
+	else if (state==1){
+		bombState = PLANTING;
+	}
+	else if (state==2){
+		bombState = PLANTED;
+	}
+	else if (state==3){
+		bombState = DEFUSING;
+	}
+	else{
+		bombState = DEFUSED;
+		bombDefused();
+	}
 }
 
 bool PlayMode::loadMediaPlay()
@@ -134,20 +265,30 @@ bool PlayMode::loadMediaPlay()
 		printf( "Failed to load player texture!\n" );
 		success = false;
 	}
+	if( !bombTexture->loadFromFile( "media/texture/c4.png" ) )
+	{
+		printf( "Failed to load player texture!\n" );
+		success = false;
+	}
 	//Load wall texture
 	if( !tileMap->loadTexture() )
 	{
 		printf( "Failed to load tile sheet texture!\n" );
 		success = false;
 	}
+	clock->loadMediaClock();
+	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
 }
 void PlayMode::freePlayMode(){
 	gPlayerTexture->free();
 	pbTexture->free();
+	bombTexture->free();
 	delete (player);
 	delete (otherPlayer);
 	delete (tileMap);
+	delete (bomb);
+	bomb = NULL;
 	player = NULL;
 	otherPlayer = NULL;
 	tileMap = NULL;
@@ -174,17 +315,21 @@ void PlayMode::initPlayers(){
 		getPlayerClip(SOLDIER,clip2);
 		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf);
 		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf);
+		playerObj = ATTACK;
 	}
 	else{
 		getPlayerClip(SOLDIER,clip1);
 		getPlayerClip(SURVIVOR,clip2);
 		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf);
 		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf);
+		playerObj = DEFEND;
 	}
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
 	pbTexture = new LTexture();
+	bombTexture = new LTexture(0.1);
+	healthBar = new HealthBar();
 	initPlayers();
 };
 
@@ -196,8 +341,12 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		// std::cout<<"PlayMode Initialized\n";
 		clientObj = client;
 		serverObj = server;
+		bombState = IDLE;
 		gPlayerTexture = new LTexture();
 		pbTexture = new LTexture();
+		bombTexture = new LTexture(0.1);
+		healthBar = new HealthBar();
+		clock = new Clock();
 		initPlayers();
 		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
@@ -205,10 +354,12 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 	}
 }
 void PlayMode::ReInit(){
-	
+	bombState = IDLE;
 	gPlayerTexture = new LTexture();
 	pbTexture = new LTexture();
+	bombTexture = new LTexture(0.1);
 	initPlayers();
+	player->allowMovement();
 	deInitTileMap();
 	
 	tileMap = new TileMap(clientObj, serverObj);
@@ -216,7 +367,7 @@ void PlayMode::ReInit(){
 	tileMap->waitToReceiveMap();
 	// cout<<"in\n";
 	tileMap->generateTiles(clientObj, serverObj);
-
+	clock->reset(RoundTime);
 	// cout<<"in play\n";
 	loadMediaPlay();
 	isPaused = false;
