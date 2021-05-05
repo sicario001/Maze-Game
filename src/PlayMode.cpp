@@ -99,7 +99,7 @@ void PlayMode::update(){
 	tileMap->render();
 
 	if (bomb!=NULL){
-		bomb->render(0.1);
+		bomb->render();
 	}
 	
 	//Render players
@@ -153,7 +153,7 @@ void PlayMode::sendBombLocation(){
 void PlayMode::bombPlanted(std::pair<int, int> location){
 	bombLocation = location;
 	clock->reset(60000);
-	bomb = new Entity((location.first), (location.second), bombTexture, NULL);
+	bomb = new Entity((location.first)+(bombTexture->getWidth())/2, (location.second)+(bombTexture->getHeight())/2, bombTexture, NULL);
 
 }
 void PlayMode::bombDefused(){
@@ -247,7 +247,7 @@ void PlayMode::initPlayers(){
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
-	bombTexture = new LTexture();
+	bombTexture = new LTexture(0.1);
 	healthBar = new HealthBar();
 	initPlayers();
 };
@@ -262,7 +262,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		serverObj = server;
 		bombState = IDLE;
 		gPlayerTexture = new LTexture();
-		bombTexture = new LTexture();
+		bombTexture = new LTexture(0.1);
 		healthBar = new HealthBar();
 		clock = new Clock();
 		initPlayers();
@@ -274,7 +274,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 void PlayMode::ReInit(){
 	bombState = IDLE;
 	gPlayerTexture = new LTexture();
-	bombTexture = new LTexture();
+	bombTexture = new LTexture(0.1);
 	initPlayers();
 	player->allowMovement();
 	deInitTileMap();

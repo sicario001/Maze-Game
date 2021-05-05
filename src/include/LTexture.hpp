@@ -15,7 +15,7 @@ class LTexture
 {
 	public:
 		//Initializes variables
-		LTexture();
+		LTexture(double scale = 1.0);
 
 		//Deallocates memory
 		~LTexture();
@@ -55,5 +55,6 @@ class LTexture
 
 		//Image dimensions
 		int mWidth;
+		double pre_scale;
 		int mHeight;
 };
