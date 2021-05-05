@@ -40,6 +40,12 @@ void* RunLoop(void* param){
 						if (received_data[0]==0){
 							gEngine->updateOtherPlayer(received_data);
 						}
+						else if (received_data[0]==2){
+							gEngine->playMode->updateBombState(received_data[1]);
+						}
+						else if (received_data[0]==3){
+							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
+						}
 						enet_packet_destroy(event.packet);
 						break;
 					}
@@ -75,10 +81,16 @@ void* ReceiveLoop(void* param){
 						if (received_data[0]==0){
 							gEngine->updateOtherPlayer(received_data);
 						}
-						else{
+						else if(received_data[0]==1){
 							gEngine->playMode->waitForInitTileMap();
 
 							gEngine->updateMapfromServer(received_data);
+						}
+						else if (received_data[0]==2){
+							gEngine->playMode->updateBombState(received_data[1]);
+						}
+						else if (received_data[0]==3){
+							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
 						}
 						enet_packet_destroy(event.packet);
 

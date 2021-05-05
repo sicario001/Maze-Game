@@ -1,11 +1,17 @@
 #include "Clock.hpp"
 
-Clock::Clock(int totalTime){
+Clock::Clock(){
     gTimeTextTexture = new LTexture();
     timer = new LTimer();
     background = new LTexture();
-    RoundTime =  totalTime;
+    running = false;
 
+}
+void Clock::reset(int totalTime){
+    running = true;
+    timer->stop();
+    RoundTime = totalTime;
+    start();
 }
 void Clock::render(){
     timeText.str( "" );
@@ -28,4 +34,15 @@ void Clock::loadMediaClock(){
 		printf( "Failed to load clock texture!\n" );
 	}
 
+}
+bool Clock::isRunning(){
+    return running;
+}
+bool Clock::timeOver(){
+    if (running){
+        if ((int)timer->getTicks()>RoundTime){
+            return true;
+        }
+    }
+    return false;
 }

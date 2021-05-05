@@ -97,14 +97,13 @@ void GameEngine::runLoop(){
 			gMode->eventHandler(e);
 		}
 		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-			if (playMode->clock->getTime() > playMode->RoundTime){
+			if (playMode->clock->timeOver()){
 				setGameMode(HOME);
 			}
 		}
 		//Clear screen
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
-
 		gMode->update();
 		
 		// cout<<currMode<<"\n";

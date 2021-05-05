@@ -25,6 +25,8 @@ class ClientNet{
         void SendPacket(ENetPeer* peer, const char* data);
         std::vector<int> Parsedata(char* data);
         void SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY);
+        void SendBombState(int state);
+        void SendBombLocation(std::pair<int, int> location);
 
 };
 void* ReceiveLoop(void* param);

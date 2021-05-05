@@ -8,7 +8,7 @@
 
 class Clock{
     private:
-        int RoundTime;
+        bool running;
         LTimer* timer = NULL;
 		LTexture* gTimeTextTexture = NULL;
 		std::stringstream timeText;
@@ -16,12 +16,15 @@ class Clock{
 		TTF_Font *gFont = NULL;
 
     public:
-        Clock(int totalTime);
+        Clock();
         ~Clock();
         void start();
+        int RoundTime;
+        void reset(int totalTime);
         int getTime();
         void render();
         void loadMediaClock();
-
+        bool timeOver();
+        bool isRunning();
 
 };

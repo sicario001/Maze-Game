@@ -42,6 +42,16 @@ void ServerNet::SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY)
     sprintf(send_data, "0|%d|%d|%d|%d", x, y, velX, velY);
     SendPacket(peer, send_data);
 }
+void ServerNet::SendBombState(int state){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "2|%d", state);
+    SendPacket(peer, send_data);
+}
+void ServerNet::SendBombLocation(std::pair <int, int> location){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "3|%d|%d", location.first, location.second);
+    SendPacket(peer, send_data);
+}
 
 void ServerNet::SendMap(ENetPeer* peer, std::vector<std::vector<bool>> &map){
     char send_data[1024] = {'\0'};
@@ -74,9 +84,43 @@ void ServerNet::SendPacket(ENetPeer* peer, const char* data)
 std::vector<int> ServerNet::Parsedata(int id, char* data){
     //std::cout<<"PARSE: "<<data<<"\n";
 
-    int x, y, velX, velY;
-    sscanf(data, "0|%d|%d|%d|%d", &x, &y, &velX, &velY);
-    return {0, x, y, velX, velY};
+    int data_type;
+    sscanf(data, "%d|", &data_type);
+    switch(data_type){
+        case 0:
+        {
+            int x, y, velX, velY;
+            sscanf(data, "0|%d|%d|%d|%d", &x, &y, &velX, &velY);
+            return{0, x, y, velX, velY};
+        }
+            
+        case 1:
+        {
+            char map_arr[1024];
+            int total_len;
+            sscanf(data, "1|%d|%s", &total_len, map_arr);
+            std::vector<int> ret_vec(total_len+1);
+            ret_vec[0] = 1;
+            for (int i=1; i<total_len+1; i++){
+                ret_vec[i] = (map_arr[i-1]=='1' ? 1:0);
+            }
+            return ret_vec;
+        }
+        case 2:
+        {
+            int state;
+            sscanf(data, "2|%d", &state);
+            return {2, state};
+        }
+        case 3:
+        {
+            int x, y;
+            sscanf(data, "3|%d|%d", &x, &y);
+            return {3, x, y};   
+        }
+        default:
+            return {};
+    }
 }
 
 int ServerNet::Destroy(){

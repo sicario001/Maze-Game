@@ -38,7 +38,7 @@ public:
     int getPosX(){return x;}
     int getPosY(){return y;}
 
-    void render();
+    void render(double pre_scale = 1.0);
     void renderCustom(SDL_Rect* renderQuad);
 };
 
@@ -88,6 +88,7 @@ protected:
     int lastVelX=0;
     int lastVelY=0;
     int speed;
+    bool canMove = true;
     // reset rotation based on current velocity
     void resetRotation();
 public:
@@ -95,10 +96,13 @@ public:
 
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void move();
+    void stopMovement();
+    void allowMovement();
     // handle collision with a body, move back a step
     void handleCollision(RigidBody* rb);
     // check if outside window
     void handleOutOfBounds();
+    bool inVicinity(std::pair<int, int> object, int pix_dis = 30);
 };
 
 

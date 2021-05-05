@@ -74,7 +74,16 @@ void ClientNet::SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY)
     sprintf(send_data, "0|%d|%d|%d|%d", x, y, velX, velY);
     SendPacket(peer, send_data);
 }
-
+void ClientNet::SendBombState(int state){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "2|%d", state);
+    SendPacket(peer, send_data);
+}
+void ClientNet::SendBombLocation(std::pair <int, int> location){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "3|%d|%d", location.first, location.second);
+    SendPacket(peer, send_data);
+}
 void ClientNet::SendPacket(ENetPeer* peer, const char* data)
 {
     // Create the packet using enet_packet_create and the data we want to send
@@ -109,6 +118,18 @@ std::vector<int> ClientNet::Parsedata(char* data){
                 ret_vec[i] = (map_arr[i-1]=='1' ? 1:0);
             }
             return ret_vec;
+        }
+        case 2:
+        {
+            int state;
+            sscanf(data, "2|%d", &state);
+            return {2, state};
+        }
+        case 3:
+        {
+            int x, y;
+            sscanf(data, "3|%d|%d", &x, &y);
+            return {3, x, y};   
         }
         default:
             return {};

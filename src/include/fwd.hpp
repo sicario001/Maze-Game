@@ -14,6 +14,7 @@ class HealthBar;
 class TileMap;
 class Clock;
 class LTimer;
+class ProgressBar;
 
 enum LButtonSprite
 {
@@ -33,7 +34,10 @@ enum ButtonType
 	BUTTON_PRIM,
 	BUTTON_ALT
 };
-
+enum PlayerObj{
+	ATTACK = 0,
+	DEFEND = 1
+};
 enum GameModeType{
 	HOME=0,
 	PAUSE,
@@ -41,3 +45,22 @@ enum GameModeType{
 	PLAY,
 	QUIT
 };
+enum BombState{
+	IDLE = 0,
+	PLANTING = 1,
+	PLANTED = 2,
+	DEFUSING = 3,
+	DEFUSED = 4
+};
+const int SCREEN_WIDTH = 960;
+const int SCREEN_HEIGHT = 540;
+
+const int CAMERA_WIDTH = 480;
+const int CAMERA_HEIGHT = 270;
+
+const int LEVEL_WIDTH = 2560;
+const int LEVEL_HEIGHT = 1920;
+
+const int BUTTON_WIDTH = 320;
+const int BUTTON_HEIGHT = 200;
+const int TOTAL_BUTTONS = 2;

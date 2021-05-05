@@ -26,6 +26,9 @@ class ServerNet{
         std::vector<int> Parsedata(int id, char* data);
         void SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY);
         void SendMap(ENetPeer* peer, std::vector<std::vector<bool>> &map);
+        void SendBombState(int state);
+        void SendBombLocation(std::pair<int, int> location);
+
 
         bool isRunning();
         bool isConnected();

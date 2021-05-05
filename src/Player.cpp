@@ -26,14 +26,14 @@ Entity::~Entity(){
     texture = NULL;
     clip = NULL;
 }
-void Entity::render(){
+void Entity::render(double pre_scale){
     if((x < gEngine->camera->x - TILE_SIZE) || (x > gEngine->camera->x + gEngine->camera->w + TILE_SIZE)){
         return;
     }
     if((y < gEngine->camera->y - TILE_SIZE) || (y > gEngine->camera->y + gEngine->camera->h + TILE_SIZE)){
         return;
     }
-    double scale = 1.0 * SCREEN_WIDTH / gEngine->camera->w;
+    double scale = 1.0 * pre_scale * SCREEN_WIDTH / gEngine->camera->w;
     double xOnCamera = 1.0 * (x - gEngine->camera->x)/gEngine->camera->w*SCREEN_WIDTH;
     double yOnCamera = 1.0 * (y - gEngine->camera->y)/gEngine->camera->h*SCREEN_HEIGHT;
     texture->render((int)xOnCamera,(int)yOnCamera,clip,scale,rotation);
@@ -63,17 +63,34 @@ void KinematicBody::resetRotation(){
 
 void KinematicBody::move()
 {
-    //Move the body left or right
-    x += velX;
+    if (canMove){
+        //Move the body left or right
+        x += velX;
 
-    //Move the body up or down
-    y += velY;
+        //Move the body up or down
+        y += velY;
 
-    lastVelX = velX;
-    lastVelY = velY;
+        lastVelX = velX;
+        lastVelY = velY;
 
-    resetRotation();
-    collisionRect->shift(x,y);
+        resetRotation();
+        collisionRect->shift(x,y);
+    }
+}
+void KinematicBody::stopMovement(){
+    canMove = false;
+}
+void KinematicBody::allowMovement(){
+    canMove = true;
+}
+bool KinematicBody::inVicinity(std::pair<int, int>obj, int pix_dis){
+    int distance_sq = (x-obj.first)*(x-obj.first)+ (y-obj.second)*(y-obj.second);
+    if (distance_sq<=(pix_dis*pix_dis)){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 void KinematicBody::handleOutOfBounds(){
@@ -85,23 +102,6 @@ void KinematicBody::handleOutOfBounds(){
         y -= lastVelY;
         lastVelY = 0;
     }
-    // if (x<0){
-    //     x = 0;
-    //     lastVelX = 0;
-    // }
-    // else if (x + collisionRect->getW() > LEVEL_WIDTH){
-    //     x = LEVEL_WIDTH - collisionRect->getW();
-    //     lastVelX = 0;
-    // }
-    // if (y<0){
-    //     y = 0;
-    //     lastVelY = 0;
-    // }
-    // else if (y + collisionRect->getH() > LEVEL_HEIGHT){
-    //     y = LEVEL_HEIGHT - collisionRect->getH();
-    //     lastVelY = 0;
-    // }
-
     resetRotation();
     collisionRect->shift(x,y);
 }
