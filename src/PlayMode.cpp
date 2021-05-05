@@ -1,7 +1,24 @@
 #include "GameModes.hpp"
 
-void PlayMode::spawnBullet(int x, int y, int speed, double angle){
-	bullets.push_back(Bullet(x,y,speed,angle,10,pbTexture));
+void PlayMode::spawnBullet(int x, int y, int speed, double angle, int damage){
+	// cout << x<< " " <<y<< " " <<speed << " " <<angle<<endl;
+	if(damage>0){
+		if (clientObj!=NULL){
+			if ((clientObj->peer)!=NULL){
+				clientObj->SendDataBulletPosVel(clientObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)));
+			}
+		}
+		else{
+			if ((serverObj->peer)!=NULL){
+				// std::cout<<"in\n";
+				serverObj->SendDataBulletPosVel(serverObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)));
+			}
+		}
+		playerBullets.push_back(Bullet(x,y,speed,angle,damage,pbTexture));
+	}
+	else{
+		otherPlayerBullets.push_back(Bullet(x,y,speed,angle,damage,pbTexture));
+	}
 }
 
 void PlayMode::eventHandler(SDL_Event& e){
@@ -45,32 +62,60 @@ void PlayMode::update(){
 	tileMap->render();
 	
 	// player->getCollisionRect()->render();
+	// otherPlayer->getCollisionRect()->render();
 	
-	for (Bullet& x : bullets)
+	otherPlayer->render();
+
+	// render bullets
+	for (Bullet& x : playerBullets)
 	{
-		// cout << "BULLET!" << endl;
 		x.move();
 		tileMap->handleBullets(&x);
+		if(x.handleCollision(otherPlayer)){
+			// send hit if bullet was moving
+			if(!x.collided){
+				if (clientObj!=NULL){
+					if ((clientObj->peer)!=NULL){
+						clientObj->SendHit(clientObj->peer, x.damage);
+					}
+				}
+				else{
+					if ((serverObj->peer)!=NULL){
+						serverObj->SendHit(serverObj->peer, x.damage);
+					}
+				}
+			}
+			x.onHit();
+		}
 		if(x.isActive){
-			// cout << x.getPosX() << " " << x.getPosY() << endl;
 			x.render();
 			// x.getCollisionRect()->render();
 		}
 	}
 	
-	bullets.erase(std::remove_if(bullets.begin(),bullets.end(),[](Bullet x){
-		// if(x.isActive || x.handleOutOfBounds()){
-		// 	cout << "active"<<endl;
-		// }
-		// else{
-		// 	cout << "inactive" << endl;
-		// }
-		return !x.isActive || x.handleOutOfBounds();
-	}),bullets.end());
-	// cout << bullets.size();
+	playerBullets.erase(std::remove_if(playerBullets.begin(),playerBullets.end(),[](Bullet& x){
+		return (!x.isActive) || x.handleOutOfBounds();
+	}),playerBullets.end());
+
 	//Render players
 	player->render();
-	otherPlayer->render();
+
+	for (Bullet& x : otherPlayerBullets)
+	{
+		x.move();
+		tileMap->handleBullets(&x);
+		if(x.handleCollision(player)){
+			x.onHit();
+		}
+		if(x.isActive){
+			x.render();
+			// x.getCollisionRect()->render();
+		}
+	}
+	
+	otherPlayerBullets.erase(std::remove_if(otherPlayerBullets.begin(),otherPlayerBullets.end(),[](Bullet& x){
+		return (!x.isActive) || x.handleOutOfBounds();
+	}),otherPlayerBullets.end());
 }
 
 bool PlayMode::loadMediaPlay()
@@ -116,8 +161,8 @@ void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
 }
 
 void PlayMode::initPlayers(){
-	auto sf = [this](int x, int y, int speed, double angle){
-		spawnBullet(x,y,speed,angle);
+	auto sf = [this](int x, int y, int speed, double angle, int damage){
+		spawnBullet(x,y,speed,angle,damage);
 	};
 	SDL_Rect clip1,clip2;
 	int server_start_pos_x = 0;
@@ -182,7 +227,6 @@ void PlayMode::enterMode(){
 	}
 	else{
 		ReInit();
-
 	}
 }
 

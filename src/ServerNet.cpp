@@ -37,9 +37,9 @@ int ServerNet::Init(){
     return 1;
 }
 
-void ServerNet::SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY){
+void ServerNet::SendDataPosVelDeg(ENetPeer* peer, int x, int y, int velX, int velY, int deg){
     char send_data[1024] = {'\0'};
-    sprintf(send_data, "0|%d|%d|%d|%d", x, y, velX, velY);
+    sprintf(send_data, "0|%d|%d|%d|%d|%d", x, y, velX, velY,deg);
     SendPacket(peer, send_data);
 }
 
@@ -60,6 +60,18 @@ void ServerNet::SendMap(ENetPeer* peer, std::vector<std::vector<bool>> &map){
     SendPacket(peer, send_data);
 }
 
+void ServerNet::SendDataBulletPosVel(ENetPeer* peer, int x, int y, int velX, int velY){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "2|%d|%d|%d|%d", x, y, velX, velY);
+    SendPacket(peer, send_data);
+}
+
+void ServerNet::SendHit(ENetPeer* peer, int damage){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "3|%d", damage);
+    SendPacket(peer, send_data);
+}
+
 void ServerNet::SendPacket(ENetPeer* peer, const char* data)
 {
     // Create the packet using enet_packet_create and the data we want to send
@@ -73,10 +85,30 @@ void ServerNet::SendPacket(ENetPeer* peer, const char* data)
 
 std::vector<int> ServerNet::Parsedata(int id, char* data){
     //std::cout<<"PARSE: "<<data<<"\n";
-
-    int x, y, velX, velY;
-    sscanf(data, "0|%d|%d|%d|%d", &x, &y, &velX, &velY);
-    return {0, x, y, velX, velY};
+    int data_type;
+    sscanf(data, "%d|", &data_type);
+    switch(data_type){
+        case 0:
+        {
+            int x, y, velX, velY, deg;
+            sscanf(data, "0|%d|%d|%d|%d|%d", &x, &y, &velX, &velY, &deg);
+            return{0, x, y, velX, velY, deg};
+        }
+        case 2:
+        {
+            int x, y, velX, velY;
+            sscanf(data, "2|%d|%d|%d|%d", &x, &y, &velX, &velY);
+            return{2, x, y, velX, velY};
+        }
+        case 3:
+        {
+            int damage;
+            sscanf(data, "3|%d", &damage);
+            return{3, damage};
+        }
+        default:
+            return {};
+    }
 }
 
 int ServerNet::Destroy(){

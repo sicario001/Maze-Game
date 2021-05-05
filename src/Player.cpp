@@ -197,12 +197,17 @@ void KinematicBody::setPosVel(int pX, int pY, int pVelX, int pVelY){
     velY = pVelY;
 }
 
-Bullet::Bullet(int pX, int pY, int pSpeed, double rotation, int damage,LTexture* pTexture):KinematicBody(pX,pY,pSpeed * cos(rotation),pSpeed * sin(rotation),10,new CollisionRect(0,0,BULLET_COLLIDER_W,BULLET_COLLIDER_H,rotation,BULLET_SPRITE_W,BULLET_SPRITE_H),pTexture,new SDL_Rect()){
+void KinematicBody::setRotation(int deg){
+    rotation = 3.1415926535/180 * deg;
+}
+
+Bullet::Bullet(int pX, int pY, int pSpeed, double rotation, int pDamage,LTexture* pTexture):KinematicBody(pX,pY,pSpeed * cos(rotation),pSpeed * sin(rotation),10,new CollisionRect(0,0,BULLET_COLLIDER_W,BULLET_COLLIDER_H,rotation,BULLET_SPRITE_W,BULLET_SPRITE_H),pTexture,new SDL_Rect()){
     clip = new SDL_Rect();
     clip->x=0;
     clip->y=0;
     clip->w=BULLET_SPRITE_W;
     clip->h=BULLET_SPRITE_H;
+    damage = pDamage;
 }
 
 void Bullet::move(){
@@ -222,6 +227,7 @@ void Bullet::move(){
 void Bullet::onHit(){
     if (numFramesEnd == 0)
     {   
+        collided=true;
         x+=velX;
         y+=velY;
         velX = 0;
@@ -232,7 +238,12 @@ void Bullet::onHit(){
     
 }
 
-Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip),shoot(sf){
+Player::Player(int health, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip),shoot(sf){
+}
+
+void Player::damage(int d){
+    health -= d;
+    cout <<"Health "<< health << endl;
 }
 
 void Player::resetRotation(){
@@ -263,9 +274,9 @@ void Player::handleEvent(SDL_Event &e)
         double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
         double d = sqrt(cx*cx+cy*cy);
         double a = atan2(cy,cx);
-        cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - 7;
-        cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - 4;
-        shoot(cx,cy,10,rotation);
+        cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
+        cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
+        shoot(cx,cy,15,rotation,10);
     }
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
@@ -297,13 +308,13 @@ void Player::handleEvent(SDL_Event &e)
 void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
     if (clientObj!=NULL){
         if ((clientObj->peer)!=NULL){
-            clientObj->SendDataPosVel(clientObj->peer, x, y, lastVelX, lastVelY);
+            clientObj->SendDataPosVelDeg(clientObj->peer, x, y, velX, velY, (int)(rotation * 180 / 3.1415926535));
         }
     }
     else{
         if ((serverObj->peer)!=NULL){
             // std::cout<<"in\n";
-            serverObj->SendDataPosVel(serverObj->peer, x, y, lastVelX, lastVelY);
+            serverObj->SendDataPosVelDeg(serverObj->peer, x, y, velX, velY, (int)(rotation * 180 / 3.1415926535));
         }
     }
 }

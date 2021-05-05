@@ -69,9 +69,22 @@ int ClientNet::Disconnect(){
     }  
     return 1;
 }
-void ClientNet::SendDataPosVel(ENetPeer* peer, int x, int y, int velX, int velY){
+
+void ClientNet::SendDataPosVelDeg(ENetPeer* peer, int x, int y, int velX, int velY, int deg){
     char send_data[1024] = {'\0'};
-    sprintf(send_data, "0|%d|%d|%d|%d", x, y, velX, velY);
+    sprintf(send_data, "0|%d|%d|%d|%d|%d", x, y, velX, velY, deg);
+    SendPacket(peer, send_data);
+}
+
+void ClientNet::SendDataBulletPosVel(ENetPeer* peer, int x, int y, int velX, int velY){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "2|%d|%d|%d|%d", x, y, velX, velY);
+    SendPacket(peer, send_data);
+}
+
+void ClientNet::SendHit(ENetPeer* peer, int damage){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "3|%d", damage);
     SendPacket(peer, send_data);
 }
 
@@ -93,9 +106,9 @@ std::vector<int> ClientNet::Parsedata(char* data){
     switch(data_type){
         case 0:
         {
-            int x, y, velX, velY;
-            sscanf(data, "0|%d|%d|%d|%d", &x, &y, &velX, &velY);
-            return{0, x, y, velX, velY};
+            int x, y, velX, velY, deg;
+            sscanf(data, "0|%d|%d|%d|%d|%d", &x, &y, &velX, &velY, &deg);
+            return{0, x, y, velX, velY, deg};
         }
             
         case 1:
@@ -109,6 +122,18 @@ std::vector<int> ClientNet::Parsedata(char* data){
                 ret_vec[i] = (map_arr[i-1]=='1' ? 1:0);
             }
             return ret_vec;
+        }
+        case 2:
+        {
+            int x, y, velX, velY;
+            sscanf(data, "2|%d|%d|%d|%d", &x, &y, &velX, &velY);
+            return{2, x, y, velX, velY};
+        }
+        case 3:
+        {
+            int damage;
+            sscanf(data, "3|%d", &damage);
+            return{3, damage};
         }
         default:
             return {};

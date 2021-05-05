@@ -33,6 +33,7 @@ protected:
     int x,y;
 
     LTexture* texture;
+    // angle in radians
     double rotation=0.0;
 public:
     SDL_Rect* clip = NULL;
@@ -46,14 +47,15 @@ public:
     int getPosY(){return y;}
 
     void render();
-    void renderCustom(SDL_Rect* renderQuad);
 };
 
 extern GameEngine* gEngine;
 
 class CollisionRect{
     private:
+        // uw and uh are the textures dimensions
         int x,y,w,h,uw,uh;
+        // initial angle in radians
         double angle;
         pair<int,int> getVertex(int i);
     public:
@@ -110,6 +112,7 @@ public:
     KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
+    void setRotation(int deg);
     void move();
     // handle collision with a body, move back a step
     bool handleCollision(RigidBody* rb);
@@ -119,25 +122,30 @@ public:
 
 class Bullet : public KinematicBody{
 private:
-    int damage;
     int numFramesEnd = 0;
 public:
+    // if collided yet
+    bool collided = false;
+    int damage;
     Bullet();
     Bullet(int x, int y, int pSpeed, double rotation,int damage,LTexture* pTexture);
     void move();
+    // start animation when hit
     void onHit();
 };
 
 class Player : public KinematicBody{
 private:
-    function <void(int x,int y, int speed, double angle)> shoot;
+    function <void(int x,int y, int speed, double angle, int damage)> shoot;
     int xMouse,yMouse;
+    int health = 100;
     void resetRotation();
 public:
-    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle)> shootFunc);
+    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> shootFunc);
     
-    void damage(int x);
     int getHealth();
+    void damage(int x);
+    // send position,velocity and rotation
     void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e );
     void resetCamera();

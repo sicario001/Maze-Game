@@ -118,8 +118,22 @@ void GameEngine::runLoop(){
 void GameEngine::updateOtherPlayer(std::vector<int> &data){
 	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
 		playMode->otherPlayer->setPosVel(data[1], data[2], data[3], data[4]);
+		playMode->otherPlayer->setRotation(data[5]);
 	}
 }
+
+void GameEngine::addBulletToVector(std::vector<int> &data){
+	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
+		playMode->spawnBullet(data[1],data[2],(int)sqrt(data[3]*data[3]+data[4]*data[4]),atan2(data[4],data[3]),0);
+	}
+}
+
+void GameEngine::damagePlayer(std::vector<int> &data){
+	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
+		playMode->player->damage(data[1]);
+	}
+}
+
 void GameEngine::updateMapfromServer(vector<int> &map_vec){
 	
 	playMode->tileMap->initializeMap(LEVEL_HEIGHT/TILE_SIZE, LEVEL_WIDTH/TILE_SIZE);

@@ -40,6 +40,12 @@ void* RunLoop(void* param){
 						if (received_data[0]==0){
 							gEngine->updateOtherPlayer(received_data);
 						}
+						else if(received_data[0]==2){
+							gEngine->addBulletToVector(received_data);
+						}
+						else if(received_data[0]==3){
+							gEngine->damagePlayer(received_data);
+						}
 						enet_packet_destroy(event.packet);
 						break;
 					}
@@ -74,6 +80,12 @@ void* ReceiveLoop(void* param){
 						std::vector<int> received_data = gEngine->clientObj->Parsedata((char*)event.packet->data); // Parse the receiving data.
 						if (received_data[0]==0){
 							gEngine->updateOtherPlayer(received_data);
+						}
+						else if(received_data[0]==2){
+							gEngine->addBulletToVector(received_data);
+						}
+						else if(received_data[0]==3){
+							gEngine->damagePlayer(received_data);
 						}
 						else{
 							gEngine->playMode->waitForInitTileMap();

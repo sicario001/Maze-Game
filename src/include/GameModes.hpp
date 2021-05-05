@@ -54,13 +54,13 @@ class PlayMode :public GameMode{
 		bool openPauseMenu = false;
 		bool isPaused;
 		
-		Player* player = NULL;
 		LTexture* gPlayerTexture;    
 		LTexture* pbTexture;
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;
 
-		vector<Bullet> bullets;
+		vector<Bullet> playerBullets;
+		vector<Bullet> otherPlayerBullets;
 
 		void initPlayers();
 		pthread_mutex_t mutex;
@@ -72,13 +72,14 @@ class PlayMode :public GameMode{
 
 		void getPlayerClip(int i,SDL_Rect &clip);
 	public:
+		Player* player = NULL;
 		Player* otherPlayer = NULL;
 		TileMap* tileMap = NULL;
 		bool tileMapInit = false;
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
-		void spawnBullet(int x, int y, int speed, double angle);
+		void spawnBullet(int x, int y, int speed, double angle, int damage);
 		void ReInit();
 		void enterMode();
 		void Pause();
