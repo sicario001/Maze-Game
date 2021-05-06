@@ -139,11 +139,13 @@ void PlayMode::update(){
 				if (clientObj!=NULL){
 					if ((clientObj->peer)!=NULL){
 						clientObj->SendHit(clientObj->peer, x.damage);
+						otherPlayer->damage(x.damage);
 					}
 				}
 				else{
 					if ((serverObj->peer)!=NULL){
 						serverObj->SendHit(serverObj->peer, x.damage);
+						otherPlayer->damage(x.damage);
 					}
 				}
 			}

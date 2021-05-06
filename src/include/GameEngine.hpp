@@ -37,6 +37,8 @@ class GameEngine
 
         //The window renderer
         SDL_Renderer* gRenderer = NULL;
+        bool gameStartMessage = false;
+        bool gameEndMessage = false;
 
         void runLoop();
 

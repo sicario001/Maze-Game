@@ -97,8 +97,21 @@ void GameEngine::runLoop(){
 			gMode->eventHandler(e);
 		}
 		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-			if (playMode->clock->timeOver()){
+			if (playMode->player->getHealth()<=0){
+
 				setGameMode(HOME);
+			}
+			else if (playMode->otherPlayer->getHealth()<=0){
+				setGameMode(HOME);
+			}
+			if (playMode->clock->timeOver()){
+				if (playMode->bombState == PLANTED){
+					setGameMode(HOME);
+				}	
+				else{
+					setGameMode(HOME);
+				}
+				
 			}
 		}
 		//Clear screen

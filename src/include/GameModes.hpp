@@ -99,6 +99,7 @@ class PlayMode :public GameMode{
 		TTF_Font *gFont = NULL;
 		std::stringstream messageText;
 		bool tileMapInit = false;
+
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
