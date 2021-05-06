@@ -257,6 +257,8 @@ void Bullet::onHit(){
 Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
     shoot = sf;
     health = pHealth;
+    walkingSounds = gEngine->audioMaster.loadWaveFile("media/audio/walk.wav");
+    shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/pistol.wav");
 }
 
 void Player::damage(int d){
@@ -295,6 +297,8 @@ void Player::handleEvent(SDL_Event &e)
         cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
         cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
         shoot(cx,cy,15,rotation,10);
+        shootingSounds->rewind();
+        shootingSounds->play();
     }
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
@@ -348,4 +352,24 @@ void Player::resetCamera(){
     gEngine->camera->y = max(gEngine->camera->y,0);
     gEngine->camera->x = min(gEngine->camera->x,LEVEL_WIDTH-CAMERA_WIDTH);
     gEngine->camera->y = min(gEngine->camera->y,LEVEL_HEIGHT-CAMERA_HEIGHT);
+}
+void Player::playSoundIfWalked(bool isListener){
+    if(lastVelX!=0 || lastVelY!=0){
+        if(isListener){
+    	    gEngine->resetListener(x,y);
+        }
+        walkingSounds->setPosition(x,y,0);
+	    // cout << "walker at " <<x <<" " << y << endl;
+        if(walkingSounds->getState()!=AL_PLAYING){
+	        // cout << "played at " <<x <<" " << y << endl;
+            walkingSounds->rewind();
+            walkingSounds->play();
+        }
+    }
+    else{
+        if(walkingSounds->getState()==AL_PLAYING){
+	        // cout << "played at " <<x <<" " << y << endl;
+            walkingSounds->stop();
+        }
+    }
 }

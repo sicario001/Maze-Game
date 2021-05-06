@@ -202,6 +202,9 @@ void PlayMode::update(){
 			progressBar->render();
 		}
 	}
+
+	player->playSoundIfWalked(true);
+	otherPlayer->playSoundIfWalked(false);
 }
 
 void PlayMode::sendBombState(){

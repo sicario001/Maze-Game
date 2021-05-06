@@ -5,6 +5,7 @@
 #include "GameModes.hpp"
 #include "ClientNet.hpp"
 #include "ServerNet.hpp"
+#include "AudioMaster.hpp"
 
 enum GameModes{
 	HOME_MODE = 0,
@@ -22,6 +23,8 @@ class GameEngine
         
 
     public:
+        AudioMaster audioMaster;
+
         SDL_Rect* camera;
 
         PlayMode* playMode;
@@ -45,6 +48,8 @@ class GameEngine
         void addBulletToVector(std::vector<int> &data);
         void damagePlayer(std::vector<int> &data);
         void updateMapfromServer(std::vector<int> &received_data);
+
+        void resetListener(int x, int y);
 };
 
 

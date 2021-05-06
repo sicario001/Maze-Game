@@ -5,6 +5,7 @@
 #include "LTexture.hpp"
 #include "ClientNet.hpp"
 #include "ServerNet.hpp"
+#include "AudioSource.hpp"
 
 using namespace std;
 
@@ -145,6 +146,9 @@ private:
     int xMouse,yMouse;
     int health = 100;
     void resetRotation();
+
+    AudioSource* walkingSounds;
+    AudioSource* shootingSounds;
 public:
     Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> shootFunc);
     
@@ -154,4 +158,5 @@ public:
     void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e );
     void resetCamera();
+    void playSoundIfWalked(bool isListener);
 };

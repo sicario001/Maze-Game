@@ -18,6 +18,7 @@ GameEngine::GameEngine(int c_or_s){
 	}
 	// cout<<"in\n";
 	playMode = new PlayMode(true, clientObj, serverObj);
+	audioMaster.init();
 }
 
 bool GameEngine::init()
@@ -114,6 +115,7 @@ void GameEngine::runLoop(){
 	//Free loaded images
 	playMode->freePlayMode();
 
+	audioMaster.release();
 	//Destroy window	
 	SDL_DestroyRenderer(gRenderer );
 	SDL_DestroyWindow(gWindow );
@@ -160,6 +162,10 @@ void GameEngine::updateMapfromServer(vector<int> &map_vec){
     playMode->tileMap->setReceived();
 }
 
+void GameEngine::resetListener(int x,int y){
+	// cout << "listener at " <<x <<" " << y << endl;
+	audioMaster.setListenerPosition(x,y,0);
+}
 
 void GameEngine::setGameMode(GameModeType a){
 	switch (a)

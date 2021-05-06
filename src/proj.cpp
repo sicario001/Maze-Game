@@ -7,7 +7,8 @@ and may not be redistributed without written permission.*/
 #include "LButton.hpp"
 #include "LTexture.hpp"
 #include <pthread.h>
-
+#include "AudioMaster.hpp"
+#include "AudioSource.hpp"
 
 void* RunLoop(void* param){
     GameEngine* gEngine = (GameEngine*) param;
@@ -121,6 +122,11 @@ GameEngine* gEngine;
 
 int main( int argc, char* args[] )
 {
+	// AudioMaster am;
+	// am.init();
+	
+	// AudioSource *x = am.loadWaveFile("media/audio/walk.wav");
+	// x->play();
 	int c_or_s;
 	std::cout<<"Enter 0 for server and 1 for client: ";
 	std::cin>>c_or_s;
@@ -142,5 +148,7 @@ int main( int argc, char* args[] )
 		std::cout << "start loop" << std::endl;
 		gEngine->runLoop();
 	}
+	// x->release();
+	// am.release();
 	return 0;
 }
