@@ -30,6 +30,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 			case SDLK_e:
 			{
 				if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
+					player->isReloading = false;
 					progressBar = new ProgressBar(10000);
 					if (playerObj==ATTACK){
 						bombState = PLANTING;
@@ -72,13 +73,13 @@ void PlayMode::eventHandler(SDL_Event& e){
 }
 
 void PlayMode::update(){
+	
 	if (openPauseMenu){
 		openPauseMenu = false;
 		Pause();
 		gEngine->setGameMode(PAUSE);
 		return;
 	}
-	// cout<<"in\n";
 	
 	// handle movement of otherPlayer
 	if (playerObj!=ATTACK){
@@ -118,7 +119,6 @@ void PlayMode::update(){
 	//Render wall
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
-	
 	// player->getCollisionRect()->render();
 	// otherPlayer->getCollisionRect()->render();
 
@@ -127,7 +127,7 @@ void PlayMode::update(){
 	}
 	
 	otherPlayer->render();
-
+	
 	// render bullets
 	for (Bullet& x : playerBullets)
 	{
@@ -158,10 +158,10 @@ void PlayMode::update(){
 	playerBullets.erase(std::remove_if(playerBullets.begin(),playerBullets.end(),[](Bullet& x){
 		return (!x.isActive) || x.handleOutOfBounds();
 	}),playerBullets.end());
-
+	
 	//Render players
+	player->resetClip();
 	player->render();
-
 	for (Bullet& x : otherPlayerBullets)
 	{
 		x.move();
@@ -181,6 +181,27 @@ void PlayMode::update(){
 	healthBar->setHealth(player->getHealth());
 	healthBar->render();
 	clock->render();
+	
+	player->inventory->render();
+	if (player->reloadBar!=NULL){
+		if (player->isReloading){
+			if (player->reloadBar->isComplete()){
+				delete(player->reloadBar);
+				player->reloadBar = NULL;
+				player->isReloading = false;
+				player->inventory->reload();
+			}
+			else{
+				player->reloadBar->render();
+			}
+		}
+		else{
+			delete(player->reloadBar);
+			player->reloadBar = NULL;
+			player->isReloading = false;
+
+		}
+	}
 	if (progressBar!=NULL){
 		if (progressBar->isComplete()){
 			delete(progressBar);
@@ -277,6 +298,7 @@ bool PlayMode::loadMediaPlay()
 		success = false;
 	}
 	clock->loadMediaClock();
+	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
 }
@@ -313,15 +335,15 @@ void PlayMode::initPlayers(){
 	if (clientObj!=NULL){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);
-		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf);
-		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf);
+		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf, SURVIVOR);
+		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf, SOLDIER);
 		playerObj = ATTACK;
 	}
 	else{
 		getPlayerClip(SOLDIER,clip1);
 		getPlayerClip(SURVIVOR,clip2);
-		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf);
-		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf);
+		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf, SOLDIER);
+		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf, SURVIVOR);
 		playerObj = DEFEND;
 	}
 }
@@ -370,6 +392,7 @@ void PlayMode::ReInit(){
 	clock->reset(RoundTime);
 	// cout<<"in play\n";
 	loadMediaPlay();
+	
 	isPaused = false;
 }
 void PlayMode::enterMode(){

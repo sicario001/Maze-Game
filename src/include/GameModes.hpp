@@ -9,6 +9,7 @@
 #include "PhysicsObject.hpp"
 #include "HealthBar.hpp"
 #include "ProgressBar.hpp"
+#include "Inventory.hpp"
 #include "TileMap.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"

@@ -1,8 +1,12 @@
 #include "ProgressBar.hpp"
 
-ProgressBar::ProgressBar(int total, int x_pos, int y_pos){
+ProgressBar::ProgressBar(int total, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int x_pos, int y_pos){
     x = x_pos;
     y = y_pos;
+    red = r;
+    green = g;
+    blue = b;
+    alpha = a;
     progressBar = new SDL_Rect();
     BarBoundary = new SDL_Rect();
     progressTimer = new LTimer();
@@ -22,7 +26,7 @@ ProgressBar::~ProgressBar(){
 void ProgressBar::render(){
     UpdateBar();
 
-    SDL_SetRenderDrawColor(gEngine->gRenderer, 0, 255, 0, 255 );
+    SDL_SetRenderDrawColor(gEngine->gRenderer, red, green, blue, alpha );
     SDL_RenderFillRect(gEngine->gRenderer, progressBar);
 
     SDL_SetRenderDrawColor(gEngine->gRenderer, 0, 0, 0, 255);

@@ -172,6 +172,7 @@ void GameEngine::setGameMode(GameModeType a){
 			currMode = PLAY_MODE;
 			
 			playMode->Reset();
+			
 			if (clientObj!=NULL){
 				clientObj->Connect("127.0.0.1", 7777);
 			}

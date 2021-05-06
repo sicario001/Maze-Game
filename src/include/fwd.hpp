@@ -16,6 +16,7 @@ class Bullet;
 class Clock;
 class LTimer;
 class ProgressBar;
+class Inventory;
 
 enum LButtonSprite
 {
@@ -52,6 +53,16 @@ enum BombState{
 	PLANTED = 2,
 	DEFUSING = 3,
 	DEFUSED = 4
+};
+
+enum WeaponType{
+	KNIFE = 0,
+	GUN = 1,
+	SMOKE = 2,
+	FLASH = 3,
+	GRENADE = 4
+	// BOMB = 5,
+	// DEFUSE_KIT = 6
 };
 const int SCREEN_WIDTH = 960;
 const int SCREEN_HEIGHT = 540;

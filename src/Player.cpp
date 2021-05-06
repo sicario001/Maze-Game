@@ -254,9 +254,11 @@ void Bullet::onHit(){
     
 }
 
-Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
+Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf, PlayerSpriteType type): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
+    playerType = type;
     shoot = sf;
     health = pHealth;
+    inventory = new Inventory();
 }
 
 void Player::damage(int d){
@@ -279,22 +281,26 @@ void Player::resetRotation(){
 
 void Player::handleEvent(SDL_Event &e)
 {
-    if(e.type == SDL_MOUSEMOTION)
-    {   
-        SDL_GetMouseState(&xMouse,&yMouse);
-    }
-    
-    // left click to shoot
-    if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0){
-        // spawn at tip
-        // cout << "SHOOT!" << endl;
-        double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
-        double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
-        double d = sqrt(cx*cx+cy*cy);
-        double a = atan2(cy,cx);
-        cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
-        cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
-        shoot(cx,cy,15,rotation,10);
+    if (canMove){
+        if(e.type == SDL_MOUSEMOTION)
+        {   
+            SDL_GetMouseState(&xMouse,&yMouse);
+        }
+        
+        // left click to shoot
+        if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==GUN && !(inventory->isEmptyMag())){
+            // spawn at tip
+            // cout << "SHOOT!" << endl;
+            isReloading = false;
+            double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
+            double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+            double d = sqrt(cx*cx+cy*cy);
+            double a = atan2(cy,cx);
+            cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
+            cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
+            shoot(cx,cy,15,rotation,10);
+            inventory->useBullet();
+        }
     }
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
@@ -306,6 +312,19 @@ void Player::handleEvent(SDL_Event &e)
             case SDLK_DOWN: velY += speed; break;
             case SDLK_LEFT: velX -= speed; break;
             case SDLK_RIGHT: velX += speed; break;
+            case SDLK_1: if(canMove) {inventory->changeWeapon(KNIFE); isReloading = false;} break;
+            case SDLK_2: if(canMove) {inventory->changeWeapon(GUN);} break;
+            case SDLK_3: if(canMove) {inventory->changeWeapon(SMOKE); isReloading = false;} break;
+            case SDLK_4: if(canMove) {inventory->changeWeapon(GRENADE); isReloading = false;} break;
+            case SDLK_5: if(canMove) {inventory->changeWeapon(FLASH); isReloading = false;} break;
+            case SDLK_r: {
+                if (canMove){
+                    if (isReloading==false && inventory->canReload()){
+                        isReloading =true;
+                        reloadBar = new ProgressBar(3000, 0, 0, 255);
+                    }
+                }
+            }
         }
     }
     //If a key was released
@@ -338,6 +357,20 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
 }
 int Player::getHealth(){
     return health;
+
+}
+void Player::resetClip(){
+    if (canMove && inventory->getCurrWeapon()==GUN){
+        if (isReloading){
+            clip->y = (3 +6*playerType)*PLAYER_SPRITE_SIZE;
+        }
+        else{
+            clip->y = (2 +6*playerType)*PLAYER_SPRITE_SIZE;
+        }
+    }
+    else{
+        clip->y = (5 +6*playerType)*PLAYER_SPRITE_SIZE;
+    }
 }
 void Player::resetCamera(){
     gEngine->camera->h = CAMERA_HEIGHT;
