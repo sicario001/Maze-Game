@@ -44,7 +44,7 @@ bool Inventory::isEmptyMag(){
     return (mag_rem==0);
 }
 bool Inventory::canReload(){
-    if (mag_rem!=mag_lim && total_rem>0){
+    if (currWeapon==GUN && mag_rem!=mag_lim && total_rem>0){
         return true;
     }
     return false;

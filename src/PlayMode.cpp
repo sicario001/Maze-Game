@@ -1,23 +1,23 @@
 #include "GameModes.hpp"
 
-void PlayMode::spawnBullet(int x, int y, int speed, double angle, int damage){
+void PlayMode::spawnThrowable(int x, int y, int speed, double angle, int damage, ThrowableType type){
 	// cout << x<< " " <<y<< " " <<speed << " " <<angle<<endl;
 	if(damage>0){
 		if (clientObj!=NULL){
 			if ((clientObj->peer)!=NULL){
-				clientObj->SendDataBulletPosVel(clientObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)));
+				clientObj->SendDataThrowablePosVel(clientObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)), angle, type);
 			}
 		}
 		else{
 			if ((serverObj->peer)!=NULL){
 				// std::cout<<"in\n";
-				serverObj->SendDataBulletPosVel(serverObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)));
+				serverObj->SendDataThrowablePosVel(serverObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)), angle, type);
 			}
 		}
-		playerBullets.push_back(Bullet(x,y,speed,angle,damage,pbTexture));
+		playerThrowables.push_back(Throwable(x,y,speed,angle,damage,pbTexture[type], type));
 	}
 	else{
-		otherPlayerBullets.push_back(Bullet(x,y,speed,angle,damage,pbTexture));
+		otherPlayerThrowables.push_back(Throwable(x,y,speed,angle,damage,pbTexture[type], type));
 	}
 }
 
@@ -129,10 +129,10 @@ void PlayMode::update(){
 	otherPlayer->render();
 	
 	// render bullets
-	for (Bullet& x : playerBullets)
+	for (Throwable& x : playerThrowables)
 	{
 		x.move();
-		tileMap->handleBullets(&x);
+		tileMap->handleThrowables(&x);
 		if(x.handleCollision(otherPlayer)){
 			// send hit if bullet was moving
 			if(!x.collided){
@@ -155,17 +155,17 @@ void PlayMode::update(){
 		}
 	}
 	
-	playerBullets.erase(std::remove_if(playerBullets.begin(),playerBullets.end(),[](Bullet& x){
+	playerThrowables.erase(std::remove_if(playerThrowables.begin(),playerThrowables.end(),[](Throwable& x){
 		return (!x.isActive) || x.handleOutOfBounds();
-	}),playerBullets.end());
+	}),playerThrowables.end());
 	
 	//Render players
 	player->resetClip();
 	player->render();
-	for (Bullet& x : otherPlayerBullets)
+	for (Throwable& x : otherPlayerThrowables)
 	{
 		x.move();
-		tileMap->handleBullets(&x);
+		tileMap->handleThrowables(&x);
 		if(x.handleCollision(player)){
 			x.onHit();
 		}
@@ -175,9 +175,9 @@ void PlayMode::update(){
 		}
 	}
 	
-	otherPlayerBullets.erase(std::remove_if(otherPlayerBullets.begin(),otherPlayerBullets.end(),[](Bullet& x){
+	otherPlayerThrowables.erase(std::remove_if(otherPlayerThrowables.begin(),otherPlayerThrowables.end(),[](Throwable& x){
 		return (!x.isActive) || x.handleOutOfBounds();
-	}),otherPlayerBullets.end());
+	}),otherPlayerThrowables.end());
 	healthBar->setHealth(player->getHealth());
 	healthBar->render();
 	clock->render();
@@ -275,7 +275,13 @@ bool PlayMode::loadMediaPlay()
 	//Loading success flag
 	bool success = true;
 	//Load player bullet texture
-	if( !pbTexture->loadFromFile( "media/texture/bullet.png" ) )
+	
+	if( !pbTexture[0]->loadFromFile( "media/texture/bullet.png" ) )
+	{
+		printf( "Failed to load player texture!\n" );
+		success = false;
+	}
+	if( !pbTexture[1]->loadFromFile( "media/texture/slashEffect.png" ) )
 	{
 		printf( "Failed to load player texture!\n" );
 		success = false;
@@ -304,7 +310,9 @@ bool PlayMode::loadMediaPlay()
 }
 void PlayMode::freePlayMode(){
 	gPlayerTexture->free();
-	pbTexture->free();
+	for (LTexture* x:pbTexture){
+		x->free();
+	}
 	bombTexture->free();
 	delete (player);
 	delete (otherPlayer);
@@ -324,8 +332,8 @@ void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
 }
 
 void PlayMode::initPlayers(){
-	auto sf = [this](int x, int y, int speed, double angle, int damage){
-		spawnBullet(x,y,speed,angle,damage);
+	auto sf = [this](int x, int y, int speed, double angle, int damage, ThrowableType type){
+		spawnThrowable(x,y,speed,angle,damage, type);
 	};
 	SDL_Rect clip1,clip2;
 	int server_start_pos_x = 0;
@@ -349,7 +357,9 @@ void PlayMode::initPlayers(){
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
-	pbTexture = new LTexture();
+	for (int i=0; i<(int)pbTexture.size(); i++){
+		pbTexture[i] = new LTexture();
+	}
 	bombTexture = new LTexture(0.1);
 	healthBar = new HealthBar();
 	initPlayers();
@@ -365,7 +375,9 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		serverObj = server;
 		bombState = IDLE;
 		gPlayerTexture = new LTexture();
-		pbTexture = new LTexture();
+		for (int i=0; i<(int)pbTexture.size(); i++){
+			pbTexture[i] = new LTexture();
+		}
 		bombTexture = new LTexture(0.1);
 		healthBar = new HealthBar();
 		clock = new Clock();
@@ -378,7 +390,9 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 void PlayMode::ReInit(){
 	bombState = IDLE;
 	gPlayerTexture = new LTexture();
-	pbTexture = new LTexture();
+	for (int i=0; i<(int)pbTexture.size(); i++){
+		pbTexture[i] = new LTexture();
+	}
 	bombTexture = new LTexture(0.1);
 	initPlayers();
 	player->allowMovement();
@@ -391,6 +405,7 @@ void PlayMode::ReInit(){
 	tileMap->generateTiles(clientObj, serverObj);
 	clock->reset(RoundTime);
 	// cout<<"in play\n";
+	
 	loadMediaPlay();
 	
 	isPaused = false;

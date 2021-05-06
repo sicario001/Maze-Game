@@ -387,7 +387,7 @@ void TileMap::handleCollisions(KinematicBody* body){
     }
 }
 
-void TileMap::handleBullets(Bullet* x){
+void TileMap::handleThrowables(Throwable* x){
     for(int i = 0; i < (int) walls.size(); i++){
         if(x->handleCollision(&walls[i])){
             x->onHit();

@@ -132,9 +132,16 @@ void GameEngine::updateOtherPlayer(std::vector<int> &data){
 	}
 }
 
-void GameEngine::addBulletToVector(std::vector<int> &data){
+void GameEngine::addThrowableToVector(std::vector<int> &data){
 	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-		playMode->spawnBullet(data[1],data[2],(int)sqrt(data[3]*data[3]+data[4]*data[4]),atan2(data[4],data[3]),0);
+		ThrowableType type;
+		if (data[5]==0){
+			type=BULLET;
+		}
+		else{
+			type = KNIFE_SLASH;
+		}
+		playMode->spawnThrowable(data[1],data[2],(int)sqrt(data[3]*data[3]+data[4]*data[4]),((double)data[6])/1e8,0, type);
 	}
 }
 

@@ -41,7 +41,7 @@ void* RunLoop(void* param){
 							gEngine->updateOtherPlayer(received_data);
 						}
 						else if(received_data[0]==2){
-							gEngine->addBulletToVector(received_data);
+							gEngine->addThrowableToVector(received_data);
 						}
 						else if(received_data[0]==3){
 							gEngine->damagePlayer(received_data);
@@ -93,7 +93,7 @@ void* ReceiveLoop(void* param){
 							gEngine->updateMapfromServer(received_data);
 						}
 						else if(received_data[0]==2){
-							gEngine->addBulletToVector(received_data);
+							gEngine->addThrowableToVector(received_data);
 						}
 						else if(received_data[0]==3){
 							gEngine->damagePlayer(received_data);

@@ -42,7 +42,7 @@ class GameEngine
 
         void setGameMode( GameModeType a);
         void updateOtherPlayer(std::vector<int> &data);
-        void addBulletToVector(std::vector<int> &data);
+        void addThrowableToVector(std::vector<int> &data);
         void damagePlayer(std::vector<int> &data);
         void updateMapfromServer(std::vector<int> &received_data);
 };

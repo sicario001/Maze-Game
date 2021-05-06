@@ -10,10 +10,17 @@ using namespace std;
 
 const int PLAYER_SPRITE_SIZE = 71;
 const int PLAYER_COLLIDER_SIZE = 45;
+
 const int BULLET_SPRITE_H = 16;
 const int BULLET_SPRITE_W = 16;
 const int BULLET_COLLIDER_H = 8;
 const int BULLET_COLLIDER_W = 14;
+
+const int SLASH_SPRITE_H = 129;
+const int SLASH_SPRITE_W = 110;
+const int SLASH_COLLIDER_H = 20;
+const int SLASH_COLLIDER_W = 20;
+
 
 enum PlayerSpriteType{
 	HITMAN,
@@ -111,7 +118,7 @@ protected:
     int speed;
     bool canMove = true;
 public:
-    KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
+    KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip, double angle = -10);
 
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void setRotation(int deg);
@@ -125,15 +132,16 @@ public:
     bool inVicinity(std::pair<int, int> object, int pix_dis = 30);
 };
 
-class Bullet : public KinematicBody{
+class Throwable : public KinematicBody{
 private:
     int numFramesEnd = 0;
 public:
+    ThrowableType throwableType;
     // if collided yet
     bool collided = false;
     int damage;
-    Bullet();
-    Bullet(int x, int y, int pSpeed, double rotation,int damage,LTexture* pTexture);
+    Throwable();
+    Throwable(int x, int y, int pSpeed, double rotation,int damage,LTexture* pTexture, ThrowableType type);
     void move();
     // start animation when hit
     void onHit();
@@ -141,13 +149,13 @@ public:
 
 class Player : public KinematicBody{
 private:
-    function <void(int x,int y, int speed, double angle, int damage)> shoot;
+    function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> shoot;
     int xMouse,yMouse;
     int health = 100;
     void resetRotation();
     PlayerSpriteType playerType;
 public:
-    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> shootFunc, PlayerSpriteType type);
+    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> shootFunc, PlayerSpriteType type);
     Inventory* inventory = NULL;
     bool isReloading = false;
     int getHealth();

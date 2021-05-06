@@ -12,11 +12,11 @@ class KinematicBody;
 class Player;
 class HealthBar;
 class TileMap;
-class Bullet;
 class Clock;
 class LTimer;
 class ProgressBar;
 class Inventory;
+class Throwable;
 
 enum LButtonSprite
 {
@@ -64,6 +64,10 @@ enum WeaponType{
 	// BOMB = 5,
 	// DEFUSE_KIT = 6
 };
+enum ThrowableType{
+	BULLET = 0,
+	KNIFE_SLASH = 1
+};
 const int SCREEN_WIDTH = 960;
 const int SCREEN_HEIGHT = 540;
 
@@ -76,3 +80,4 @@ const int LEVEL_HEIGHT = 1920;
 const int BUTTON_WIDTH = 320;
 const int BUTTON_HEIGHT = 200;
 const int TOTAL_BUTTONS = 2;
+
