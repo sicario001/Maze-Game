@@ -132,6 +132,9 @@ int main( int argc, char* args[] )
 	std::cin>>c_or_s;
 	gEngine = new GameEngine(c_or_s);
 	std::cout << "Engine loaded" << std::endl;
+	if(c_or_s==0){
+		gEngine->audioMaster.init();
+	}
 	//Start up SDL and create window
 	if( !gEngine->init() ){
 		printf( "Failed to initialize!\n" );

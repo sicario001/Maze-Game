@@ -129,6 +129,7 @@ public:
 class Bullet : public KinematicBody{
 private:
     int numFramesEnd = 0;
+    AudioSource* hitSound;
 public:
     // if collided yet
     bool collided = false;
@@ -136,6 +137,7 @@ public:
     Bullet();
     Bullet(int x, int y, int pSpeed, double rotation,int damage,LTexture* pTexture);
     void move();
+    void release();
     // start animation when hit
     void onHit();
 };

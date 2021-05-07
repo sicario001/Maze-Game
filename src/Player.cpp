@@ -224,6 +224,9 @@ Bullet::Bullet(int pX, int pY, int pSpeed, double rotation, int pDamage,LTexture
     clip->w=BULLET_SPRITE_W;
     clip->h=BULLET_SPRITE_H;
     damage = pDamage;
+    hitSound = gEngine->audioMaster.loadWaveFile("media/audio/bullethit.wav");
+    hitSound->setReferenceDistance(200);
+    hitSound->setRollOffFactor(2);
 }
 
 void Bullet::move(){
@@ -240,9 +243,15 @@ void Bullet::move(){
     }
 }
 
+void Bullet::release(){
+    hitSound->release();
+}
+
 void Bullet::onHit(){
     if (numFramesEnd == 0)
     {   
+        hitSound->setPosition(x,y,0);
+        hitSound->play();
         collided=true;
         x+=velX;
         y+=velY;
@@ -257,8 +266,14 @@ void Bullet::onHit(){
 Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
     shoot = sf;
     health = pHealth;
+
     walkingSounds = gEngine->audioMaster.loadWaveFile("media/audio/walk.wav");
-    shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/pistol.wav");
+    walkingSounds->setReferenceDistance(200);
+    walkingSounds->setRollOffFactor(0.7);
+
+    shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/gunshot.wav");
+    shootingSounds->setReferenceDistance(200);
+    shootingSounds->setRollOffFactor(2);
 }
 
 void Player::damage(int d){
@@ -358,6 +373,7 @@ void Player::playSoundIfWalked(bool isListener){
         if(isListener){
     	    gEngine->resetListener(x,y);
         }
+        shootingSounds->setPosition(x,y,0);
         walkingSounds->setPosition(x,y,0);
 	    // cout << "walker at " <<x <<" " << y << endl;
         if(walkingSounds->getState()!=AL_PLAYING){
