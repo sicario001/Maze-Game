@@ -16,6 +16,8 @@ PauseMode::PauseMode(){
 
 bool PauseMode::loadMediaPauseMenu(){
 	bool success = true;
+	gButtons[0]->loadAudio();
+	gButtons[1]->loadAudio();
 	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/pause_menu.png" ) )
 	{
 		printf( "Failed to load button sprite texture!\n" );

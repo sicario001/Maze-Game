@@ -6,7 +6,7 @@
 #include "fwd.hpp"
 #include "LTexture.hpp"
 #include "GameEngine.hpp"
-
+#include "AudioSource.hpp"
 extern GameEngine* gEngine;
 
 class LButton
@@ -26,6 +26,8 @@ class LButton
 		void render();
 		int getMode();
 		void setMode(int a);
+
+		void loadAudio();
 	private:
 		LTexture* gButtonSpriteSheetTexture;
 
@@ -37,4 +39,8 @@ class LButton
 		LButtonSprite mCurrentSprite;
 		int sprite_type; 
 		ButtonType button_type;
+		//Audio
+		AudioSource* hoverSound;
+		AudioSource* clickSound;
+		bool wasInsideBefore = false;
 };

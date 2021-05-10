@@ -376,7 +376,10 @@ void Player::playSoundIfWalked(bool isListener){
         shootingSounds->setPosition(x,y,0);
         walkingSounds->setPosition(x,y,0);
 	    // cout << "walker at " <<x <<" " << y << endl;
-        if(walkingSounds->getState()!=AL_PLAYING){
+        if(walkingSounds->getState() == AL_PAUSED){
+            walkingSounds->play();
+        }
+        else if(walkingSounds->getState()!=AL_PLAYING){
 	        // cout << "played at " <<x <<" " << y << endl;
             walkingSounds->rewind();
             walkingSounds->play();
@@ -385,7 +388,7 @@ void Player::playSoundIfWalked(bool isListener){
     else{
         if(walkingSounds->getState()==AL_PLAYING){
 	        // cout << "played at " <<x <<" " << y << endl;
-            walkingSounds->stop();
+            walkingSounds->pause();
         }
     }
 }

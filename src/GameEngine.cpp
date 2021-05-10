@@ -22,6 +22,7 @@ GameEngine::GameEngine(int c_or_s){
 
 bool GameEngine::init()
 {
+	audioMaster.init();
 	//Initialization flag
 	bool success = true;
 
