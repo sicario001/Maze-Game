@@ -25,7 +25,7 @@ class ClientNet{
         void SendPacket(ENetPeer* peer, const char* data);
         std::vector<int> Parsedata(char* data);
         void SendDataPosVelDeg(ENetPeer* peer, int x, int y, int velX, int velY, int deg);
-        void SendDataBulletPosVel(ENetPeer* peer, int x, int y, int speedX, int speedY);
+        void SendDataThrowablePosVel(ENetPeer* peer, int x, int y, int speedX, int speedY, double angle, int type);
         void SendHit(ENetPeer* peer, int damage);
         void SendBombState(int state);
         void SendBombLocation(std::pair<int, int> location);

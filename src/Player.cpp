@@ -1,5 +1,11 @@
 #include "PhysicsObject.hpp"
 
+vector<int> THROWABLE_SPRITE_H = {BULLET_SPRITE_H, SLASH_SPRITE_H};
+vector<int> THROWABLE_SPRITE_W = {BULLET_SPRITE_W, SLASH_SPRITE_W};
+vector<int> THROWABLE_COLLIDER_H = {BULLET_COLLIDER_H, SLASH_COLLIDER_H};
+vector<int> THROWABLE_COLLIDER_W = {BULLET_COLLIDER_W, SLASH_COLLIDER_W};
+vector<int> ANIMATION_FRAMES = {6, 4};
+
 pair<int,int> CollisionRect::getVertex(int i){
     double pi =3.1415926535;
     double diag = sqrt(1.0*w*w+h*h)/2;
@@ -133,15 +139,21 @@ bool RigidBody::collided(RigidBody* rb){
     return collisionRect->intersects(rb->collisionRect);
 }
 
-KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip):RigidBody(pX,pY,pCollisionRect,pTexture,pClip){
+KinematicBody::KinematicBody(int pX, int pY, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* pClip, double angle):RigidBody(pX,pY,pCollisionRect,pTexture,pClip){
     x = pX;
     y = pY;
     velX = pSpeedX;
     velY = pSpeedY;
     speed = pSpeed;
-    if(pSpeedX!=0 || pSpeedY!=0){
-        rotation = atan2(pSpeedY,pSpeedX);
+    if (angle==-10){
+        if(pSpeedX!=0 || pSpeedY!=0){
+            rotation = atan2(pSpeedY,pSpeedX);
+        }
     }
+    else{
+        rotation = angle;
+    }
+    
 }
 
 void KinematicBody::move()
@@ -217,48 +229,71 @@ void KinematicBody::setRotation(int deg){
     rotation = 3.1415926535/180 * deg;
 }
 
-Bullet::Bullet(int pX, int pY, int pSpeed, double rotation, int pDamage,LTexture* pTexture):KinematicBody(pX,pY,pSpeed * cos(rotation),pSpeed * sin(rotation),10,new CollisionRect(0,0,BULLET_COLLIDER_W,BULLET_COLLIDER_H,rotation,BULLET_SPRITE_W,BULLET_SPRITE_H),pTexture,new SDL_Rect()){
+Throwable::Throwable(int pX, int pY, int pSpeed, double rotation, int pDamage,LTexture* pTexture, ThrowableType type):KinematicBody(pX,pY,pSpeed * cos(rotation),pSpeed * sin(rotation),pSpeed,new CollisionRect(0,0,THROWABLE_COLLIDER_W[type],THROWABLE_COLLIDER_H[type],rotation,THROWABLE_SPRITE_W[type],THROWABLE_SPRITE_H[type]),pTexture,new SDL_Rect(), rotation){
     clip = new SDL_Rect();
     clip->x=0;
     clip->y=0;
-    clip->w=BULLET_SPRITE_W;
-    clip->h=BULLET_SPRITE_H;
+    clip->w=THROWABLE_SPRITE_W[type];
+    clip->h=THROWABLE_SPRITE_H[type];
     damage = pDamage;
-}
-
-void Bullet::move(){
-    if (numFramesEnd > 0)
-    {
-        numFramesEnd++;
-        clip->x = 64 + numFramesEnd/2 * 16;
-        if(numFramesEnd==6){
-            isActive=false;
-        }
+    throwableType = type;
+    if (throwableType==BULLET){
+        numFramesEnd = 0;
     }
     else{
-        KinematicBody::move();
+        numFramesEnd = 1;
     }
 }
 
-void Bullet::onHit(){
-    if (numFramesEnd == 0)
-    {   
-        collided=true;
-        x+=velX;
-        y+=velY;
-        velX = 0;
-        velY = 0;
-        numFramesEnd = 1;
-        clip->x = 64;
+void Throwable::move(){
+    if (throwableType==BULLET){
+        if (numFramesEnd > 0)
+        {
+            numFramesEnd++;
+            clip->x = 64 + numFramesEnd/2 * 16;
+            if(numFramesEnd==ANIMATION_FRAMES[throwableType]){
+                isActive=false;
+            }
+        }
+        else{
+            KinematicBody::move();
+        }
+    }
+    else if (throwableType==KNIFE_SLASH){
+        if (numFramesEnd > 0)
+        {
+            numFramesEnd++;
+            clip->x = numFramesEnd * 110;
+            if(numFramesEnd==ANIMATION_FRAMES[throwableType]){
+                isActive=false;
+            }
+        }
+    }
+}
+
+void Throwable::onHit(){
+    if (throwableType==BULLET){
+        if (numFramesEnd == 0)
+        {   
+            collided=true;
+            x+=velX;
+            y+=velY;
+            velX = 0;
+            velY = 0;
+            numFramesEnd = 1;
+            clip->x = 64;
+        }
     }
     
 }
 
-Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage)> sf): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
+Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> sf, PlayerSpriteType type): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
+    playerType = type;
     shoot = sf;
     health = pHealth;
     walkingSounds = gEngine->audioMaster.loadWaveFile("media/audio/walk.wav");
     shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/pistol.wav");
+    inventory = new Inventory();
 }
 
 void Player::damage(int d){
@@ -281,24 +316,38 @@ void Player::resetRotation(){
 
 void Player::handleEvent(SDL_Event &e)
 {
-    if(e.type == SDL_MOUSEMOTION)
-    {   
-        SDL_GetMouseState(&xMouse,&yMouse);
-    }
-    
-    // left click to shoot
-    if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0){
-        // spawn at tip
-        // cout << "SHOOT!" << endl;
-        double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
-        double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
-        double d = sqrt(cx*cx+cy*cy);
-        double a = atan2(cy,cx);
-        cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
-        cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
-        shoot(cx,cy,15,rotation,10);
-        shootingSounds->rewind();
-        shootingSounds->play();
+    if (canMove){
+        if(e.type == SDL_MOUSEMOTION)
+        {   
+            SDL_GetMouseState(&xMouse,&yMouse);
+        }
+        
+        // left click to shoot
+        if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==GUN && !(inventory->isEmptyMag())){
+            // spawn at tip
+            // cout << "SHOOT!" << endl;
+            isReloading = false;
+            double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
+            double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+            double d = sqrt(cx*cx+cy*cy);
+            double a = atan2(cy,cx);
+            cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
+            cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
+            shoot(cx,cy,15,rotation,10, BULLET);
+            shootingSounds->rewind();
+            shootingSounds->play();
+            inventory->useBullet();
+        }
+        else if (e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==KNIFE){
+            isReloading = false;
+            double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
+            double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+            double d = sqrt(cx*cx+cy*cy);
+            double a = atan2(cy,cx);
+            cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - SLASH_SPRITE_W/2;
+            cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - SLASH_SPRITE_H/2;
+            shoot(cx,cy,0,rotation,5, KNIFE_SLASH);
+        }
     }
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
@@ -306,10 +355,23 @@ void Player::handleEvent(SDL_Event &e)
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
-            case SDLK_UP: velY -= speed; break;
-            case SDLK_DOWN: velY += speed; break;
-            case SDLK_LEFT: velX -= speed; break;
-            case SDLK_RIGHT: velX += speed; break;
+            case SDLK_w: velY -= speed; break;
+            case SDLK_s: velY += speed; break;
+            case SDLK_a: velX -= speed; break;
+            case SDLK_d: velX += speed; break;
+            case SDLK_1: if(canMove) {inventory->changeWeapon(KNIFE); isReloading = false;} break;
+            case SDLK_2: if(canMove) {inventory->changeWeapon(GUN);} break;
+            case SDLK_3: if(canMove) {inventory->changeWeapon(SMOKE); isReloading = false;} break;
+            case SDLK_4: if(canMove) {inventory->changeWeapon(GRENADE); isReloading = false;} break;
+            case SDLK_5: if(canMove) {inventory->changeWeapon(FLASH); isReloading = false;} break;
+            case SDLK_r: {
+                if (canMove){
+                    if (isReloading==false && inventory->canReload()){
+                        isReloading =true;
+                        reloadBar = new ProgressBar(3000, 0, 0, 255);
+                    }
+                }
+            }
         }
     }
     //If a key was released
@@ -318,10 +380,10 @@ void Player::handleEvent(SDL_Event &e)
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
-            case SDLK_UP: velY += speed; break;
-            case SDLK_DOWN: velY -= speed; break;
-            case SDLK_LEFT: velX += speed; break;
-            case SDLK_RIGHT: velX -= speed; break;
+            case SDLK_w: velY += speed; break;
+            case SDLK_s: velY -= speed; break;
+            case SDLK_a: velX += speed; break;
+            case SDLK_d: velX -= speed; break;
         }
     }
     resetRotation();
@@ -342,6 +404,20 @@ void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
 }
 int Player::getHealth(){
     return health;
+
+}
+void Player::resetClip(){
+    if (canMove && inventory->getCurrWeapon()==GUN){
+        if (isReloading){
+            clip->y = (3 +6*playerType)*PLAYER_SPRITE_SIZE;
+        }
+        else{
+            clip->y = (2 +6*playerType)*PLAYER_SPRITE_SIZE;
+        }
+    }
+    else{
+        clip->y = (5 +6*playerType)*PLAYER_SPRITE_SIZE;
+    }
 }
 void Player::resetCamera(){
     gEngine->camera->h = CAMERA_HEIGHT;

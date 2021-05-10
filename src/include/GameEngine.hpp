@@ -40,12 +40,14 @@ class GameEngine
 
         //The window renderer
         SDL_Renderer* gRenderer = NULL;
+        bool gameStartMessage = false;
+        bool gameEndMessage = false;
 
         void runLoop();
 
         void setGameMode( GameModeType a);
         void updateOtherPlayer(std::vector<int> &data);
-        void addBulletToVector(std::vector<int> &data);
+        void addThrowableToVector(std::vector<int> &data);
         void damagePlayer(std::vector<int> &data);
         void updateMapfromServer(std::vector<int> &received_data);
 

@@ -9,6 +9,7 @@
 #include "PhysicsObject.hpp"
 #include "HealthBar.hpp"
 #include "ProgressBar.hpp"
+#include "Inventory.hpp"
 #include "TileMap.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
@@ -60,12 +61,12 @@ class PlayMode :public GameMode{
 		bool isPaused;
 		
 		LTexture* gPlayerTexture;    
-		LTexture* pbTexture;
+		vector<LTexture*> pbTexture = {NULL, NULL};
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;
 
-		vector<Bullet> playerBullets;
-		vector<Bullet> otherPlayerBullets;
+		vector<Throwable> playerThrowables;
+		vector<Throwable> otherPlayerThrowables;
 
 		void initPlayers();
 		pthread_mutex_t mutex;
@@ -98,10 +99,11 @@ class PlayMode :public GameMode{
 		TTF_Font *gFont = NULL;
 		std::stringstream messageText;
 		bool tileMapInit = false;
+
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
 
-		void spawnBullet(int x, int y, int speed, double angle, int damage);
+		void spawnThrowable(int x, int y, int speed, double angle, int damage, ThrowableType type);
 		void ReInit();
 		void enterMode();
 		void Pause();

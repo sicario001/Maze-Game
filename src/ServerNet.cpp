@@ -60,9 +60,9 @@ void ServerNet::SendMap(ENetPeer* peer, std::vector<std::vector<bool>> &map){
     SendPacket(peer, send_data);
 }
 
-void ServerNet::SendDataBulletPosVel(ENetPeer* peer, int x, int y, int velX, int velY){
+void ServerNet::SendDataThrowablePosVel(ENetPeer* peer, int x, int y, int velX, int velY, double angle, int type){
     char send_data[1024] = {'\0'};
-    sprintf(send_data, "2|%d|%d|%d|%d", x, y, velX, velY);
+    sprintf(send_data, "2|%d|%d|%d|%d|%d|%f", x, y, velX, velY, type, angle);
     SendPacket(peer, send_data);
 }
 
@@ -119,9 +119,10 @@ std::vector<int> ServerNet::Parsedata(int id, char* data){
         }
         case 2:
         {
-            int x, y, velX, velY;
-            sscanf(data, "2|%d|%d|%d|%d", &x, &y, &velX, &velY);
-            return{2, x, y, velX, velY};
+            int x, y, velX, velY, type;
+            double angle;
+            sscanf(data, "2|%d|%d|%d|%d|%d|%lf", &x, &y, &velX, &velY, &type, &angle);
+            return{2, x, y, velX, velY, type, (int)(angle*1e8)};
         }
         case 3:
         {

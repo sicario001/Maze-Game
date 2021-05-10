@@ -1,23 +1,23 @@
 #include "GameModes.hpp"
 
-void PlayMode::spawnBullet(int x, int y, int speed, double angle, int damage){
+void PlayMode::spawnThrowable(int x, int y, int speed, double angle, int damage, ThrowableType type){
 	// cout << x<< " " <<y<< " " <<speed << " " <<angle<<endl;
 	if(damage>0){
 		if (clientObj!=NULL){
 			if ((clientObj->peer)!=NULL){
-				clientObj->SendDataBulletPosVel(clientObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)));
+				clientObj->SendDataThrowablePosVel(clientObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)), angle, type);
 			}
 		}
 		else{
 			if ((serverObj->peer)!=NULL){
 				// std::cout<<"in\n";
-				serverObj->SendDataBulletPosVel(serverObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)));
+				serverObj->SendDataThrowablePosVel(serverObj->peer, x, y, (int)(speed * cos(angle)), (int)(speed * sin(angle)), angle, type);
 			}
 		}
-		playerBullets.push_back(Bullet(x,y,speed,angle,damage,pbTexture));
+		playerThrowables.push_back(Throwable(x,y,speed,angle,damage,pbTexture[type], type));
 	}
 	else{
-		otherPlayerBullets.push_back(Bullet(x,y,speed,angle,damage,pbTexture));
+		otherPlayerThrowables.push_back(Throwable(x,y,speed,angle,damage,pbTexture[type], type));
 	}
 }
 
@@ -30,6 +30,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 			case SDLK_e:
 			{
 				if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
+					player->isReloading = false;
 					progressBar = new ProgressBar(10000);
 					if (playerObj==ATTACK){
 						bombState = PLANTING;
@@ -72,13 +73,13 @@ void PlayMode::eventHandler(SDL_Event& e){
 }
 
 void PlayMode::update(){
+	
 	if (openPauseMenu){
 		openPauseMenu = false;
 		Pause();
 		gEngine->setGameMode(PAUSE);
 		return;
 	}
-	// cout<<"in\n";
 	
 	// handle movement of otherPlayer
 	if (playerObj!=ATTACK){
@@ -118,7 +119,6 @@ void PlayMode::update(){
 	//Render wall
 	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
 	tileMap->render();
-	
 	// player->getCollisionRect()->render();
 	// otherPlayer->getCollisionRect()->render();
 
@@ -127,23 +127,25 @@ void PlayMode::update(){
 	}
 	
 	otherPlayer->render();
-
+	
 	// render bullets
-	for (Bullet& x : playerBullets)
+	for (Throwable& x : playerThrowables)
 	{
 		x.move();
-		tileMap->handleBullets(&x);
+		tileMap->handleThrowables(&x);
 		if(x.handleCollision(otherPlayer)){
 			// send hit if bullet was moving
 			if(!x.collided){
 				if (clientObj!=NULL){
 					if ((clientObj->peer)!=NULL){
 						clientObj->SendHit(clientObj->peer, x.damage);
+						otherPlayer->damage(x.damage);
 					}
 				}
 				else{
 					if ((serverObj->peer)!=NULL){
 						serverObj->SendHit(serverObj->peer, x.damage);
+						otherPlayer->damage(x.damage);
 					}
 				}
 			}
@@ -155,17 +157,17 @@ void PlayMode::update(){
 		}
 	}
 	
-	playerBullets.erase(std::remove_if(playerBullets.begin(),playerBullets.end(),[](Bullet& x){
+	playerThrowables.erase(std::remove_if(playerThrowables.begin(),playerThrowables.end(),[](Throwable& x){
 		return (!x.isActive) || x.handleOutOfBounds();
-	}),playerBullets.end());
-
+	}),playerThrowables.end());
+	
 	//Render players
+	player->resetClip();
 	player->render();
-
-	for (Bullet& x : otherPlayerBullets)
+	for (Throwable& x : otherPlayerThrowables)
 	{
 		x.move();
-		tileMap->handleBullets(&x);
+		tileMap->handleThrowables(&x);
 		if(x.handleCollision(player)){
 			x.onHit();
 		}
@@ -175,12 +177,33 @@ void PlayMode::update(){
 		}
 	}
 	
-	otherPlayerBullets.erase(std::remove_if(otherPlayerBullets.begin(),otherPlayerBullets.end(),[](Bullet& x){
+	otherPlayerThrowables.erase(std::remove_if(otherPlayerThrowables.begin(),otherPlayerThrowables.end(),[](Throwable& x){
 		return (!x.isActive) || x.handleOutOfBounds();
-	}),otherPlayerBullets.end());
+	}),otherPlayerThrowables.end());
 	healthBar->setHealth(player->getHealth());
 	healthBar->render();
 	clock->render();
+	
+	player->inventory->render();
+	if (player->reloadBar!=NULL){
+		if (player->isReloading){
+			if (player->reloadBar->isComplete()){
+				delete(player->reloadBar);
+				player->reloadBar = NULL;
+				player->isReloading = false;
+				player->inventory->reload();
+			}
+			else{
+				player->reloadBar->render();
+			}
+		}
+		else{
+			delete(player->reloadBar);
+			player->reloadBar = NULL;
+			player->isReloading = false;
+
+		}
+	}
 	if (progressBar!=NULL){
 		if (progressBar->isComplete()){
 			delete(progressBar);
@@ -257,7 +280,13 @@ bool PlayMode::loadMediaPlay()
 	//Loading success flag
 	bool success = true;
 	//Load player bullet texture
-	if( !pbTexture->loadFromFile( "media/texture/bullet.png" ) )
+	
+	if( !pbTexture[0]->loadFromFile( "media/texture/bullet.png" ) )
+	{
+		printf( "Failed to load player texture!\n" );
+		success = false;
+	}
+	if( !pbTexture[1]->loadFromFile( "media/texture/slashEffect.png" ) )
 	{
 		printf( "Failed to load player texture!\n" );
 		success = false;
@@ -280,12 +309,15 @@ bool PlayMode::loadMediaPlay()
 		success = false;
 	}
 	clock->loadMediaClock();
+	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
 }
 void PlayMode::freePlayMode(){
 	gPlayerTexture->free();
-	pbTexture->free();
+	for (LTexture* x:pbTexture){
+		x->free();
+	}
 	bombTexture->free();
 	delete (player);
 	delete (otherPlayer);
@@ -305,8 +337,8 @@ void PlayMode::getPlayerClip(int i,SDL_Rect &clip){
 }
 
 void PlayMode::initPlayers(){
-	auto sf = [this](int x, int y, int speed, double angle, int damage){
-		spawnBullet(x,y,speed,angle,damage);
+	auto sf = [this](int x, int y, int speed, double angle, int damage, ThrowableType type){
+		spawnThrowable(x,y,speed,angle,damage, type);
 	};
 	SDL_Rect clip1,clip2;
 	int server_start_pos_x = 0;
@@ -316,21 +348,23 @@ void PlayMode::initPlayers(){
 	if (clientObj!=NULL){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);
-		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf);
-		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf);
+		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf, SURVIVOR);
+		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf, SOLDIER);
 		playerObj = ATTACK;
 	}
 	else{
 		getPlayerClip(SOLDIER,clip1);
 		getPlayerClip(SURVIVOR,clip2);
-		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf);
-		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf);
+		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf, SOLDIER);
+		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf, SURVIVOR);
 		playerObj = DEFEND;
 	}
 }
 PlayMode::PlayMode(){
 	gPlayerTexture = new LTexture();
-	pbTexture = new LTexture();
+	for (int i=0; i<(int)pbTexture.size(); i++){
+		pbTexture[i] = new LTexture();
+	}
 	bombTexture = new LTexture(0.1);
 	healthBar = new HealthBar();
 	initPlayers();
@@ -346,7 +380,9 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		serverObj = server;
 		bombState = IDLE;
 		gPlayerTexture = new LTexture();
-		pbTexture = new LTexture();
+		for (int i=0; i<(int)pbTexture.size(); i++){
+			pbTexture[i] = new LTexture();
+		}
 		bombTexture = new LTexture(0.1);
 		healthBar = new HealthBar();
 		clock = new Clock();
@@ -359,7 +395,9 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 void PlayMode::ReInit(){
 	bombState = IDLE;
 	gPlayerTexture = new LTexture();
-	pbTexture = new LTexture();
+	for (int i=0; i<(int)pbTexture.size(); i++){
+		pbTexture[i] = new LTexture();
+	}
 	bombTexture = new LTexture(0.1);
 	initPlayers();
 	player->allowMovement();
@@ -372,7 +410,9 @@ void PlayMode::ReInit(){
 	tileMap->generateTiles(clientObj, serverObj);
 	clock->reset(RoundTime);
 	// cout<<"in play\n";
+	
 	loadMediaPlay();
+	
 	isPaused = false;
 }
 void PlayMode::enterMode(){
