@@ -57,6 +57,7 @@ void AudioMaster::init()
 	} else {
 		alcMakeContextCurrent(context);
 	}
+	alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
 }
 
 void AudioMaster::setListenerPosition(float x, float y, float z)

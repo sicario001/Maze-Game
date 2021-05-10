@@ -60,6 +60,9 @@ void PlayMode::eventHandler(SDL_Event& e){
 						sendBombState();
 					}
 					else{
+						bombBeepSound->rewind();
+						bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
+						bombBeepSound->play(true);
 						bombState = PLANTED;
 						player->allowMovement();
 						sendBombState();
@@ -158,7 +161,11 @@ void PlayMode::update(){
 	}
 	
 	playerThrowables.erase(std::remove_if(playerThrowables.begin(),playerThrowables.end(),[](Throwable& x){
-		return (!x.isActive) || x.handleOutOfBounds();
+		bool erasable = (!x.isActive) || x.handleOutOfBounds();
+		if(erasable){
+			x.release();
+		}
+		return erasable;
 	}),playerThrowables.end());
 	
 	//Render players
@@ -178,7 +185,11 @@ void PlayMode::update(){
 	}
 	
 	otherPlayerThrowables.erase(std::remove_if(otherPlayerThrowables.begin(),otherPlayerThrowables.end(),[](Throwable& x){
-		return (!x.isActive) || x.handleOutOfBounds();
+		bool erasable = (!x.isActive) || x.handleOutOfBounds();
+		if(erasable){
+			x.release();
+		}
+		return erasable;
 	}),otherPlayerThrowables.end());
 	healthBar->setHealth(player->getHealth());
 	healthBar->render();
@@ -209,6 +220,9 @@ void PlayMode::update(){
 			delete(progressBar);
 			progressBar = NULL;
 			if (playerObj==ATTACK){
+				bombBeepSound->rewind();
+				bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
+				bombBeepSound->play(true);
 				bombState = PLANTED;
 				player->allowMovement();
 				bombPlanted({player->getPosX(), player->getPosY()});
@@ -216,6 +230,7 @@ void PlayMode::update(){
 				sendBombLocation();
 			}
 			else{
+				bombBeepSound->rewind();
 				bombState = DEFUSED;
 				player->allowMovement();
 				sendBombState();
@@ -264,12 +279,16 @@ void PlayMode::updateBombState(int state){
 		bombState = PLANTING;
 	}
 	else if (state==2){
+		bombBeepSound->rewind();
+		bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
+		bombBeepSound->play(true);
 		bombState = PLANTED;
 	}
 	else if (state==3){
 		bombState = DEFUSING;
 	}
 	else{
+		bombBeepSound->rewind();
 		bombState = DEFUSED;
 		bombDefused();
 	}
@@ -319,6 +338,7 @@ void PlayMode::freePlayMode(){
 		x->free();
 	}
 	bombTexture->free();
+	bombBeepSound->release();
 	delete (player);
 	delete (otherPlayer);
 	delete (tileMap);
@@ -361,6 +381,7 @@ void PlayMode::initPlayers(){
 	}
 }
 PlayMode::PlayMode(){
+	initBombAudio();
 	gPlayerTexture = new LTexture();
 	for (int i=0; i<(int)pbTexture.size(); i++){
 		pbTexture[i] = new LTexture();
@@ -379,6 +400,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		clientObj = client;
 		serverObj = server;
 		bombState = IDLE;
+		initBombAudio();
 		gPlayerTexture = new LTexture();
 		for (int i=0; i<(int)pbTexture.size(); i++){
 			pbTexture[i] = new LTexture();
@@ -392,8 +414,18 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
     	pthread_cond_init( &initTileMapSignal, NULL);
 	}
 }
+void PlayMode::initBombAudio(){
+	if(bombBeepSound){
+		bombBeepSound->release();
+	}
+	bombBeepSound = gEngine->audioMaster.loadWaveFile("media/audio/beep.wav");
+	bombBeepSound->setReferenceDistance(200);
+	bombBeepSound->setRollOffFactor(1.5);
+}
+
 void PlayMode::ReInit(){
 	bombState = IDLE;
+	initBombAudio();
 	gPlayerTexture = new LTexture();
 	for (int i=0; i<(int)pbTexture.size(); i++){
 		pbTexture[i] = new LTexture();

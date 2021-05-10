@@ -25,6 +25,8 @@ class AudioSource
 		void setVelocity(float x, float y, float z);
 		void setPitch(float pitch);
 		void setGain(float gain);
+		void setRollOffFactor(float x);
+		void setReferenceDistance(float x);
 		int getState();
 	private:
 	

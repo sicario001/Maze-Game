@@ -243,6 +243,9 @@ Throwable::Throwable(int pX, int pY, int pSpeed, double rotation, int pDamage,LT
     else{
         numFramesEnd = 1;
     }
+    hitSound = gEngine->audioMaster.loadWaveFile("media/audio/bullethit.wav");
+    hitSound->setReferenceDistance(200);
+    hitSound->setRollOffFactor(2);
 }
 
 void Throwable::move(){
@@ -275,6 +278,8 @@ void Throwable::onHit(){
     if (throwableType==BULLET){
         if (numFramesEnd == 0)
         {   
+            hitSound->setPosition(x,y,0);
+            hitSound->play();
             collided=true;
             x+=velX;
             y+=velY;
@@ -286,14 +291,28 @@ void Throwable::onHit(){
     }
     
 }
+void Throwable::release(){
+    if(hitSound)
+        hitSound->release();
+}
 
 Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> sf, PlayerSpriteType type): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
     playerType = type;
     shoot = sf;
     health = pHealth;
-    walkingSounds = gEngine->audioMaster.loadWaveFile("media/audio/walk.wav");
-    shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/pistol.wav");
     inventory = new Inventory();
+
+    walkingSounds = gEngine->audioMaster.loadWaveFile("media/audio/walk.wav");
+    walkingSounds->setReferenceDistance(200);
+    walkingSounds->setRollOffFactor(0.7);
+
+    shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/gunshot.wav");
+    shootingSounds->setReferenceDistance(200);
+    shootingSounds->setRollOffFactor(2);
+
+    slashingSounds = gEngine->audioMaster.loadWaveFile("media/audio/slash.wav");
+    slashingSounds->setReferenceDistance(200);
+    slashingSounds->setRollOffFactor(2);
 }
 
 void Player::damage(int d){
@@ -347,6 +366,8 @@ void Player::handleEvent(SDL_Event &e)
             cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - SLASH_SPRITE_W/2;
             cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - SLASH_SPRITE_H/2;
             shoot(cx,cy,0,rotation,5, KNIFE_SLASH);
+            slashingSounds->rewind();
+            slashingSounds->play();
         }
     }
     //If a key was pressed
@@ -434,9 +455,14 @@ void Player::playSoundIfWalked(bool isListener){
         if(isListener){
     	    gEngine->resetListener(x,y);
         }
+        shootingSounds->setPosition(x,y,0);
+        slashingSounds->setPosition(x,y,0);
         walkingSounds->setPosition(x,y,0);
 	    // cout << "walker at " <<x <<" " << y << endl;
-        if(walkingSounds->getState()!=AL_PLAYING){
+        if(walkingSounds->getState() == AL_PAUSED){
+            walkingSounds->play();
+        }
+        else if(walkingSounds->getState()!=AL_PLAYING){
 	        // cout << "played at " <<x <<" " << y << endl;
             walkingSounds->rewind();
             walkingSounds->play();
@@ -445,7 +471,7 @@ void Player::playSoundIfWalked(bool isListener){
     else{
         if(walkingSounds->getState()==AL_PLAYING){
 	        // cout << "played at " <<x <<" " << y << endl;
-            walkingSounds->stop();
+            walkingSounds->pause();
         }
     }
 }

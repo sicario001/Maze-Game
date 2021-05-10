@@ -94,3 +94,11 @@ int AudioSource::getState(){
 	alGetSourcei(source, AL_SOURCE_STATE, &st);
 	return st;
 }
+
+void AudioSource::setRollOffFactor(float x){
+	alSourcef(source,AL_ROLLOFF_FACTOR,x);
+}
+
+void AudioSource::setReferenceDistance(float x){
+	alSourcef(source,AL_REFERENCE_DISTANCE,x);
+}

@@ -18,11 +18,11 @@ GameEngine::GameEngine(int c_or_s){
 	}
 	// cout<<"in\n";
 	playMode = new PlayMode(true, clientObj, serverObj);
-	audioMaster.init();
 }
 
 bool GameEngine::init()
 {
+	audioMaster.init();
 	//Initialization flag
 	bool success = true;
 

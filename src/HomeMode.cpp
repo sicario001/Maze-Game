@@ -16,6 +16,8 @@ HomeMode::HomeMode(){
 bool HomeMode::loadMediaHome(){
 	std::cout << "load media home" << std::endl;
 	bool success = true;
+	gButtons[0]->loadAudio();
+	gButtons[1]->loadAudio();
 	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/menu.png" ) )
 	{
 		printf( "Failed to load button sprite texture!\n" );

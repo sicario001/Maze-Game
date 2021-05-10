@@ -14,6 +14,7 @@
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
 #include "Clock.hpp"
+#include "AudioSource.hpp"
 #include <string>
 #include <sstream>
 
@@ -60,6 +61,8 @@ class PlayMode :public GameMode{
 		bool openPauseMenu = false;
 		bool isPaused;
 		
+		AudioSource* bombBeepSound;
+		
 		LTexture* gPlayerTexture;    
 		vector<LTexture*> pbTexture = {NULL, NULL};
 		ClientNet* clientObj = NULL;
@@ -77,6 +80,7 @@ class PlayMode :public GameMode{
 		void update();
 
 		void getPlayerClip(int i,SDL_Rect &clip);
+		void initBombAudio();
 	public:
 		Player* player = NULL;
 		PlayerObj playerObj;

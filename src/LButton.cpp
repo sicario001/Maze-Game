@@ -23,6 +23,11 @@ LButton::LButton(ButtonType type, LTexture* spriteSheet,SDL_Rect (&spriteClips)[
 	}	
 }
 
+void LButton::loadAudio(){
+	hoverSound = gEngine->audioMaster.loadWaveFile("media/audio/ui_click1.wav");
+	clickSound = gEngine->audioMaster.loadWaveFile("media/audio/ui_click2.wav");
+}
+
 void LButton::setPosition( int x, int y )
 {
 	mPosition.x = x;
@@ -71,6 +76,7 @@ void LButton::handleEvent( SDL_Event* e )
 			else{
 				mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT_ALT;
 			}	
+			wasInsideBefore = false;
 		}
 		//Mouse is inside button
 		else
@@ -85,7 +91,10 @@ void LButton::handleEvent( SDL_Event* e )
 				else{
 					mCurrentSprite = BUTTON_SPRITE_MOUSE_OVER_MOTION_ALT;
 				}	
-				
+				if(!wasInsideBefore){
+					hoverSound->rewind();
+					hoverSound->play();
+				}				
 				break;
 			
 				case SDL_MOUSEBUTTONDOWN:
@@ -95,6 +104,8 @@ void LButton::handleEvent( SDL_Event* e )
 				else{
 					mCurrentSprite = BUTTON_SPRITE_MOUSE_DOWN_ALT;
 				}	
+				clickSound->rewind();
+				clickSound->play();
 				break;
 				
 				case SDL_MOUSEBUTTONUP:
@@ -108,6 +119,7 @@ void LButton::handleEvent( SDL_Event* e )
 				}	
 				break;
 			}
+			wasInsideBefore = true;
 		}
 	}
 }

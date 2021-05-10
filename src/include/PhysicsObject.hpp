@@ -136,6 +136,7 @@ public:
 class Throwable : public KinematicBody{
 private:
     int numFramesEnd = 0;
+    AudioSource* hitSound;
 public:
     ThrowableType throwableType;
     // if collided yet
@@ -144,6 +145,7 @@ public:
     Throwable();
     Throwable(int x, int y, int pSpeed, double rotation,int damage,LTexture* pTexture, ThrowableType type);
     void move();
+    void release();
     // start animation when hit
     void onHit();
 };
@@ -157,6 +159,7 @@ private:
 
     AudioSource* walkingSounds;
     AudioSource* shootingSounds;
+    AudioSource* slashingSounds;
     
     PlayerSpriteType playerType;
 public:
