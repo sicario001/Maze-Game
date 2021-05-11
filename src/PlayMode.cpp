@@ -29,20 +29,22 @@ void PlayMode::eventHandler(SDL_Event& e){
             case SDLK_ESCAPE: openPauseMenu = true; break;
 			case SDLK_e:
 			{
-				if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
-					player->isReloading = false;
-					progressBar = new ProgressBar(10000);
-					if (playerObj==ATTACK){
-						bombState = PLANTING;
+				if (LoadingComplete){
+					if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
+						player->isReloading = false;
+						progressBar = new ProgressBar(10000);
+						if (playerObj==ATTACK){
+							bombState = PLANTING;
+							player->stopMovement();
+							sendBombState();
+						}
+						else{
+							bombState = DEFUSING;
+							player->stopMovement();
+							sendBombState();
+						}
 						player->stopMovement();
-						sendBombState();
 					}
-					else{
-						bombState = DEFUSING;
-						player->stopMovement();
-						sendBombState();
-					}
-					player->stopMovement();
 				}
 			}
         }
@@ -51,27 +53,31 @@ void PlayMode::eventHandler(SDL_Event& e){
 		switch(e.key.keysym.sym){
 			case SDLK_e:
 			{
-				if (progressBar!=NULL){
-					delete(progressBar);
-					progressBar = NULL;
-					if (playerObj==ATTACK){
-						bombState = IDLE;
-						player->allowMovement();
-						sendBombState();
-					}
-					else{
-						bombBeepSound->rewind();
-						bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
-						bombBeepSound->play(true);
-						bombState = PLANTED;
-						player->allowMovement();
-						sendBombState();
+				if (LoadingComplete){
+					if (progressBar!=NULL){
+						delete(progressBar);
+						progressBar = NULL;
+						if (playerObj==ATTACK){
+							bombState = IDLE;
+							player->allowMovement();
+							sendBombState();
+						}
+						else{
+							bombBeepSound->rewind();
+							bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
+							bombBeepSound->play(true);
+							bombState = PLANTED;
+							player->allowMovement();
+							sendBombState();
+						}
 					}
 				}
 			}
 		}
 	}
-	player->handleEvent(e);
+	if (LoadingComplete){
+		player->handleEvent(e);
+	}
 
 }
 void PlayMode::updateInPauseMode(){
