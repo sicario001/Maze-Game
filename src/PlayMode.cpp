@@ -83,166 +83,181 @@ void PlayMode::update(){
 		gEngine->setGameMode(PAUSE);
 		return;
 	}
-	
-	// handle movement of otherPlayer
-	if (playerObj!=ATTACK){
-		if (bombState==PLANTING){
-			otherPlayer->stopMovement();
+	if (LoadingComplete){
+		// handle movement of otherPlayer
+		if (playerObj!=ATTACK){
+			if (bombState==PLANTING){
+				otherPlayer->stopMovement();
+			}
+			else{
+				otherPlayer->allowMovement();
+			}
 		}
 		else{
-			otherPlayer->allowMovement();
+			if (bombState==DEFUSING){
+				otherPlayer->stopMovement();
+			}
+			else{
+				otherPlayer->allowMovement();
+			}
 		}
-	}
-	else{
-		if (bombState==DEFUSING){
-			otherPlayer->stopMovement();
+		//Move the players
+		player->move();
+		otherPlayer->move();
+		player->sendUpdate(clientObj,serverObj);
+
+		//check collision
+		player->handleOutOfBounds();
+		tileMap->handleCollisions(player);
+		player->handleCollision(otherPlayer);
+		
+
+		otherPlayer->handleOutOfBounds();
+		tileMap->handleCollisions(otherPlayer);
+		otherPlayer->handleCollision(player);
+
+		player->resetCamera();
+
+		
+		//Render wall
+		// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
+		tileMap->render();
+		// player->getCollisionRect()->render();
+		// otherPlayer->getCollisionRect()->render();
+
+		if (bomb!=NULL){
+			bomb->render();
 		}
-		else{
-			otherPlayer->allowMovement();
-		}
-	}
-	//Move the players
-	player->move();
-	otherPlayer->move();
-	player->sendUpdate(clientObj,serverObj);
-
-	//check collision
-	player->handleOutOfBounds();
-	tileMap->handleCollisions(player);
-	player->handleCollision(otherPlayer);
-	
-
-	otherPlayer->handleOutOfBounds();
-	tileMap->handleCollisions(otherPlayer);
-	otherPlayer->handleCollision(player);
-
-	player->resetCamera();
-
-	
-	//Render wall
-	// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
-	tileMap->render();
-	// player->getCollisionRect()->render();
-	// otherPlayer->getCollisionRect()->render();
-
-	if (bomb!=NULL){
-		bomb->render();
-	}
-	
-	otherPlayer->render();
-	
-	// render bullets
-	for (Throwable& x : playerThrowables)
-	{
-		x.move();
-		tileMap->handleThrowables(&x);
-		if(x.handleCollision(otherPlayer)){
-			// send hit if bullet was moving
-			if(!x.collided){
-				if (clientObj!=NULL){
-					if ((clientObj->peer)!=NULL){
-						clientObj->SendHit(clientObj->peer, x.damage);
-						otherPlayer->damage(x.damage);
+		
+		otherPlayer->render();
+		
+		// render bullets
+		for (Throwable& x : playerThrowables)
+		{
+			x.move();
+			tileMap->handleThrowables(&x);
+			if(x.handleCollision(otherPlayer)){
+				// send hit if bullet was moving
+				if(!x.collided){
+					if (clientObj!=NULL){
+						if ((clientObj->peer)!=NULL){
+							clientObj->SendHit(clientObj->peer, x.damage);
+							otherPlayer->damage(x.damage);
+						}
 					}
+					else{
+						if ((serverObj->peer)!=NULL){
+							serverObj->SendHit(serverObj->peer, x.damage);
+							otherPlayer->damage(x.damage);
+						}
+					}
+				}
+				x.onHit();
+			}
+			if(x.isActive){
+				x.render();
+				// x.getCollisionRect()->render();
+			}
+		}
+		
+		playerThrowables.erase(std::remove_if(playerThrowables.begin(),playerThrowables.end(),[](Throwable& x){
+			bool erasable = (!x.isActive) || x.handleOutOfBounds();
+			if(erasable){
+				x.release();
+			}
+			return erasable;
+		}),playerThrowables.end());
+		
+		//Render players
+		player->resetClip();
+		player->render();
+		for (Throwable& x : otherPlayerThrowables)
+		{
+			x.move();
+			tileMap->handleThrowables(&x);
+			if(x.handleCollision(player)){
+				x.onHit();
+			}
+			if(x.isActive){
+				x.render();
+				// x.getCollisionRect()->render();
+			}
+		}
+		
+		otherPlayerThrowables.erase(std::remove_if(otherPlayerThrowables.begin(),otherPlayerThrowables.end(),[](Throwable& x){
+			bool erasable = (!x.isActive) || x.handleOutOfBounds();
+			if(erasable){
+				x.release();
+			}
+			return erasable;
+		}),otherPlayerThrowables.end());
+		healthBar->setHealth(player->getHealth());
+		healthBar->render();
+		clock->render();
+		
+		player->inventory->render();
+		if (player->reloadBar!=NULL){
+			if (player->isReloading){
+				if (player->reloadBar->isComplete()){
+					delete(player->reloadBar);
+					player->reloadBar = NULL;
+					player->isReloading = false;
+					player->inventory->reload();
 				}
 				else{
-					if ((serverObj->peer)!=NULL){
-						serverObj->SendHit(serverObj->peer, x.damage);
-						otherPlayer->damage(x.damage);
-					}
+					player->reloadBar->render();
 				}
 			}
-			x.onHit();
-		}
-		if(x.isActive){
-			x.render();
-			// x.getCollisionRect()->render();
-		}
-	}
-	
-	playerThrowables.erase(std::remove_if(playerThrowables.begin(),playerThrowables.end(),[](Throwable& x){
-		bool erasable = (!x.isActive) || x.handleOutOfBounds();
-		if(erasable){
-			x.release();
-		}
-		return erasable;
-	}),playerThrowables.end());
-	
-	//Render players
-	player->resetClip();
-	player->render();
-	for (Throwable& x : otherPlayerThrowables)
-	{
-		x.move();
-		tileMap->handleThrowables(&x);
-		if(x.handleCollision(player)){
-			x.onHit();
-		}
-		if(x.isActive){
-			x.render();
-			// x.getCollisionRect()->render();
-		}
-	}
-	
-	otherPlayerThrowables.erase(std::remove_if(otherPlayerThrowables.begin(),otherPlayerThrowables.end(),[](Throwable& x){
-		bool erasable = (!x.isActive) || x.handleOutOfBounds();
-		if(erasable){
-			x.release();
-		}
-		return erasable;
-	}),otherPlayerThrowables.end());
-	healthBar->setHealth(player->getHealth());
-	healthBar->render();
-	clock->render();
-	
-	player->inventory->render();
-	if (player->reloadBar!=NULL){
-		if (player->isReloading){
-			if (player->reloadBar->isComplete()){
+			else{
 				delete(player->reloadBar);
 				player->reloadBar = NULL;
 				player->isReloading = false;
-				player->inventory->reload();
+
+			}
+		}
+		if (progressBar!=NULL){
+			if (progressBar->isComplete()){
+				delete(progressBar);
+				progressBar = NULL;
+				if (playerObj==ATTACK){
+					bombBeepSound->rewind();
+					bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
+					bombBeepSound->play(true);
+					bombState = PLANTED;
+					player->allowMovement();
+					bombPlanted({player->getPosX(), player->getPosY()});
+					sendBombState();
+					sendBombLocation();
+				}
+				else{
+					bombBeepSound->rewind();
+					bombState = DEFUSED;
+					player->allowMovement();
+					sendBombState();
+				}
 			}
 			else{
-				player->reloadBar->render();
+				progressBar->render();
+			}
+		}
+
+		player->playSoundIfWalked(true);
+		otherPlayer->playSoundIfWalked(false);
+	}
+	else{
+		if (serverObj!=NULL){
+			if (serverObj->isConnected() && ClientMapInitialized && !mapSent){
+				tileMap->sendMapToClient(serverObj);
+				mapSent = true;
 			}
 		}
 		else{
-			delete(player->reloadBar);
-			player->reloadBar = NULL;
-			player->isReloading = false;
-
+			if (clientObj->isConnected() && isInitTileMap() && !tileMapInitSent){
+				clientObj->SendTileMapInitialized();
+				tileMapInitSent = true;
+			}	
 		}
 	}
-	if (progressBar!=NULL){
-		if (progressBar->isComplete()){
-			delete(progressBar);
-			progressBar = NULL;
-			if (playerObj==ATTACK){
-				bombBeepSound->rewind();
-				bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
-				bombBeepSound->play(true);
-				bombState = PLANTED;
-				player->allowMovement();
-				bombPlanted({player->getPosX(), player->getPosY()});
-				sendBombState();
-				sendBombLocation();
-			}
-			else{
-				bombBeepSound->rewind();
-				bombState = DEFUSED;
-				player->allowMovement();
-				sendBombState();
-			}
-		}
-		else{
-			progressBar->render();
-		}
-	}
-
-	player->playSoundIfWalked(true);
-	otherPlayer->playSoundIfWalked(false);
 }
 
 void PlayMode::sendBombState(){
@@ -333,6 +348,11 @@ bool PlayMode::loadMediaPlay()
 	return success;
 }
 void PlayMode::freePlayMode(){
+	tileMapInit = false;
+	LoadingComplete = false;
+	ClientMapInitialized = true;
+	mapSent = false;
+	tileMapInitSent = false;
 	gPlayerTexture->free();
 	for (LTexture* x:pbTexture){
 		x->free();
@@ -433,14 +453,12 @@ void PlayMode::ReInit(){
 	bombTexture = new LTexture(0.1);
 	initPlayers();
 	player->allowMovement();
-	deInitTileMap();
 	
 	tileMap = new TileMap(clientObj, serverObj);
-	// cout<<"in\n";
-	tileMap->waitToReceiveMap();
-	// cout<<"in\n";
-	tileMap->generateTiles(clientObj, serverObj);
-	clock->reset(RoundTime);
+	initTileMap();
+	if (serverObj!=NULL){
+		tileMap->generateTiles(serverObj);
+	}
 	// cout<<"in play\n";
 	
 	loadMediaPlay();

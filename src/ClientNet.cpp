@@ -97,6 +97,18 @@ void ClientNet::SendBombLocation(std::pair <int, int> location){
     sprintf(send_data, "5|%d|%d", location.first, location.second);
     SendPacket(peer, send_data);
 }
+
+void ClientNet::SendTileMapInitialized(){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "6");
+    SendPacket(peer, send_data);
+}
+void ClientNet::SendLoadingComplete(){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "7");
+    SendPacket(peer, send_data);
+}
+
 void ClientNet::SendPacket(ENetPeer* peer, const char* data)
 {
     // Create the packet using enet_packet_create and the data we want to send

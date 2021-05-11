@@ -29,6 +29,8 @@ class ClientNet{
         void SendHit(ENetPeer* peer, int damage);
         void SendBombState(int state);
         void SendBombLocation(std::pair<int, int> location);
+        void SendTileMapInitialized();
+        void SendLoadingComplete();
 
 };
 void* ReceiveLoop(void* param);

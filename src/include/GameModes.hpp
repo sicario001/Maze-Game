@@ -102,10 +102,11 @@ class PlayMode :public GameMode{
 		LTexture* messageTextTexture = NULL;
 		TTF_Font *gFont = NULL;
 		std::stringstream messageText;
-		bool tileMapInit = false;
+		
 
 		PlayMode();
 		PlayMode(bool flag, ClientNet* clientObj, ServerNet* serverObj);
+		
 
 		void spawnThrowable(int x, int y, int speed, double angle, int damage, ThrowableType type);
 		void ReInit();
@@ -118,4 +119,9 @@ class PlayMode :public GameMode{
 		bool isInitTileMap();
 		void deInitTileMap();
 		void waitForInitTileMap();
+		bool tileMapInit = false;
+		bool LoadingComplete = false;
+		bool ClientMapInitialized = true;
+		bool mapSent = false;
+		bool tileMapInitSent = false;
 };

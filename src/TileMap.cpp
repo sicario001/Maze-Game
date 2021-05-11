@@ -3,24 +3,13 @@
 
 TileMap::TileMap(ClientNet* client, ServerNet* server){
     gTileSheet = new LTexture();
-    pthread_mutex_init( &mutex, NULL);
     pthread_mutex_init( &mutex1, NULL);
-    pthread_cond_init( &receiveMapSignal, NULL);
-    if (client!=NULL){
-        setNotReceived();
-    }
-    else{
-        setReceived();
-    }
     
     // generateTiles(client, server);
 }
 TileMap::~TileMap(){
     delete(gTileSheet);
-    pthread_mutex_destroy(&mutex);
     pthread_mutex_destroy(&mutex1);
-    pthread_cond_destroy(&receiveMapSignal);
-
 }
 
 bool TileMap::getWhenZero(int i,vector<int> zero, vector<int> one){
@@ -395,20 +384,16 @@ void TileMap::handleThrowables(Throwable* x){
         }
     }
 }
+void TileMap::sendMapToClient(ServerNet* server){
+    vector<vector<bool>> map_clone;
+    cloneMap(map_clone);
+    server->SendMap(server->peer, map_clone);
+}
 
-void TileMap::generateTiles(ClientNet* client, ServerNet* server){
+void TileMap::generateTiles(ServerNet* server){
     
     if (server!=NULL){
         generateMap1(0.5);
-        // cout<<"\nWait for Connected\n";
-        server->waitForConnection();
-        
-        vector<vector<bool>> map_clone;
-        
-        cloneMap(map_clone);
-        
-        server->SendMap(server->peer, map_clone);
-        
     }
     int mapRows = (int) getMapSize().first;
     int mapCols = (int) getMapSize().second;
@@ -468,32 +453,6 @@ void TileMap::generateTiles(ClientNet* client, ServerNet* server){
     }
 }
 
-bool TileMap::getReceived(){
-    pthread_mutex_lock(&mutex);
-    bool rec_val = received;
-    pthread_mutex_unlock(&mutex);
-    return rec_val;
-}
-
-void TileMap::setReceived(){
-    pthread_mutex_lock(&mutex);
-    received = true;
-    pthread_cond_signal(&receiveMapSignal);
-    pthread_mutex_unlock(&mutex);
-}
-void TileMap::setNotReceived(){
-    pthread_mutex_lock(&mutex);
-    received = false;
-    pthread_mutex_unlock(&mutex);
-}
-
-void TileMap::waitToReceiveMap(){
-    pthread_mutex_lock(&mutex);
-    while (!received){
-        pthread_cond_wait(&receiveMapSignal, &mutex);
-    }
-    pthread_mutex_unlock(&mutex);
-}
 
 bool TileMap::getMap(int i, int j){
     pthread_mutex_lock(&mutex1);
