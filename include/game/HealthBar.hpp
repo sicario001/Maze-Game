@@ -10,9 +10,9 @@ class HealthBar{
         int health;
         int damage;
         int x, y;
-        SDL_Rect* healthBar;
-        SDL_Rect* damageBar;
-        SDL_Rect* BarBoundary;
+        SDL_Rect* healthBar = NULL;
+        SDL_Rect* damageBar = NULL;
+        SDL_Rect* BarBoundary = NULL;
         void UpdateBar();
 
     public:

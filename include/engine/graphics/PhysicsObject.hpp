@@ -18,7 +18,7 @@ class Entity
 protected:
     int x,y;
 
-    LTexture* texture;
+    LTexture* texture = NULL;
     // angle in radians
     double rotation=0.0;
 public:
@@ -76,7 +76,7 @@ class CollisionRect{
 
 class RigidBody : public Entity{
 protected:
-    CollisionRect* collisionRect;
+    CollisionRect* collisionRect = NULL;
 public:
     RigidBody(int x, int y, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip);
 

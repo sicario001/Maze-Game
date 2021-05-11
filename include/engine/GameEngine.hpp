@@ -18,16 +18,16 @@ enum GameModes{
 class GameEngine
 {
     private:
-        GameMode* gMode;
-        PauseMode* pauseMode;
-        HomeMode* homeMode;
+        GameMode* gMode = NULL;
+        PauseMode* pauseMode = NULL;
+        HomeMode* homeMode = NULL;
         
     public:
         AudioMaster audioMaster;
 
-        SDL_Rect* camera;
+        SDL_Rect* camera = NULL;
 
-        PlayMode* playMode;
+        PlayMode* playMode = NULL;
     	GameModes currMode;
         ClientNet* clientObj = NULL;
         ServerNet* serverObj = NULL;

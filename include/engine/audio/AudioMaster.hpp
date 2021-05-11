@@ -24,8 +24,8 @@ class AudioMaster
 		
 	private:
 		static AudioMaster* instance;
-		ALCdevice* device;
-		ALCcontext* context;
+		ALCdevice* device = NULL;
+		ALCcontext* context = NULL;
 };
 
 

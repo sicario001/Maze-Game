@@ -11,9 +11,9 @@ class ProgressBar{
         int timeElapsed;
         int x, y;
         Uint8 red, green, blue, alpha;
-        SDL_Rect* progressBar;
-        SDL_Rect* BarBoundary;
-        LTimer* progressTimer;
+        SDL_Rect* progressBar = NULL;
+        SDL_Rect* BarBoundary = NULL;
+        LTimer* progressTimer = NULL;
         void UpdateBar();
 
     public:

@@ -36,8 +36,8 @@ class GameMode{
 class HomeMode :public GameMode{
 	private:
 		SDL_Rect gSpriteClips[ BUTTON_SPRITE_TOTAL ];
-		LTexture* gButtonSpriteSheetTexture;
-		LButton* gButtons[ 2 ]; 
+		LTexture* gButtonSpriteSheetTexture = NULL;
+		LButton* gButtons[ 2 ] = {NULL,NULL}; 
 		bool loadMediaHome();
 	public:
 		HomeMode();
@@ -50,8 +50,8 @@ class PauseMode :public GameMode{
 	private:
 		bool loadMediaPauseMenu();
 		SDL_Rect gSpriteClips[ BUTTON_SPRITE_TOTAL ];
-		LTexture* gButtonSpriteSheetTexture;
-		LButton* gButtons[ 2 ]; 
+		LTexture* gButtonSpriteSheetTexture = NULL;
+		LButton* gButtons[ 2 ] = {NULL,NULL}; 
 	public:
 		PauseMode();
 		void eventHandler(SDL_Event& e);
@@ -66,7 +66,7 @@ class PlayMode :public GameMode{
 		
 		AudioSource* bombBeepSound = NULL;
 		
-		LTexture* gPlayerTexture;    
+		LTexture* gPlayerTexture = NULL;    
 		vector<LTexture*> pbTexture = {NULL, NULL};
 		ClientNet* clientObj = NULL;
 		ServerNet* serverObj = NULL;

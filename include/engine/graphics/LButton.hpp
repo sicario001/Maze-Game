@@ -31,7 +31,7 @@ class LButton
 
 		void loadAudio();
 	private:
-		LTexture* gButtonSpriteSheetTexture;
+		LTexture* gButtonSpriteSheetTexture = NULL;
 
 		SDL_Rect gSpriteClips[BUTTON_SPRITE_TOTAL];
 		//Top left position
@@ -42,7 +42,7 @@ class LButton
 		int sprite_type; 
 		ButtonType button_type;
 		//Audio
-		AudioSource* hoverSound;
-		AudioSource* clickSound;
+		AudioSource* hoverSound = NULL;
+		AudioSource* clickSound = NULL;
 		bool wasInsideBefore = false;
 };
