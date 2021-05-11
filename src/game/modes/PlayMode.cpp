@@ -35,7 +35,7 @@ void PlayMode::eventHandler(SDL_Event& e){
             case SDLK_ESCAPE: openPauseMenu = true; break;
 			case SDLK_e:
 			{
-				if (LoadingComplete){
+				if (LoadingComplete && !roundOver){
 					if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
 						player->stopReloading();
 						progressBar = new ProgressBar(10000);
@@ -54,7 +54,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 		switch(e.key.keysym.sym){
 			case SDLK_e:
 			{
-				if (LoadingComplete){
+				if (LoadingComplete && !roundOver){
 					if (progressBar!=NULL){
 						delete(progressBar);
 						progressBar = NULL;
@@ -69,7 +69,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 			}
 		}
 	}
-	if (LoadingComplete){
+	if (LoadingComplete && !roundOver){
 		player->handleEvent(e);
 	}
 
@@ -132,6 +132,13 @@ void PlayMode::InitRound(){
 	bomb = NULL; 
 	clock->reset(RoundTime);
 	player->inventory->loadMediaInventory();
+	
+	for(Throwable& i:playerThrowables){
+		i.free();
+	}
+	for(Throwable& i:otherPlayerThrowables){
+		i.free();
+	}
 	
 }
 void PlayMode::update(){
@@ -521,6 +528,7 @@ void PlayMode::ReInit(){
 	healthBar = new HealthBar();
 	clock = new Clock();
 
+
 	initPlayers();
 	player->allowMovement();
 	
@@ -532,6 +540,12 @@ void PlayMode::ReInit(){
 	loadingScreen = new LoadingScreen();
 	gameMessage = new GameMessage();
 	loadMediaPlay();
+	for(Throwable& i:playerThrowables){
+		i.free();
+	}
+	for(Throwable& i:otherPlayerThrowables){
+		i.free();
+	}
 	currentRoundNum = 1;
 	isPaused = false;
 }
