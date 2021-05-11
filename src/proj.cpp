@@ -1,14 +1,7 @@
-/*This source code copyrighted by Lazy Foo' Productions (2004-2020)
-and may not be redistributed without written permission.*/
-
-//Using SDL, SDL_image, standard IO, vectors, and strings
 #include <iostream>
-#include "GameEngine.hpp"
-#include "LButton.hpp"
-#include "LTexture.hpp"
 #include <pthread.h>
-#include "AudioMaster.hpp"
-#include "AudioSource.hpp"
+
+#include "engine/GameEngine.hpp"
 
 void* RunLoop(void* param){
     GameEngine* gEngine = (GameEngine*) param;
@@ -37,7 +30,7 @@ void* RunLoop(void* param){
 					case ENET_EVENT_TYPE_RECEIVE:
 						// enet_host_flush(serverObj->server);
 					{
-						std::vector<int> received_data = gEngine->serverObj->Parsedata(0, (char*)event.packet->data); // Parse the receiving data.
+						std::vector<int> received_data = gEngine->serverObj->Parsedata((char*)event.packet->data); // Parse the receiving data.
 						if (received_data[0]==0){
 							gEngine->updateOtherPlayer(received_data);
 						}
@@ -48,7 +41,7 @@ void* RunLoop(void* param){
 							gEngine->damagePlayer(received_data);
 						}
 						else if (received_data[0]==4){
-							gEngine->playMode->updateBombState(received_data[1]);
+							gEngine->playMode->updateBombState((BombState)received_data[1]);
 						}
 						else if (received_data[0]==5){
 							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
@@ -109,7 +102,7 @@ void* ReceiveLoop(void* param){
 							gEngine->damagePlayer(received_data);
 						}
 						else if (received_data[0]==4){
-							gEngine->playMode->updateBombState(received_data[1]);
+							gEngine->playMode->updateBombState((BombState)received_data[1]);
 						}
 						else if (received_data[0]==5){
 							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
@@ -160,7 +153,7 @@ int main( int argc, char* args[] )
 		std::cout << "start loop" << std::endl;
 		gEngine->runLoop();
 	}
-	// x->release();
-	// am.release();
+	// x->free();
+	// am.free();
 	return 0;
 }
