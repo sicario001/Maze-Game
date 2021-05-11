@@ -11,6 +11,7 @@
 #include "ProgressBar.hpp"
 #include "Inventory.hpp"
 #include "TileMap.hpp"
+#include "loadingScreen.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
 #include "Clock.hpp"
@@ -95,6 +96,7 @@ class PlayMode :public GameMode{
 		LTexture* bombTexture = NULL;
 		Entity* bomb = NULL;
 		Clock* clock = NULL;
+		LoadingScreen* loadingScreen = NULL;
 		Player* otherPlayer = NULL;
 		HealthBar* healthBar = NULL;
 		ProgressBar* progressBar = NULL;

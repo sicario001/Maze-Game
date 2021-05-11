@@ -246,16 +246,28 @@ void PlayMode::update(){
 	}
 	else{
 		if (serverObj!=NULL){
+			if (!serverObj->isConnected()){
+				loadingScreen->render("Waiting for Client to Connect");
+			}
+			else{
+				loadingScreen->render("Waiting for Client to receive tile map");
+			}
 			if (serverObj->isConnected() && ClientMapInitialized && !mapSent){
 				tileMap->sendMapToClient(serverObj);
 				mapSent = true;
 			}
 		}
 		else{
+			if (!clientObj->isConnected()){
+				loadingScreen->render("Establishing connection with the server");
+			}
+			else{
+				loadingScreen->render("Waiting to receive tile map");
+			}
 			if (clientObj->isConnected() && isInitTileMap() && !tileMapInitSent){
 				clientObj->SendTileMapInitialized();
 				tileMapInitSent = true;
-			}	
+			}
 		}
 	}
 }
@@ -343,6 +355,7 @@ bool PlayMode::loadMediaPlay()
 		success = false;
 	}
 	clock->loadMediaClock();
+	loadingScreen->loadMedia();
 	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
@@ -363,6 +376,8 @@ void PlayMode::freePlayMode(){
 	delete (otherPlayer);
 	delete (tileMap);
 	delete (bomb);
+	delete (loadingScreen);
+	loadingScreen = NULL;
 	bomb = NULL;
 	player = NULL;
 	otherPlayer = NULL;
@@ -428,6 +443,7 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		bombTexture = new LTexture(0.1);
 		healthBar = new HealthBar();
 		clock = new Clock();
+		loadingScreen = new LoadingScreen();
 		initPlayers();
 		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
@@ -460,7 +476,7 @@ void PlayMode::ReInit(){
 		tileMap->generateTiles(serverObj);
 	}
 	// cout<<"in play\n";
-	
+	loadingScreen = new LoadingScreen();
 	loadMediaPlay();
 	
 	isPaused = false;
