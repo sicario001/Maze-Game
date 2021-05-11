@@ -9,6 +9,8 @@ GameMessage::GameMessage(){
 
 }
 GameMessage::~GameMessage(){
+    if(explosionSound)
+        explosionSound->free();
     messageTexture->free();
     background_ct->free();
     background_t->free();
@@ -27,7 +29,7 @@ void GameMessage::render(){
     messageTexture->render((SCREEN_WIDTH -messageTexture->getWidth())/2, 10, NULL, 1);
     
 }
-void GameMessage::resetMessage(std::string message, Uint32 duration, int type){
+void GameMessage::resetMessage(std::string message, Uint32 duration, int type, bool explosion){
     active = true;
     timer->stop();
     timer->start();
@@ -41,9 +43,16 @@ void GameMessage::resetMessage(std::string message, Uint32 duration, int type){
         messageText<<"  |  ATTACKERS WIN";
     }
     background_type = type;
-
+    if(explosion){
+        explosionSound->rewind();
+        explosionSound->play();
+    }
+    gEngine->startbgm();
 }
 void GameMessage::loadMedia(){
+    if(explosionSound==NULL){
+        explosionSound = gEngine->audioMaster.loadWaveFile("media/audio/explosion.wav");
+    }
     gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 50);
     if( !background_ct->loadFromFile( "media/texture/ct_win.png" ) )
 	{

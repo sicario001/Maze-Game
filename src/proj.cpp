@@ -51,6 +51,7 @@ void* RunLoop(void* param){
 						}
 						else if (received_data[0]==7){
 							gEngine->playMode->LoadingComplete = true;
+							gEngine->stopbgm();
 							gEngine->playMode->clock->reset(gEngine->playMode->RoundTime);
 						}
 						enet_packet_destroy(event.packet);
@@ -92,6 +93,7 @@ void* ReceiveLoop(void* param){
 							gEngine->updateMapfromServer(received_data);
 							gEngine->playMode->tileMap->generateTiles(gEngine->serverObj);
 							gEngine->playMode->LoadingComplete = true;
+							gEngine->stopbgm();
 							gEngine->clientObj->SendLoadingComplete();
 							gEngine->playMode->clock->reset(gEngine->playMode->RoundTime);
 						}

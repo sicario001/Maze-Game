@@ -20,11 +20,13 @@ class GameMessage{
         bool active = false;
         int background_type = 0;
 
+        AudioSource* explosionSound = NULL;
+
     public:
         GameMessage();
         ~GameMessage();
         void render();
         void loadMedia();
-        void resetMessage(std::string message, Uint32 duration, int type);
+        void resetMessage(std::string message, Uint32 duration, int type, bool explosion);
         bool isActive();
 };

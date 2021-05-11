@@ -21,11 +21,11 @@ class GameEngine
         GameMode* gMode = NULL;
         PauseMode* pauseMode = NULL;
         HomeMode* homeMode = NULL;
-
-        AudioSource* explosionSound = NULL;
+        AudioSource* bgm = NULL;
         
     public:
         AudioMaster audioMaster;
+
 
         SDL_Rect* camera = NULL;
 
@@ -54,6 +54,9 @@ class GameEngine
         void updateMapfromServer(std::vector<int> &received_data);
         void checkRoundEnd();
         void resetListener(int x, int y);
+
+        void startbgm();
+        void stopbgm();
 };
 
 

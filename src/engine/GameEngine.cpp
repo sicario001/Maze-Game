@@ -25,6 +25,8 @@ GameEngine::GameEngine(int c_or_s){
 bool GameEngine::init()
 {
 	audioMaster.init();
+	bgm = audioMaster.loadWaveFile("media/audio/bgm.wav");
+	startbgm();
 	//Initialization flag
 	bool success = true;
 
@@ -102,38 +104,33 @@ void GameEngine::checkRoundEnd(){
 			if (playMode->player->getHealth()<=0){
 				playMode->setWinner(winner);
 				serverObj->SendRoundEndSignal(winner);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner);
+				playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner, false);
 				playMode->roundEndMessageInit = true;
 			}
 			else if (playMode->otherPlayer->getHealth()<=0){
 				playMode->setWinner(playMode->playerObj);
 				serverObj->SendRoundEndSignal(playMode->playerObj);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj);
+				playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj, false);
 				playMode->roundEndMessageInit = true;
 			}
 			if (playMode->clock->timeOver()){
 				if (playMode->bombState == PLANTED){
-					if(explosionSound==NULL){
-						explosionSound = audioMaster.loadWaveFile("media/audio/explosion.wav");
-					}
-					explosionSound->rewind();
-					explosionSound->play();
 					playMode->setWinner(ATTACK);
 					serverObj->SendRoundEndSignal(ATTACK);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, ATTACK);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, ATTACK, true);
 					playMode->roundEndMessageInit = true;
 				}	
 				else{
 					playMode->setWinner(DEFEND);
 					serverObj->SendRoundEndSignal(DEFEND);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND, false);
 					playMode->roundEndMessageInit = true;
 				}
 			}
 			if (playMode->bombState==DEFUSED){
 				playMode->setWinner(DEFEND);
 				serverObj->SendRoundEndSignal(DEFEND);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND);
+				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND,false);
 				playMode->roundEndMessageInit = true;
 			}
 		}
@@ -147,7 +144,7 @@ void GameEngine::checkRoundEnd(){
 			return;
 		}
 		if (playMode->roundOver){
-			playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->roundWinner);
+			playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->roundWinner, false);
 			playMode->roundEndMessageInit = true;
 		}
 	}
@@ -189,8 +186,7 @@ void GameEngine::runLoop(){
 	}
 	//Free loaded images
 	// playMode->freePlayMode();
-	if(explosionSound)
-		explosionSound->free();
+	bgm->free();
 	audioMaster.free();
 	//Destroy window	
 	SDL_DestroyRenderer(gRenderer );
@@ -266,16 +262,19 @@ void GameEngine::setGameMode(GameModeType a){
 			playMode->enterMode();
 			break;
 		case RESUME:
+			stopbgm();
 			gMode = playMode;
 			currMode = PLAY_MODE;
 			playMode->enterMode();
 			break;
 		case PAUSE:
+			startbgm();
 			gMode = pauseMode;
 			currMode = PAUSE_MODE;
 			pauseMode->enterMode();
 			break;
 		case HOME:
+			startbgm();
 			playMode->freePlayMode();
 			gMode = homeMode;
 			currMode = HOME_MODE;
@@ -290,4 +289,15 @@ void GameEngine::setGameMode(GameModeType a){
 		
 			break;
 	}
+}
+
+void GameEngine::startbgm(){
+	if(bgm->getState()!=AL_PLAYING){
+		bgm->rewind();
+		bgm->play(true);
+	}
+}
+
+void GameEngine::stopbgm(){
+	bgm->rewind();
 }

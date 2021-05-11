@@ -24,7 +24,6 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
     reloadingSounds->setReferenceDistance(200);
     reloadingSounds->setRollOffFactor(2);
 
-    resetAudioSourcePosition();
 }
 
 void Player::damage(int d){
@@ -209,11 +208,11 @@ void Player::resetCamera(){
     gEngine->camera->y = min(gEngine->camera->y,LEVEL_HEIGHT-CAMERA_HEIGHT);
 }
 void Player::playSoundIfWalked(bool isListener){
+    resetAudioSourcePosition();
     if(lastVelX!=0 || lastVelY!=0){
         if(isListener){
     	    gEngine->resetListener(x,y);
         }
-        resetAudioSourcePosition();
 	    // cout << "walker at " <<x <<" " << y << endl;
         if(walkingSounds->getState() == AL_PAUSED){
             walkingSounds->play();
