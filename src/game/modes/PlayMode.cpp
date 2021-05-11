@@ -120,6 +120,7 @@ void PlayMode::InitRound(){
 	roundEndMessageInit = false;
 	bombState = IDLE;
 	bombLocation = {-1, -1};
+	bombBeepSound->rewind();
 	player->free();
 	otherPlayer->free();
 
@@ -374,8 +375,10 @@ void PlayMode::updateBombState(BombState state, bool ext){
 			bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
 			bombBeepSound->play(true);
 			if(!ext){
-				bombPlanted({player->getPosX(), player->getPosY()});
-				sendBombLocation();
+				if (bombLocation.first == -1){
+					bombPlanted({player->getPosX(), player->getPosY()});
+					sendBombLocation();
+				}
 			}
 			break;
 		case DEFUSED:

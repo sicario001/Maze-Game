@@ -99,18 +99,7 @@ void GameEngine::checkRoundEnd(){
 			winner = ATTACK;
 		}
 		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-			if (playMode->player->getHealth()<=0){
-				playMode->setWinner(winner);
-				serverObj->SendRoundEndSignal(winner);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner);
-				playMode->roundEndMessageInit = true;
-			}
-			else if (playMode->otherPlayer->getHealth()<=0){
-				playMode->setWinner(playMode->playerObj);
-				serverObj->SendRoundEndSignal(playMode->playerObj);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj);
-				playMode->roundEndMessageInit = true;
-			}
+
 			if (playMode->clock->timeOver()){
 				if (playMode->bombState == PLANTED){
 					playMode->setWinner(ATTACK);
@@ -132,6 +121,24 @@ void GameEngine::checkRoundEnd(){
 				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND);
 				playMode->roundEndMessageInit = true;
 			}
+			
+			if (playMode->player->getHealth()<=0){
+				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE){
+					playMode->setWinner(winner);
+					serverObj->SendRoundEndSignal(winner);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner);
+					playMode->roundEndMessageInit = true;
+				}
+			}
+			else if (playMode->otherPlayer->getHealth()<=0){
+				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
+					playMode->setWinner(playMode->playerObj);
+					serverObj->SendRoundEndSignal(playMode->playerObj);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj);
+					playMode->roundEndMessageInit = true;
+				}
+			}
+			
 		}
 	}
 	else{
