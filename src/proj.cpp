@@ -116,6 +116,13 @@ void* ReceiveLoop(void* param){
 
 						break;
 					}
+
+					case ENET_EVENT_TYPE_DISCONNECT:
+						gEngine->clientObj->setNotConnected();
+						printf ("%x:%u disconnected.\n",
+						event.peer -> address.host,
+						event.peer -> address.port);
+						break;
 					default:
 						break;
 				}

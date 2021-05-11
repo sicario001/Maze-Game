@@ -488,6 +488,13 @@ void PlayMode::ReInit(){
 	gameMessage = new GameMessage();
 	loadMediaPlay();
 	
+	for(Throwable& i:playerThrowables){
+		i.free();
+	}
+	for(Throwable& i:otherPlayerThrowables){
+		i.free();
+	}
+	
 	isPaused = false;
 }
 void PlayMode::enterMode(){

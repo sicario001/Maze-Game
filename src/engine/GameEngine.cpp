@@ -100,6 +100,12 @@ void GameEngine::checkRoundEnd(){
 		else{
 			winner = ATTACK;
 		}
+		if(playMode->LoadingComplete && !serverObj->isConnected()){
+			playMode->setWinner(0);
+			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->roundEndMessageInit = true;
+			return;
+		}
 		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
 			if (playMode->player->getHealth()<=0){
 				playMode->setWinner(winner);
@@ -143,8 +149,14 @@ void GameEngine::checkRoundEnd(){
 		if (playMode->roundEndMessageInit){
 			return;
 		}
+		if(playMode->LoadingComplete && !clientObj->isConnected()){
+			playMode->setWinner(0);
+			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->roundEndMessageInit = true;
+			return;
+		}
 		if (playMode->roundOver){
-			playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->roundWinner, false);
+			playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->roundWinner, playMode->clock->timeOver() && playMode->bombState == PLANTED);
 			playMode->roundEndMessageInit = true;
 		}
 	}

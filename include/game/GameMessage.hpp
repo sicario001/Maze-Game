@@ -8,6 +8,13 @@
 
 #include "engine/graphics/LTexture.hpp"
 #include "game/LTimer.hpp"
+
+enum BackgroundType{
+    T_WIN,
+    CT_WIN,
+    DRAW_DISCONNECT
+};
+
 class GameMessage{
     private:
         LTexture* messageTexture = NULL;
@@ -15,6 +22,7 @@ class GameMessage{
 		std::stringstream messageText;
         LTexture* background_ct = NULL;
         LTexture* background_t = NULL;
+        LTexture* background_draw = NULL;
         TTF_Font *gFont = NULL;
         Uint32 totalTime;
         bool active = false;
