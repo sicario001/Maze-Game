@@ -357,8 +357,6 @@ void Player::handleEvent(SDL_Event &e)
             cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
             cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
             shoot(cx,cy,15,rotation,10, BULLET);
-            shootingSounds->rewind();
-            shootingSounds->play();
             inventory->useBullet();
         }
         else if (e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==KNIFE){
@@ -370,8 +368,6 @@ void Player::handleEvent(SDL_Event &e)
             cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - SLASH_SPRITE_W/2;
             cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - SLASH_SPRITE_H/2;
             shoot(cx,cy,0,rotation,5, KNIFE_SLASH);
-            slashingSounds->rewind();
-            slashingSounds->play();
         }
     }
     //If a key was pressed
@@ -507,4 +503,20 @@ void Player::release(){
     shootingSounds->release();
     reloadingSounds->release();
     slashingSounds->release();
+}
+
+void Player::playThrowableSound(ThrowableType type){
+    switch (type)
+    {
+    case BULLET:
+        shootingSounds->rewind();
+        shootingSounds->play();
+        break;
+    case KNIFE_SLASH:
+        slashingSounds->rewind();
+        slashingSounds->play();
+        break;
+    default:
+        break;
+    }
 }

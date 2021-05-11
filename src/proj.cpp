@@ -53,6 +53,13 @@ void* RunLoop(void* param){
 						else if (received_data[0]==5){
 							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
 						}
+						else if (received_data[0]==6){
+							gEngine->playMode->ClientMapInitialized = true;
+						}
+						else if (received_data[0]==7){
+							gEngine->playMode->LoadingComplete = true;
+							gEngine->playMode->clock->reset(gEngine->playMode->RoundTime);
+						}
 						enet_packet_destroy(event.packet);
 						break;
 					}
@@ -89,9 +96,11 @@ void* ReceiveLoop(void* param){
 							gEngine->updateOtherPlayer(received_data);
 						}
 						else if(received_data[0]==1){
-							gEngine->playMode->waitForInitTileMap();
-
 							gEngine->updateMapfromServer(received_data);
+							gEngine->playMode->tileMap->generateTiles(gEngine->serverObj);
+							gEngine->playMode->LoadingComplete = true;
+							gEngine->clientObj->SendLoadingComplete();
+							gEngine->playMode->clock->reset(gEngine->playMode->RoundTime);
 						}
 						else if(received_data[0]==2){
 							gEngine->addThrowableToVector(received_data);

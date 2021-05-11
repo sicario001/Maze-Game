@@ -174,7 +174,10 @@ public:
     void sendUpdate(ClientNet* clientObj, ServerNet* serverObj);
     void handleEvent( SDL_Event& e);
     void resetCamera();
+
     void playSoundIfWalked(bool isListener);
+    void playThrowableSound(ThrowableType t);
+
     void resetClip();
     void stopReloading();
 

@@ -27,9 +27,7 @@ class TileMap
 private:
     LTexture* gTileSheet;
     
-    pthread_mutex_t mutex;
     pthread_mutex_t mutex1;
-    pthread_cond_t receiveMapSignal;
 
     // Different map styles
     int floor_type = GRASS;
@@ -52,19 +50,16 @@ public:
     ~TileMap();
     bool loadTexture();
     vector<vector<bool>> map;
-    bool received = false;
     void render();
-    void generateTiles(ClientNet* client, ServerNet* server);
+    void generateTiles(ServerNet* server);
     void handleCollisions(KinematicBody* body);
     void handleThrowables(Throwable* x);
     void updateMapfromServer(vector<int> map_vec);
-    bool getReceived();
-    void setReceived();
-    void setNotReceived();
-    void waitToReceiveMap();
     bool getMap(int i, int j);
     void setMap(int i, int j, bool val);
     void initializeMap(int i, int j);
     pair<int, int> getMapSize();
     void cloneMap(vector<vector<bool>> &vec_to_clone);
+    void sendMapToClient(ServerNet* server);
+
 };

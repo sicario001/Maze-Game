@@ -178,8 +178,6 @@ void GameEngine::updateMapfromServer(vector<int> &map_vec){
             playMode->tileMap->setMap((i-1)/20, (i-1)%20, false);
         }
     }
-    // std::cout<<"all good"<<endl;
-    playMode->tileMap->setReceived();
 }
 
 void GameEngine::resetListener(int x,int y){

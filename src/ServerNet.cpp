@@ -83,6 +83,7 @@ void ServerNet::SendBombLocation(std::pair <int, int> location){
     SendPacket(peer, send_data);
 }
 
+
 void ServerNet::SendPacket(ENetPeer* peer, const char* data)
 {
     // Create the packet using enet_packet_create and the data we want to send
@@ -141,6 +142,14 @@ std::vector<int> ServerNet::Parsedata(int id, char* data){
             int x, y;
             sscanf(data, "5|%d|%d", &x, &y);
             return {5, x, y};   
+        }
+        case 6:
+        {
+            return {6};
+        }
+        case 7:
+        {
+            return {7};
         }
         default:
             return {};
