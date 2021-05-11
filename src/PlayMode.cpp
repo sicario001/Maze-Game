@@ -30,7 +30,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 			case SDLK_e:
 			{
 				if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
-					player->isReloading = false;
+					player->stopReloading();
 					progressBar = new ProgressBar(10000);
 					if (playerObj==ATTACK){
 						bombState = PLANTING;
@@ -201,7 +201,7 @@ void PlayMode::update(){
 			if (player->reloadBar->isComplete()){
 				delete(player->reloadBar);
 				player->reloadBar = NULL;
-				player->isReloading = false;
+				player->stopReloading();
 				player->inventory->reload();
 			}
 			else{
@@ -211,7 +211,7 @@ void PlayMode::update(){
 		else{
 			delete(player->reloadBar);
 			player->reloadBar = NULL;
-			player->isReloading = false;
+			player->stopReloading();
 
 		}
 	}
@@ -339,6 +339,8 @@ void PlayMode::freePlayMode(){
 	}
 	bombTexture->free();
 	bombBeepSound->release();
+	player->release();
+	otherPlayer->release();
 	delete (player);
 	delete (otherPlayer);
 	delete (tileMap);

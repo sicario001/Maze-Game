@@ -313,6 +313,10 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
     slashingSounds = gEngine->audioMaster.loadWaveFile("media/audio/slash.wav");
     slashingSounds->setReferenceDistance(200);
     slashingSounds->setRollOffFactor(2);
+
+    reloadingSounds = gEngine->audioMaster.loadWaveFile("media/audio/reload.wav");
+    reloadingSounds->setReferenceDistance(200);
+    reloadingSounds->setRollOffFactor(2);
 }
 
 void Player::damage(int d){
@@ -345,7 +349,7 @@ void Player::handleEvent(SDL_Event &e)
         if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==GUN && !(inventory->isEmptyMag())){
             // spawn at tip
             // cout << "SHOOT!" << endl;
-            isReloading = false;
+            stopReloading();
             double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
             double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
             double d = sqrt(cx*cx+cy*cy);
@@ -358,7 +362,7 @@ void Player::handleEvent(SDL_Event &e)
             inventory->useBullet();
         }
         else if (e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==KNIFE){
-            isReloading = false;
+            stopReloading();
             double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
             double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
             double d = sqrt(cx*cx+cy*cy);
@@ -380,16 +384,30 @@ void Player::handleEvent(SDL_Event &e)
             case SDLK_s: velY += speed; break;
             case SDLK_a: velX -= speed; break;
             case SDLK_d: velX += speed; break;
-            case SDLK_1: if(canMove) {inventory->changeWeapon(KNIFE); isReloading = false;} break;
+            case SDLK_1: if(canMove) {
+                inventory->changeWeapon(KNIFE); 
+                stopReloading();
+            } break;
             case SDLK_2: if(canMove) {inventory->changeWeapon(GUN);} break;
-            case SDLK_3: if(canMove) {inventory->changeWeapon(SMOKE); isReloading = false;} break;
-            case SDLK_4: if(canMove) {inventory->changeWeapon(GRENADE); isReloading = false;} break;
-            case SDLK_5: if(canMove) {inventory->changeWeapon(FLASH); isReloading = false;} break;
+            case SDLK_3: if(canMove) {
+                inventory->changeWeapon(SMOKE); 
+            stopReloading();
+            } break;
+            case SDLK_4: if(canMove) {
+                inventory->changeWeapon(GRENADE); 
+                stopReloading();
+            } break;
+            case SDLK_5: if(canMove) {
+                inventory->changeWeapon(FLASH); 
+                stopReloading();
+            } break;
             case SDLK_r: {
                 if (canMove){
                     if (isReloading==false && inventory->canReload()){
+                        reloadingSounds->rewind();
+                        reloadingSounds->play();
                         isReloading =true;
-                        reloadBar = new ProgressBar(3000, 0, 0, 255);
+                        reloadBar = new ProgressBar(10000, 0, 0, 255);
                     }
                 }
             }
@@ -455,6 +473,7 @@ void Player::playSoundIfWalked(bool isListener){
         if(isListener){
     	    gEngine->resetListener(x,y);
         }
+        reloadingSounds->setPosition(x,y,0);
         shootingSounds->setPosition(x,y,0);
         slashingSounds->setPosition(x,y,0);
         walkingSounds->setPosition(x,y,0);
@@ -474,4 +493,18 @@ void Player::playSoundIfWalked(bool isListener){
             walkingSounds->pause();
         }
     }
+}
+
+void Player::stopReloading(){
+    isReloading=false;
+    if(reloadingSounds->getState()==AL_PLAYING){
+        reloadingSounds->rewind();
+    }
+}
+
+void Player::release(){
+    walkingSounds->release();
+    shootingSounds->release();
+    reloadingSounds->release();
+    slashingSounds->release();
 }

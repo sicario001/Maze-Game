@@ -159,6 +159,7 @@ private:
 
     AudioSource* walkingSounds;
     AudioSource* shootingSounds;
+    AudioSource* reloadingSounds;
     AudioSource* slashingSounds;
     
     PlayerSpriteType playerType;
@@ -175,4 +176,7 @@ public:
     void resetCamera();
     void playSoundIfWalked(bool isListener);
     void resetClip();
+    void stopReloading();
+
+    void release();
 };
