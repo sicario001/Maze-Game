@@ -126,6 +126,12 @@ void GameEngine::checkRoundEnd(){
 				}
 				
 			}
+			if (playMode->bombState==DEFUSED){
+				playMode->setWinner(DEFEND);
+				serverObj->SendRoundEndSignal(DEFEND);
+				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND);
+				playMode->roundEndMessageInit = true;
+			}
 		}
 	}
 	else{
