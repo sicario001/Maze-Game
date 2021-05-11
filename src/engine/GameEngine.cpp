@@ -155,6 +155,7 @@ void GameEngine::runLoop(){
 	while( !quit_program )
 	{
 		//Handle events on queue
+		checkRoundEnd();
 		while( SDL_PollEvent( &e ) != 0 )
 		{
 			//User requests quit
@@ -166,7 +167,7 @@ void GameEngine::runLoop(){
 			//Handle input for the player
 			gMode->eventHandler(e);
 		}
-		checkRoundEnd();
+		
 		//Clear screen
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
@@ -220,7 +221,9 @@ void GameEngine::addThrowableToVector(std::vector<int> &data){
 
 void GameEngine::damagePlayer(std::vector<int> &data){
 	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-		playMode->player->damage(data[1]);
+		if ((playMode->currentRoundNum) ==data[2]){
+			playMode->player->damage(data[1]);
+		}
 	}
 }
 

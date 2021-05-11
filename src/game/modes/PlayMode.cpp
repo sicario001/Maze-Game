@@ -133,12 +133,8 @@ void PlayMode::InitRound(){
 	clock->reset(RoundTime);
 	player->inventory->loadMediaInventory();
 	
-	for(Throwable& i:playerThrowables){
-		i.free();
-	}
-	for(Throwable& i:otherPlayerThrowables){
-		i.free();
-	}
+	playerThrowables.clear();
+	otherPlayerThrowables.clear();
 	
 }
 void PlayMode::update(){
@@ -161,7 +157,17 @@ void PlayMode::update(){
 				return;
 			}
 			if (currentRoundNum==2*totalRoundsInHalf && !gameEndMessageInit){
-				gameMessage->resetMessage("GAME OVER", 2000, (scoreBoard->getPlayerScore()>scoreBoard->getOtherPlayerScore())? 3:4);
+				int typeMessage;
+				if (scoreBoard->getPlayerScore()>scoreBoard->getOtherPlayerScore()){
+					typeMessage = 3;
+				}
+				else if (scoreBoard->getPlayerScore()<scoreBoard->getOtherPlayerScore()){
+					typeMessage = 4;
+				}
+				else{
+					typeMessage = 5;
+				}
+				gameMessage->resetMessage("GAME OVER", 2000, typeMessage);
 				gameEndMessageInit = true;
 				return;
 			}
@@ -222,13 +228,13 @@ void PlayMode::update(){
 		handleThrowables(playerThrowables,otherPlayer,[this](Throwable& x){
 			if (clientObj!=NULL){
 				if ((clientObj->peer)!=NULL){
-					clientObj->SendHit(clientObj->peer, x.damage);
+					clientObj->SendHit(clientObj->peer, x.damage, currentRoundNum);
 					otherPlayer->damage(x.damage);
 				}
 			}
 			else{
 				if ((serverObj->peer)!=NULL){
-					serverObj->SendHit(serverObj->peer, x.damage);
+					serverObj->SendHit(serverObj->peer, x.damage, currentRoundNum);
 					otherPlayer->damage(x.damage);
 				}
 			}
@@ -540,12 +546,8 @@ void PlayMode::ReInit(){
 	loadingScreen = new LoadingScreen();
 	gameMessage = new GameMessage();
 	loadMediaPlay();
-	for(Throwable& i:playerThrowables){
-		i.free();
-	}
-	for(Throwable& i:otherPlayerThrowables){
-		i.free();
-	}
+	playerThrowables.clear();
+	otherPlayerThrowables.clear();
 	currentRoundNum = 1;
 	isPaused = false;
 }

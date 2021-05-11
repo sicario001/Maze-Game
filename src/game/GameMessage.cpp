@@ -51,6 +51,9 @@ void GameMessage::resetMessage(std::string message, Uint32 duration, int type){
     else if (type==4){
         messageText<<"  ||  YOU LOOSE";
     }
+    else if (type==5){
+        messageText<<"  ||  GAME DRAW";
+    }
     background_type = type;
 
 }
