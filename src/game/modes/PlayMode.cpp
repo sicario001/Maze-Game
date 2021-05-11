@@ -205,7 +205,7 @@ void PlayMode::update(){
 				if (player->reloadBar->isComplete()){
 					delete(player->reloadBar);
 					player->reloadBar = NULL;
-					player->isReloading = false;
+					player->stopReloading();
 					player->inventory->reload();
 				}
 				else{
@@ -265,6 +265,8 @@ void PlayMode::update(){
 			}
 		}
 	}
+
+	player->updateFireLock();
 }
 
 void PlayMode::sendBombState(){

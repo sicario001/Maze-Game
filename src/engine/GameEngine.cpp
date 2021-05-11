@@ -113,6 +113,11 @@ void GameEngine::checkRoundEnd(){
 			}
 			if (playMode->clock->timeOver()){
 				if (playMode->bombState == PLANTED){
+					if(explosionSound==NULL){
+						explosionSound = audioMaster.loadWaveFile("media/audio/explosion.wav");
+					}
+					explosionSound->rewind();
+					explosionSound->play();
 					playMode->setWinner(ATTACK);
 					serverObj->SendRoundEndSignal(ATTACK);
 					playMode->gameMessage->resetMessage("ROUND OVER", 2000);
@@ -124,7 +129,6 @@ void GameEngine::checkRoundEnd(){
 					playMode->gameMessage->resetMessage("ROUND OVER", 2000);
 					playMode->roundEndMessageInit = true;
 				}
-				
 			}
 		}
 	}
@@ -179,7 +183,8 @@ void GameEngine::runLoop(){
 	}
 	//Free loaded images
 	// playMode->freePlayMode();
-
+	if(explosionSound)
+		explosionSound->free();
 	audioMaster.free();
 	//Destroy window	
 	SDL_DestroyRenderer(gRenderer );

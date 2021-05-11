@@ -15,12 +15,22 @@ enum PlayerSpriteType{
 	ZOMBIE
 };
 
+enum PlayerStanceType{
+    PISTOL_EQUIPPED,
+    EMPTY_HANDED,
+    RIFLE_EQUIPPED,
+    RELOADING,
+    OTHER_GUN_EQUIPPED,
+    STANDING
+};
+
 class Player : public KinematicBody{
 private:
     function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> spawnFunc;
 
     void shoot(ThrowableType t);
 
+    int fireLock = 0;
     int xMouse,yMouse;
     int health = 100;
     void resetRotation();
@@ -48,5 +58,6 @@ public:
 
     void resetClip();
     void stopReloading();
+    void updateFireLock();
     void free();
 };

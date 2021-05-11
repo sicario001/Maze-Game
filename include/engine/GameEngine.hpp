@@ -21,6 +21,8 @@ class GameEngine
         GameMode* gMode = NULL;
         PauseMode* pauseMode = NULL;
         HomeMode* homeMode = NULL;
+
+        AudioSource* explosionSound = NULL;
         
     public:
         AudioMaster audioMaster;

@@ -63,10 +63,11 @@ enum BombState{
 
 enum WeaponType{
 	KNIFE = 0,
-	GUN = 1,
-	SMOKE = 2,
-	FLASH = 3,
-	GRENADE = 4
+	RIFLE = 1,
+	PISTOL = 2,
+	// SMOKE = 2,
+	// FLASH = 3,
+	// GRENADE = 4
 	// BOMB = 5,
 	// DEFUSE_KIT = 6
 };

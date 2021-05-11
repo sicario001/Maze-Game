@@ -51,31 +51,42 @@ void Player::resetRotation(){
     rotation = atan2(yMouse-cOnCamera.second,xMouse-cOnCamera.first);
 }
 
+void Player::updateFireLock(){
+    if(fireLock>0){
+        fireLock--;
+    }
+}
+
 void Player::shoot(ThrowableType t){
-    stopReloading();
-    // spawn at tip
-    double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
-    double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
-    double d = sqrt(cx*cx+cy*cy);
-    double a = atan2(cy,cx);
-    cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation);
-    cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation);
-    switch (t)
+    if (fireLock==0)
     {
-    case BULLET:
-        cx -= BULLET_SPRITE_W/2;
-        cy -= BULLET_SPRITE_H/2;
-        spawnFunc(cx,cy,15,rotation,10, BULLET);
-        inventory->useBullet();
-        break;
-    
-    case KNIFE_SLASH:
-        cx -= SLASH_SPRITE_W/2;
-        cy -= SLASH_SPRITE_H/2;
-        spawnFunc(cx,cy,0,rotation,5, KNIFE_SLASH);
-        break;
-    default:
-        break;
+        int damage = inventory->getDamage();
+        fireLock = inventory->getFireLockDuration();
+        stopReloading();
+        // spawn at tip
+        double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
+        double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+        double d = sqrt(cx*cx+cy*cy);
+        double a = atan2(cy,cx);
+        cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation);
+        cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation);
+        switch (t)
+        {
+        case BULLET:
+            cx -= BULLET_SPRITE_W/2;
+            cy -= BULLET_SPRITE_H/2;
+            spawnFunc(cx,cy,15,rotation,damage, BULLET);
+            inventory->useBullet();
+            break;
+        
+        case KNIFE_SLASH:
+            cx -= SLASH_SPRITE_W/2;
+            cy -= SLASH_SPRITE_H/2;
+            spawnFunc(cx,cy,0,rotation,damage, KNIFE_SLASH);
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -87,7 +98,7 @@ void Player::handleEvent(SDL_Event &e)
         }
         
         // left click to shoot
-        if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==GUN && !(inventory->isEmptyMag())){
+        if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()>0 && !(inventory->isEmptyMag())){
             shoot(BULLET);
         }
         else if (e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==KNIFE){
@@ -108,26 +119,30 @@ void Player::handleEvent(SDL_Event &e)
                 inventory->changeWeapon(KNIFE); 
                 stopReloading();
             } break;
-            case SDLK_2: if(canMove) {inventory->changeWeapon(GUN);} break;
+            case SDLK_2: if(canMove) {
+                inventory->changeWeapon(RIFLE);
+                stopReloading();
+            } break;
             case SDLK_3: if(canMove) {
-                inventory->changeWeapon(SMOKE); 
-            stopReloading();
-            } break;
-            case SDLK_4: if(canMove) {
-                inventory->changeWeapon(GRENADE); 
+                inventory->changeWeapon(PISTOL); 
                 stopReloading();
             } break;
-            case SDLK_5: if(canMove) {
-                inventory->changeWeapon(FLASH); 
-                stopReloading();
-            } break;
+            // case SDLK_4: if(canMove) {
+            //     inventory->changeWeapon(GRENADE); 
+            //     stopReloading();
+            // } break;
+            // case SDLK_5: if(canMove) {
+            //     inventory->changeWeapon(FLASH); 
+            //     stopReloading();
+            // } break;
             case SDLK_r: {
                 if (canMove){
                     if (isReloading==false && inventory->canReload()){
                         reloadingSounds->rewind();
                         reloadingSounds->play();
                         isReloading =true;
-                        reloadBar = new ProgressBar(10000, 0, 0, 255);
+                        int reloadDuration = inventory->getReloadDuration();
+                        reloadBar = new ProgressBar(reloadDuration, 0, 0, 255);
                     }
                 }
             }
@@ -166,16 +181,21 @@ int Player::getHealth(){
 
 }
 void Player::resetClip(){
-    if (canMove && inventory->getCurrWeapon()==GUN){
+    if (canMove && inventory->getCurrWeapon()>0){
         if (isReloading){
-            clip->y = (3 +6*playerType)*PLAYER_SPRITE_SIZE;
+            clip->y = (RELOADING +6*playerType)*PLAYER_SPRITE_SIZE;
         }
         else{
-            clip->y = (2 +6*playerType)*PLAYER_SPRITE_SIZE;
+            if(inventory->getCurrWeapon()==RIFLE){
+                clip->y = (RIFLE_EQUIPPED +6*playerType)*PLAYER_SPRITE_SIZE;
+            }
+            else if(inventory->getCurrWeapon()==PISTOL){
+                clip->y = (PISTOL_EQUIPPED +6*playerType)*PLAYER_SPRITE_SIZE;
+            }
         }
     }
     else{
-        clip->y = (5 +6*playerType)*PLAYER_SPRITE_SIZE;
+        clip->y = (EMPTY_HANDED +6*playerType)*PLAYER_SPRITE_SIZE;
     }
 }
 void Player::resetCamera(){
