@@ -15,6 +15,7 @@ class GameMessage{
 		std::stringstream messageText;
         LTexture* background_ct = NULL;
         LTexture* background_t = NULL;
+        LTexture* background = NULL;
         TTF_Font *gFont = NULL;
         Uint32 totalTime;
         bool active = false;

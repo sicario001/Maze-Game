@@ -19,6 +19,7 @@ class Clock;
 class LTimer;
 class ProgressBar;
 class Inventory;
+class ScoreBoard;
 
 class Throwable;
 class LoadingScreen;

@@ -4,6 +4,7 @@ GameMessage::GameMessage(){
     messageTexture = new LTexture();
     background_ct = new LTexture();
     background_t = new LTexture();
+    background = new LTexture();
     timer = new LTimer();
     active = false;
 
@@ -12,16 +13,20 @@ GameMessage::~GameMessage(){
     messageTexture->free();
     background_ct->free();
     background_t->free();
+    background->free();
     delete(timer);
     timer = NULL;
 
 }
 void GameMessage::render(){
-    if (background_type){
+    if (background_type==1){
         background_ct->renderBackground(NULL);
     }
-    else{
+    else if (background_type==0){
         background_t->renderBackground(NULL);
+    }
+    else{
+        background->renderBackground(NULL);
     }
     messageTexture->loadFromRenderedText( messageText.str().c_str(), SDL_Color{0, 0, 0, 255}, gFont);
     messageTexture->render((SCREEN_WIDTH -messageTexture->getWidth())/2, 10, NULL, 1);
@@ -35,10 +40,16 @@ void GameMessage::resetMessage(std::string message, Uint32 duration, int type){
     messageText.str("");
     messageText<<message;
     if (type==1){
-        messageText<<"  |  DEFENDERS WIN";
+        messageText<<"  ||  DEFENDERS WIN";
     }
     else if (type==0){
-        messageText<<"  |  ATTACKERS WIN";
+        messageText<<"  ||  ATTACKERS WIN";
+    }
+    else if (type==3){
+        messageText<<"  ||  YOU WIN";
+    }
+    else if (type==4){
+        messageText<<"  ||  YOU LOOSE";
     }
     background_type = type;
 
@@ -50,6 +61,10 @@ void GameMessage::loadMedia(){
 		printf( "Failed to load background texture!\n" );
 	}
     if( !background_t->loadFromFile( "media/texture/t_win.png" ) )
+	{
+		printf( "Failed to load background texture!\n" );
+	}
+    if( !background->loadFromFile( "media/texture/background_end.png" ) )
 	{
 		printf( "Failed to load background texture!\n" );
 	}

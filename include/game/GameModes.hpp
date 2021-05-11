@@ -20,6 +20,7 @@
 #include "game/HealthBar.hpp"
 #include "game/Inventory.hpp"
 #include "game/TileMap.hpp"
+#include "game/ScoreBoard.hpp"
 
 extern GameEngine* gEngine;
 
@@ -103,6 +104,7 @@ class PlayMode :public GameMode{
 		void bombPlanted(std::pair<int, int> location);
 		void bombDefused();
 		void updateBombState(BombState state,bool ext = true);
+		ScoreBoard* scoreBoard;
 		LTexture* bombTexture = NULL;
 		Entity* bomb = NULL;
 		Clock* clock = NULL;
@@ -134,6 +136,11 @@ class PlayMode :public GameMode{
 		void deInitTileMap();
 		void waitForInitTileMap();
 		void setWinner(int x);
+		void StartNewRound();
+		void InitRound();
+		int currentRoundNum = 0;
+		int totalRoundsInHalf = 2;
+		bool swapSides = false;
 		bool tileMapInit = false;
 		bool LoadingComplete = false;
 		bool ClientMapInitialized = false;
@@ -143,5 +150,7 @@ class PlayMode :public GameMode{
 		bool roundOver = false;
 		bool canReturnHome = false;
 		bool roundEndMessageInit = false;
+		bool gameHalfMessageInit = false;
+		bool gameEndMessageInit = false;
 
 };
