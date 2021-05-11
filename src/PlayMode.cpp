@@ -76,7 +76,9 @@ void PlayMode::eventHandler(SDL_Event& e){
 	player->handleEvent(e);
 
 }
+void PlayMode::updateInPauseMode(){
 
+}
 void PlayMode::update(){
 	
 	if (openPauseMenu){
@@ -85,7 +87,20 @@ void PlayMode::update(){
 		gEngine->setGameMode(PAUSE);
 		return;
 	}
+	if (roundOver){
+		if (gameMessage->isActive()){
+			gameMessage->render();
+			return;
+		}
+		else{
+			canReturnHome = true;
+			cout<<"IN\n";
+			return;
+		}
+		
+	}
 	if (LoadingComplete){
+
 		// handle movement of otherPlayer
 		if (playerObj!=ATTACK){
 			if (bombState==PLANTING){
@@ -248,16 +263,28 @@ void PlayMode::update(){
 	}
 	else{
 		if (serverObj!=NULL){
+			if (!serverObj->isConnected()){
+				loadingScreen->render("Waiting for Client to Connect");
+			}
+			else{
+				loadingScreen->render("Waiting for Client to receive tile map");
+			}
 			if (serverObj->isConnected() && ClientMapInitialized && !mapSent){
 				tileMap->sendMapToClient(serverObj);
 				mapSent = true;
 			}
 		}
 		else{
+			if (!clientObj->isConnected()){
+				loadingScreen->render("Establishing connection with the server");
+			}
+			else{
+				loadingScreen->render("Waiting to receive tile map");
+			}
 			if (clientObj->isConnected() && isInitTileMap() && !tileMapInitSent){
 				clientObj->SendTileMapInitialized();
 				tileMapInitSent = true;
-			}	
+			}
 		}
 	}
 }
@@ -345,6 +372,8 @@ bool PlayMode::loadMediaPlay()
 		success = false;
 	}
 	clock->loadMediaClock();
+	loadingScreen->loadMedia();
+	gameMessage->loadMedia();
 	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
@@ -352,9 +381,12 @@ bool PlayMode::loadMediaPlay()
 void PlayMode::freePlayMode(){
 	tileMapInit = false;
 	LoadingComplete = false;
-	ClientMapInitialized = true;
+	ClientMapInitialized = false;
 	mapSent = false;
 	tileMapInitSent = false;
+	roundOver = false;
+	canReturnHome = false;
+	roundEndMessageInit = false;
 	gPlayerTexture->free();
 	for (LTexture* x:pbTexture){
 		x->free();
@@ -367,6 +399,10 @@ void PlayMode::freePlayMode(){
 	delete (otherPlayer);
 	delete (tileMap);
 	delete (bomb);
+	delete (loadingScreen);
+	delete (gameMessage);
+	loadingScreen = NULL;
+	gameMessage = NULL;
 	bomb = NULL;
 	player = NULL;
 	otherPlayer = NULL;
@@ -432,6 +468,8 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		bombTexture = new LTexture(0.1);
 		healthBar = new HealthBar();
 		clock = new Clock();
+		loadingScreen = new LoadingScreen();
+		gameMessage = new GameMessage();
 		initPlayers();
 		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
@@ -464,7 +502,8 @@ void PlayMode::ReInit(){
 		tileMap->generateTiles(serverObj);
 	}
 	// cout<<"in play\n";
-	
+	loadingScreen = new LoadingScreen();
+	gameMessage = new GameMessage();
 	loadMediaPlay();
 	
 	isPaused = false;
@@ -512,4 +551,14 @@ void PlayMode::waitForInitTileMap(){
         pthread_cond_wait(&initTileMapSignal, &mutex);
     }
     pthread_mutex_unlock(&mutex);
+}
+
+void PlayMode::setWinner(int x){
+	roundOver = true;
+	if (x){
+		roundWinner = DEFEND;
+	}
+	else{
+		roundWinner = ATTACK;
+	}
 }

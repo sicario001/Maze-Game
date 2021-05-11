@@ -80,6 +80,67 @@ bool GameEngine::init()
 	return success;
 }
 
+void GameEngine::checkRoundEnd(){
+	if (serverObj!=NULL){
+		if (playMode->canReturnHome){
+			setGameMode(HOME);
+			return;
+		}
+		if (playMode->roundEndMessageInit){
+			return;
+		}
+		PlayerObj winner;
+		if (playMode->playerObj == ATTACK){
+			winner = DEFEND;
+		}
+		else{
+			winner = ATTACK;
+		}
+		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
+			if (playMode->player->getHealth()<=0){
+				playMode->setWinner(winner);
+				serverObj->SendRoundEndSignal(winner);
+				playMode->gameMessage->resetMessage("ROUND OVER", 2000);
+				playMode->roundEndMessageInit = true;
+			}
+			else if (playMode->otherPlayer->getHealth()<=0){
+				playMode->setWinner(playMode->playerObj);
+				serverObj->SendRoundEndSignal(playMode->playerObj);
+				playMode->gameMessage->resetMessage("ROUND OVER", 2000);
+				playMode->roundEndMessageInit = true;
+			}
+			if (playMode->clock->timeOver()){
+				if (playMode->bombState == PLANTED){
+					playMode->setWinner(ATTACK);
+					serverObj->SendRoundEndSignal(ATTACK);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000);
+					playMode->roundEndMessageInit = true;
+				}	
+				else{
+					playMode->setWinner(DEFEND);
+					serverObj->SendRoundEndSignal(DEFEND);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000);
+					playMode->roundEndMessageInit = true;
+				}
+				
+			}
+		}
+	}
+	else{
+		if (playMode->canReturnHome){
+			setGameMode(HOME);
+			return;
+		}
+		if (playMode->roundEndMessageInit){
+			return;
+		}
+		if (playMode->roundOver){
+			playMode->gameMessage->resetMessage("ROUND OVER", 2000);
+			playMode->roundEndMessageInit = true;
+		}
+	}
+}
+
 void GameEngine::runLoop(){
 	SDL_Event e;
 	homeMode->enterMode();
@@ -97,27 +158,16 @@ void GameEngine::runLoop(){
 			//Handle input for the player
 			gMode->eventHandler(e);
 		}
-		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-			if (playMode->player->getHealth()<=0){
-
-				setGameMode(HOME);
-			}
-			else if (playMode->otherPlayer->getHealth()<=0){
-				setGameMode(HOME);
-			}
-			if (playMode->clock->timeOver()){
-				if (playMode->bombState == PLANTED){
-					setGameMode(HOME);
-				}	
-				else{
-					setGameMode(HOME);
-				}
-				
-			}
-		}
+		checkRoundEnd();
 		//Clear screen
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
+		if (currMode==PAUSE_MODE){
+			playMode->updateInPauseMode();
+		}
+		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+		SDL_RenderClear( gEngine->gRenderer );
+
 		gMode->update();
 		
 		// cout<<currMode<<"\n";
@@ -126,7 +176,7 @@ void GameEngine::runLoop(){
 		// if (currMode == 1)cout<<"in\n";
 	}
 	//Free loaded images
-	playMode->freePlayMode();
+	// playMode->freePlayMode();
 
 	audioMaster.release();
 	//Destroy window	

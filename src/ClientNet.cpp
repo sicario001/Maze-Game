@@ -169,6 +169,12 @@ std::vector<int> ClientNet::Parsedata(char* data){
             sscanf(data, "5|%d|%d", &x, &y);
             return {5, x, y};   
         }
+        case 6:
+        {
+            int x;
+            sscanf(data, "6|%d", &x);
+            return {6, x};
+        }
         default:
             return {};
     }

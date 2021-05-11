@@ -4,6 +4,7 @@
 #include <string.h>
 #include <enet/enet.h>
 #include <vector>
+#include "fwd.hpp"
 
 class ServerNet{
     private:
@@ -30,8 +31,7 @@ class ServerNet{
         void SendHit(ENetPeer* peer, int damage);
         void SendBombState(int state);
         void SendBombLocation(std::pair<int, int> location);
-
-
+        void SendRoundEndSignal(PlayerObj winner);
         bool isRunning();
         bool isConnected();
         void setRunning();

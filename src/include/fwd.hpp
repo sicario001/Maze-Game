@@ -17,6 +17,8 @@ class LTimer;
 class ProgressBar;
 class Inventory;
 class Throwable;
+class LoadingScreen;
+class GameMessage;
 
 enum LButtonSprite
 {
