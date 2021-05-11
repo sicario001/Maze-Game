@@ -35,16 +35,17 @@ void PlayMode::eventHandler(SDL_Event& e){
             case SDLK_ESCAPE: openPauseMenu = true; break;
 			case SDLK_e:
 			{
-				if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
-					player->stopReloading();
-					progressBar = new ProgressBar(10000);
-					if (playerObj==ATTACK){
-						updateBombState(PLANTING,false);
+				if (LoadingComplete){
+					if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
+						player->stopReloading();
+						progressBar = new ProgressBar(10000);
+						if (playerObj==ATTACK){
+							updateBombState(PLANTING,false);
+						}
+						else{
+							updateBombState(DEFUSING,false);
+						}
 					}
-					else{
-						updateBombState(DEFUSING,false);
-					}
-					player->stopMovement();
 				}
 			}
         }
@@ -53,20 +54,24 @@ void PlayMode::eventHandler(SDL_Event& e){
 		switch(e.key.keysym.sym){
 			case SDLK_e:
 			{
-				if (progressBar!=NULL){
-					delete(progressBar);
-					progressBar = NULL;
-					if (playerObj==ATTACK){
-						updateBombState(IDLE,false);
-					}
-					else{
-						updateBombState(PLANTED,false);
+				if (LoadingComplete){
+					if (progressBar!=NULL){
+						delete(progressBar);
+						progressBar = NULL;
+						if (playerObj==ATTACK){
+							updateBombState(IDLE,false);
+						}
+						else{
+							updateBombState(PLANTED,false);
+						}
 					}
 				}
 			}
 		}
 	}
-	player->handleEvent(e);
+	if (LoadingComplete){
+		player->handleEvent(e);
+	}
 
 }
 void PlayMode::updateInPauseMode(){

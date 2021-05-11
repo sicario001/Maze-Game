@@ -14,6 +14,7 @@ class LoadingScreen{
 		LTexture* gLoadTextTexture = NULL;
 		std::stringstream loadText;
         LTexture* loadIcon = NULL;
+        LTexture* background = NULL;
 		TTF_Font *gFont = NULL;
         LTimer* timer = NULL;
 
