@@ -2,6 +2,7 @@
 
 PauseMode::PauseMode(){
 	gButtonSpriteSheetTexture = new LTexture();
+	background = new LTexture();
 	//Set sprites
 	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
 	{
@@ -18,16 +19,21 @@ bool PauseMode::loadMediaPauseMenu(){
 	bool success = true;
 	gButtons[0]->loadAudio();
 	gButtons[1]->loadAudio();
-	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/pause_menu.png" ) )
+	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/pause_menu_new.png" ) )
 	{
 		printf( "Failed to load button sprite texture!\n" );
+		success = false;
+	}
+	if( !background->loadFromFile( "media/texture/pause_menu_background.png" ) )
+	{
+		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
 	else
 	{
 		//Set buttons in corners
-		gButtons[ 0 ]->setPosition( (SCREEN_WIDTH-BUTTON_WIDTH)/2, (SCREEN_HEIGHT/2- BUTTON_HEIGHT) );
-		gButtons[ 1 ]->setPosition( (SCREEN_WIDTH-BUTTON_WIDTH)/2, SCREEN_HEIGHT/2 );
+		gButtons[ 0 ]->setPosition( SCREEN_WIDTH-BUTTON_WIDTH-20, 10 );
+		gButtons[ 1 ]->setPosition( SCREEN_WIDTH-BUTTON_WIDTH-20, BUTTON_HEIGHT+10 );
 	}
 	return success;
 }
@@ -43,6 +49,7 @@ void PauseMode::eventHandler(SDL_Event& e){
 void PauseMode::update(){
 	// std::cout << "update pause media" << std::endl;
 	//Render buttons
+	background->renderBackground(NULL);
 	for( int i = 0; i < TOTAL_BUTTONS; ++i )
 	{
 		gButtons[ i ]->render();

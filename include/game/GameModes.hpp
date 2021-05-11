@@ -52,6 +52,7 @@ class PauseMode :public GameMode{
 		bool loadMediaPauseMenu();
 		SDL_Rect gSpriteClips[ BUTTON_SPRITE_TOTAL ];
 		LTexture* gButtonSpriteSheetTexture = NULL;
+		LTexture* background = NULL;
 		LButton* gButtons[ 2 ] = {NULL,NULL}; 
 	public:
 		PauseMode();
