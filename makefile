@@ -7,6 +7,9 @@ OBJDIR := obj
 SRCS := $(wildcard src/*/*/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*.cpp)
 OBJS := $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
+DEPS := $(OBJS:.o=.d)
+CFLAGS += -MMD -MP
+
 all: $(DIRS) $(TARGET)
 
 $(DIRS):
@@ -20,4 +23,6 @@ $(OBJDIR)/%.o: src/%.cpp
 	$(CC) -c $< -o $@ $(CFLAGS) -I $(INCDIR)
 
 clean:
-	rm -rf $(TARGET) $(OBJDIR)
+	rm -rf $(TARGET) $(OBJDIR) $(DEPS)
+
+-include $(DEPS)
