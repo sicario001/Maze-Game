@@ -1,6 +1,7 @@
 #include "GameModes.hpp"
 HomeMode::HomeMode(){
 	gButtonSpriteSheetTexture = new LTexture();
+	background = new LTexture();
 	//Set sprites
 	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
 	{
@@ -18,7 +19,7 @@ bool HomeMode::loadMediaHome(){
 	bool success = true;
 	gButtons[0]->loadAudio();
 	gButtons[1]->loadAudio();
-	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/menu.png" ) )
+	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/menu_new.png" ) )
 	{
 		printf( "Failed to load button sprite texture!\n" );
 		success = false;
@@ -27,12 +28,18 @@ bool HomeMode::loadMediaHome(){
 	{
 		//Set buttons in corners
 		gButtons[ 0 ]->setPosition( 0, 0 );
-		gButtons[ 1 ]->setPosition( SCREEN_WIDTH - BUTTON_WIDTH, 0 );
+		gButtons[ 1 ]->setPosition( 0, BUTTON_HEIGHT +10);
+	}
+	if (!background->loadFromFile("media/texture/background.png")){
+		printf( "Failed to load background texture!\n" );
+		success = false;
 	}
 	return success;
 }
 
 void HomeMode::update(){
+	
+	background->renderBackground(NULL);
 	//Render buttons
 	for( int i = 0; i < TOTAL_BUTTONS; ++i )
 	{

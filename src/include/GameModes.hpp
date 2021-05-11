@@ -36,6 +36,7 @@ class HomeMode :public GameMode{
 	private:
 		SDL_Rect gSpriteClips[ BUTTON_SPRITE_TOTAL ];
 		LTexture* gButtonSpriteSheetTexture;
+		LTexture* background;
 		LButton* gButtons[ 2 ]; 
 		bool loadMediaHome();
 	public:

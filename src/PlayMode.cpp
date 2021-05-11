@@ -92,7 +92,6 @@ void PlayMode::update(){
 		}
 		else{
 			canReturnHome = true;
-			cout<<"IN\n";
 			return;
 		}
 		
