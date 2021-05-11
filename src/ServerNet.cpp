@@ -82,7 +82,11 @@ void ServerNet::SendBombLocation(std::pair <int, int> location){
     sprintf(send_data, "5|%d|%d", location.first, location.second);
     SendPacket(peer, send_data);
 }
-
+void ServerNet::SendRoundEndSignal(PlayerObj winner){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "6|%d", winner);
+    SendPacket(peer, send_data);
+}
 
 void ServerNet::SendPacket(ENetPeer* peer, const char* data)
 {

@@ -50,7 +50,7 @@ class GameEngine
         void addThrowableToVector(std::vector<int> &data);
         void damagePlayer(std::vector<int> &data);
         void updateMapfromServer(std::vector<int> &received_data);
-
+        void checkRoundEnd();
         void resetListener(int x, int y);
 };
 

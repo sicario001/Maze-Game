@@ -114,6 +114,9 @@ void* ReceiveLoop(void* param){
 						else if (received_data[0]==5){
 							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
 						}
+						else if (received_data[0]==6){
+							gEngine->playMode->setWinner(received_data[1]);
+						}
 						enet_packet_destroy(event.packet);
 
 						break;

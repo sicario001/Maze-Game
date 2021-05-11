@@ -12,6 +12,7 @@
 #include "Inventory.hpp"
 #include "TileMap.hpp"
 #include "loadingScreen.hpp"
+#include "gameMessage.hpp"
 #include "ServerNet.hpp"
 #include "ClientNet.hpp"
 #include "Clock.hpp"
@@ -71,20 +72,26 @@ class PlayMode :public GameMode{
 
 		vector<Throwable> playerThrowables;
 		vector<Throwable> otherPlayerThrowables;
-
+		void update();
 		void initPlayers();
 		pthread_mutex_t mutex;
     	pthread_cond_t initTileMapSignal;
 		bool loadMediaPlay();
 		void eventHandler(SDL_Event& e);
 		// change positions of objects and render
-		void update();
+		
 
 		void getPlayerClip(int i,SDL_Rect &clip);
 		void initBombAudio();
 	public:
+
+		
+		void updateInPauseMode();
+
+
 		Player* player = NULL;
 		PlayerObj playerObj;
+		PlayerObj roundWinner;
 		BombState bombState;
 		std::pair<int, int> bombLocation = {-1, -1};
 		int RoundTime = 120000;
@@ -97,6 +104,7 @@ class PlayMode :public GameMode{
 		Entity* bomb = NULL;
 		Clock* clock = NULL;
 		LoadingScreen* loadingScreen = NULL;
+		GameMessage* gameMessage = NULL;
 		Player* otherPlayer = NULL;
 		HealthBar* healthBar = NULL;
 		ProgressBar* progressBar = NULL;
@@ -121,9 +129,15 @@ class PlayMode :public GameMode{
 		bool isInitTileMap();
 		void deInitTileMap();
 		void waitForInitTileMap();
+		void setWinner(int x);
 		bool tileMapInit = false;
 		bool LoadingComplete = false;
-		bool ClientMapInitialized = true;
+		bool ClientMapInitialized = false;
 		bool mapSent = false;
 		bool tileMapInitSent = false;
+		bool roundStart = false;
+		bool roundOver = false;
+		bool canReturnHome = false;
+		bool roundEndMessageInit = false;
+
 };
