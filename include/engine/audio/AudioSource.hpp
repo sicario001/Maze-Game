@@ -7,6 +7,7 @@
 
 enum EAudioSourceState
 {
+	STATE_EMPTY,
 	STATE_STOP,
 	STATE_PLAY,
 	STATE_PAUSE,
@@ -22,7 +23,7 @@ class AudioSource
 		void pause();
 		void stop();
 		void rewind();
-		void release();
+		void free();
 		void setPosition(float x, float y, float z);
 		void setDirection(float x, float y, float z);
 		void setVelocity(float x, float y, float z);

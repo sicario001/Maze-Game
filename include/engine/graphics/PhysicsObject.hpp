@@ -11,6 +11,8 @@
 
 using namespace std;
 
+pair<int,int> getPosOnCamera(pair<int,int> p);
+
 class Entity
 {
 protected:
@@ -94,6 +96,7 @@ protected:
     int lastVelY=0;
     int speed;
     bool canMove = true;
+    
 public:
     KinematicBody(int x, int y, int pSpeedX, int pSpeedY,int pSpeed, CollisionRect* pCollisionRect, LTexture* pTexture, SDL_Rect* clip, double angle = -10);
 

@@ -8,7 +8,7 @@ AudioMaster::AudioMaster() :
 AudioMaster::~AudioMaster()
 {
 }
-void AudioMaster::release()
+void AudioMaster::free()
 {
 	if (context != NULL) {
 		alcMakeContextCurrent(NULL);

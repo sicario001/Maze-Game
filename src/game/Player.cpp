@@ -4,7 +4,7 @@
 
 Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> sf, PlayerSpriteType type): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
     playerType = type;
-    shoot = sf;
+    spawnFunc = sf;
     health = pHealth;
     inventory = new Inventory();
 
@@ -23,11 +23,20 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
     reloadingSounds = gEngine->audioMaster.loadWaveFile("media/audio/reload.wav");
     reloadingSounds->setReferenceDistance(200);
     reloadingSounds->setRollOffFactor(2);
+
+    resetAudioSourcePosition();
 }
 
 void Player::damage(int d){
     health -= d;
     cout <<"Health "<< health << endl;
+}
+
+void Player::resetAudioSourcePosition(){
+    reloadingSounds->setPosition(x,y,0);
+    shootingSounds->setPosition(x,y,0);
+    slashingSounds->setPosition(x,y,0);
+    walkingSounds->setPosition(x,y,0);
 }
 
 void Player::resetRotation(){
@@ -38,42 +47,51 @@ void Player::resetRotation(){
     double a = atan2(cy,cx);
     cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation);
     cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation);
-    cx = (cx - gEngine->camera->x)*SCREEN_WIDTH/gEngine->camera->w;
-    cy = (cy - gEngine->camera->y)*SCREEN_HEIGHT/gEngine->camera->h;
-    rotation = atan2(yMouse-cy,xMouse-cx);
+    pair<int,int> cOnCamera = getPosOnCamera({cx,cy});
+    rotation = atan2(yMouse-cOnCamera.second,xMouse-cOnCamera.first);
+}
+
+void Player::shoot(ThrowableType t){
+    stopReloading();
+    // spawn at tip
+    double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
+    double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
+    double d = sqrt(cx*cx+cy*cy);
+    double a = atan2(cy,cx);
+    cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation);
+    cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation);
+    switch (t)
+    {
+    case BULLET:
+        cx -= BULLET_SPRITE_W/2;
+        cy -= BULLET_SPRITE_H/2;
+        spawnFunc(cx,cy,15,rotation,10, BULLET);
+        inventory->useBullet();
+        break;
+    
+    case KNIFE_SLASH:
+        cx -= SLASH_SPRITE_W/2;
+        cy -= SLASH_SPRITE_H/2;
+        spawnFunc(cx,cy,0,rotation,5, KNIFE_SLASH);
+        break;
+    default:
+        break;
+    }
 }
 
 void Player::handleEvent(SDL_Event &e)
 {
     if (canMove){
-        if(e.type == SDL_MOUSEMOTION)
-        {   
+        if(e.type == SDL_MOUSEMOTION){   
             SDL_GetMouseState(&xMouse,&yMouse);
         }
         
         // left click to shoot
         if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==GUN && !(inventory->isEmptyMag())){
-            // spawn at tip
-            // cout << "SHOOT!" << endl;
-            stopReloading();
-            double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
-            double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
-            double d = sqrt(cx*cx+cy*cy);
-            double a = atan2(cy,cx);
-            cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - BULLET_SPRITE_W/2;
-            cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - BULLET_SPRITE_H/2;
-            shoot(cx,cy,15,rotation,10, BULLET);
-            inventory->useBullet();
+            shoot(BULLET);
         }
         else if (e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==KNIFE){
-            stopReloading();
-            double cx = 62.0 - PLAYER_SPRITE_SIZE/2;
-            double cy = 44.0 - PLAYER_SPRITE_SIZE/2;
-            double d = sqrt(cx*cx+cy*cy);
-            double a = atan2(cy,cx);
-            cx = x + PLAYER_SPRITE_SIZE/2 + d * cos(a+rotation) - SLASH_SPRITE_W/2;
-            cy = y + PLAYER_SPRITE_SIZE/2 + d * sin(a+rotation) - SLASH_SPRITE_H/2;
-            shoot(cx,cy,0,rotation,5, KNIFE_SLASH);
+            shoot(KNIFE_SLASH);
         }
     }
     //If a key was pressed
@@ -133,13 +151,13 @@ void Player::handleEvent(SDL_Event &e)
 void Player::sendUpdate(ClientNet* clientObj, ServerNet* serverObj){
     if (clientObj!=NULL){
         if ((clientObj->peer)!=NULL){
-            clientObj->SendDataPosVelDeg(clientObj->peer, x, y, velX, velY, (int)(rotation * 180 / 3.1415926535));
+            clientObj->SendDataPosVelDeg(clientObj->peer, x, y, velX, velY, (int)(rotation * 180 / PI));
         }
     }
     else{
         if ((serverObj->peer)!=NULL){
             // std::cout<<"in\n";
-            serverObj->SendDataPosVelDeg(serverObj->peer, x, y, velX, velY, (int)(rotation * 180 / 3.1415926535));
+            serverObj->SendDataPosVelDeg(serverObj->peer, x, y, velX, velY, (int)(rotation * 180 / PI));
         }
     }
 }
@@ -175,10 +193,7 @@ void Player::playSoundIfWalked(bool isListener){
         if(isListener){
     	    gEngine->resetListener(x,y);
         }
-        reloadingSounds->setPosition(x,y,0);
-        shootingSounds->setPosition(x,y,0);
-        slashingSounds->setPosition(x,y,0);
-        walkingSounds->setPosition(x,y,0);
+        resetAudioSourcePosition();
 	    // cout << "walker at " <<x <<" " << y << endl;
         if(walkingSounds->getState() == AL_PAUSED){
             walkingSounds->play();
@@ -204,15 +219,15 @@ void Player::stopReloading(){
     }
 }
 
-void Player::release(){
+void Player::free(){
     if(walkingSounds)
-        walkingSounds->release();
+        walkingSounds->free();
     if(shootingSounds)
-        shootingSounds->release();
+        shootingSounds->free();
     if(reloadingSounds)
-        reloadingSounds->release();
+        reloadingSounds->free();
     if(slashingSounds)
-        slashingSounds->release();
+        slashingSounds->free();
 }
 
 void Player::playThrowableSound(ThrowableType type){

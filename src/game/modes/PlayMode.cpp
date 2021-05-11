@@ -37,14 +37,10 @@ void PlayMode::eventHandler(SDL_Event& e){
 					player->stopReloading();
 					progressBar = new ProgressBar(10000);
 					if (playerObj==ATTACK){
-						bombState = PLANTING;
-						player->stopMovement();
-						sendBombState();
+						updateBombState(PLANTING,false);
 					}
 					else{
-						bombState = DEFUSING;
-						player->stopMovement();
-						sendBombState();
+						updateBombState(DEFUSING,false);
 					}
 					player->stopMovement();
 				}
@@ -59,17 +55,10 @@ void PlayMode::eventHandler(SDL_Event& e){
 					delete(progressBar);
 					progressBar = NULL;
 					if (playerObj==ATTACK){
-						bombState = IDLE;
-						player->allowMovement();
-						sendBombState();
+						updateBombState(IDLE,false);
 					}
 					else{
-						bombBeepSound->rewind();
-						bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
-						bombBeepSound->play(true);
-						bombState = PLANTED;
-						player->allowMovement();
-						sendBombState();
+						updateBombState(PLANTED,false);
 					}
 				}
 			}
@@ -77,6 +66,32 @@ void PlayMode::eventHandler(SDL_Event& e){
 	}
 	player->handleEvent(e);
 
+}
+
+void PlayMode::handleThrowables(vector<Throwable> &th, Player* p, function<void(Throwable&)> onHit){
+	for (Throwable& x : th)
+	{
+		x.move();
+		tileMap->handleThrowables(&x);
+		if(x.handleCollision(p)){
+			if(!x.collided){
+				onHit(x);
+			}
+			x.onHit();
+		}
+		if(x.isActive){
+			x.render();
+			// x.getCollisionRect()->render();
+		}
+	}
+
+	th.erase(std::remove_if(th.begin(),th.end(),[](Throwable& x){
+		bool erasable = (!x.isActive) || x.handleOutOfBounds();
+		if(erasable){
+			x.free();
+		}
+		return erasable;
+	}),th.end());
 }
 
 void PlayMode::update(){
@@ -123,83 +138,47 @@ void PlayMode::update(){
 		player->resetCamera();
 
 		
-		//Render wall
-		// SDL_SetRenderDrawColor( gEngine->gRenderer, 0x00, 0x00, 0x00, 0xFF );		
+		//Render walls and tiles	
 		tileMap->render();
-		// player->getCollisionRect()->render();
-		// otherPlayer->getCollisionRect()->render();
 
+		//Render bomb
 		if (bomb!=NULL){
 			bomb->render();
 		}
 		
+		//render other player
 		otherPlayer->render();
 		
 		// render bullets
-		for (Throwable& x : playerThrowables)
-		{
-			x.move();
-			tileMap->handleThrowables(&x);
-			if(x.handleCollision(otherPlayer)){
-				// send hit if bullet was moving
-				if(!x.collided){
-					if (clientObj!=NULL){
-						if ((clientObj->peer)!=NULL){
-							clientObj->SendHit(clientObj->peer, x.damage);
-							otherPlayer->damage(x.damage);
-						}
-					}
-					else{
-						if ((serverObj->peer)!=NULL){
-							serverObj->SendHit(serverObj->peer, x.damage);
-							otherPlayer->damage(x.damage);
-						}
-					}
+		handleThrowables(playerThrowables,otherPlayer,[this](Throwable& x){
+			if (clientObj!=NULL){
+				if ((clientObj->peer)!=NULL){
+					clientObj->SendHit(clientObj->peer, x.damage);
+					otherPlayer->damage(x.damage);
 				}
-				x.onHit();
 			}
-			if(x.isActive){
-				x.render();
-				// x.getCollisionRect()->render();
+			else{
+				if ((serverObj->peer)!=NULL){
+					serverObj->SendHit(serverObj->peer, x.damage);
+					otherPlayer->damage(x.damage);
+				}
 			}
-		}
+		});
 		
-		playerThrowables.erase(std::remove_if(playerThrowables.begin(),playerThrowables.end(),[](Throwable& x){
-			bool erasable = (!x.isActive) || x.handleOutOfBounds();
-			if(erasable){
-				x.release();
-			}
-			return erasable;
-		}),playerThrowables.end());
-		
-		//Render players
+		//Render player
 		player->resetClip();
 		player->render();
-		for (Throwable& x : otherPlayerThrowables)
-		{
-			x.move();
-			tileMap->handleThrowables(&x);
-			if(x.handleCollision(player)){
-				x.onHit();
-			}
-			if(x.isActive){
-				x.render();
-				// x.getCollisionRect()->render();
-			}
-		}
 		
-		otherPlayerThrowables.erase(std::remove_if(otherPlayerThrowables.begin(),otherPlayerThrowables.end(),[](Throwable& x){
-			bool erasable = (!x.isActive) || x.handleOutOfBounds();
-			if(erasable){
-				x.release();
-			}
-			return erasable;
-		}),otherPlayerThrowables.end());
+		// render bullets
+		handleThrowables(otherPlayerThrowables,player,[](Throwable& x){});
+		
 		healthBar->setHealth(player->getHealth());
 		healthBar->render();
+
 		clock->render();
 		
 		player->inventory->render();
+
 		if (player->reloadBar!=NULL){
 			if (player->isReloading){
 				if (player->reloadBar->isComplete()){
@@ -219,25 +198,16 @@ void PlayMode::update(){
 				player->inventory->reload();
 			}
 		}
+
 		if (progressBar!=NULL){
 			if (progressBar->isComplete()){
 				delete(progressBar);
 				progressBar = NULL;
 				if (playerObj==ATTACK){
-					bombBeepSound->rewind();
-					bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
-					bombBeepSound->play(true);
-					bombState = PLANTED;
-					player->allowMovement();
-					bombPlanted({player->getPosX(), player->getPosY()});
-					sendBombState();
-					sendBombLocation();
+					updateBombState(PLANTED,false);
 				}
 				else{
-					bombBeepSound->rewind();
-					bombState = DEFUSED;
-					player->allowMovement();
-					sendBombState();
+					updateBombState(DEFUSED,false);
 				}
 			}
 			else{
@@ -286,30 +256,46 @@ void PlayMode::bombPlanted(std::pair<int, int> location){
 	bombLocation = location;
 	clock->reset(60000);
 	bomb = new Entity((location.first)+(bombTexture->getWidth())/2, (location.second)+(bombTexture->getHeight())/2, bombTexture, NULL);
+	updateBombState(PLANTED);
 }
+
 void PlayMode::bombDefused(){
 
 }
-void PlayMode::updateBombState(int state){
-	if (state==0){
-		bombState = IDLE;
+
+void PlayMode::updateBombState(BombState state, bool ext){
+	bombState = state;
+
+	if(!ext){
+		switch (state)
+		{
+			case PLANTING:
+			case DEFUSING:
+				player->stopMovement();
+				break;
+			
+			default:
+				player->allowMovement();
+				break;
+		}
+		sendBombState();
 	}
-	else if (state==1){
-		bombState = PLANTING;
-	}
-	else if (state==2){
-		bombBeepSound->rewind();
-		bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
-		bombBeepSound->play(true);
-		bombState = PLANTED;
-	}
-	else if (state==3){
-		bombState = DEFUSING;
-	}
-	else{
-		bombBeepSound->rewind();
-		bombState = DEFUSED;
-		bombDefused();
+	switch (state)
+	{
+		case PLANTED:
+			bombBeepSound->rewind();
+			bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
+			bombBeepSound->play(true);
+			if(!ext){
+				bombPlanted({player->getPosX(), player->getPosY()});
+				sendBombLocation();
+			}
+			break;
+		case DEFUSED:
+			bombBeepSound->rewind();
+			break;
+		default:
+			break;
 	}
 }
 
@@ -357,18 +343,21 @@ void PlayMode::freePlayMode(){
 	ClientMapInitialized = true;
 	mapSent = false;
 	tileMapInitSent = false;
+
 	gPlayerTexture->free();
 	for (LTexture* x:pbTexture){
 		x->free();
 	}
 	bombTexture->free();
-	bombBeepSound->release();
-	player->release();
-	otherPlayer->release();
+	bombBeepSound->free();
+	player->free();
+	otherPlayer->free();
+
 	delete (player);
 	delete (otherPlayer);
 	delete (tileMap);
 	delete (bomb);
+	
 	bomb = NULL;
 	player = NULL;
 	otherPlayer = NULL;
@@ -391,6 +380,7 @@ void PlayMode::initPlayers(){
 	int server_start_pos_y = 0;
 	int client_start_pos_x = 2500;
 	int client_start_pos_y = 1860;
+
 	if (clientObj!=NULL){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);
@@ -406,16 +396,7 @@ void PlayMode::initPlayers(){
 		playerObj = DEFEND;
 	}
 }
-PlayMode::PlayMode(){
-	initBombAudio();
-	gPlayerTexture = new LTexture();
-	for (int i=0; i<(int)pbTexture.size(); i++){
-		pbTexture[i] = new LTexture();
-	}
-	bombTexture = new LTexture(0.1);
-	healthBar = new HealthBar();
-	initPlayers();
-};
+PlayMode::PlayMode(){}
 
 PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 	if (!flag){
@@ -425,24 +406,13 @@ PlayMode::PlayMode(bool flag, ClientNet* client, ServerNet* server){
 		// std::cout<<"PlayMode Initialized\n";
 		clientObj = client;
 		serverObj = server;
-		bombState = IDLE;
-		initBombAudio();
-		gPlayerTexture = new LTexture();
-		for (int i=0; i<(int)pbTexture.size(); i++){
-			pbTexture[i] = new LTexture();
-		}
-		bombTexture = new LTexture(0.1);
-		healthBar = new HealthBar();
-		clock = new Clock();
-		initPlayers();
-		isPaused = false;
 		pthread_mutex_init( &mutex, NULL);
     	pthread_cond_init( &initTileMapSignal, NULL);
 	}
 }
 void PlayMode::initBombAudio(){
 	if(bombBeepSound){
-		bombBeepSound->release();
+		bombBeepSound->free();
 	}
 	bombBeepSound = gEngine->audioMaster.loadWaveFile("media/audio/beep.wav");
 	bombBeepSound->setReferenceDistance(200);
@@ -452,15 +422,19 @@ void PlayMode::initBombAudio(){
 void PlayMode::ReInit(){
 	bombState = IDLE;
 	initBombAudio();
+
 	gPlayerTexture = new LTexture();
 	for (int i=0; i<(int)pbTexture.size(); i++){
 		pbTexture[i] = new LTexture();
 	}
 	bombTexture = new LTexture(0.1);
+	tileMap = new TileMap(clientObj, serverObj);
+	healthBar = new HealthBar();
+	clock = new Clock();
+
 	initPlayers();
 	player->allowMovement();
 	
-	tileMap = new TileMap(clientObj, serverObj);
 	initTileMap();
 	if (serverObj!=NULL){
 		tileMap->generateTiles(serverObj);
@@ -514,4 +488,4 @@ void PlayMode::waitForInitTileMap(){
         pthread_cond_wait(&initTileMapSignal, &mutex);
     }
     pthread_mutex_unlock(&mutex);
-}
+} 

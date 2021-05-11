@@ -129,7 +129,7 @@ void GameEngine::runLoop(){
 	//Free loaded images
 	playMode->freePlayMode();
 
-	audioMaster.release();
+	audioMaster.free();
 	//Destroy window	
 	SDL_DestroyRenderer(gRenderer );
 	SDL_DestroyWindow(gWindow );

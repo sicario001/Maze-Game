@@ -64,7 +64,7 @@ class PlayMode :public GameMode{
 		bool openPauseMenu = false;
 		bool isPaused;
 		
-		AudioSource* bombBeepSound;
+		AudioSource* bombBeepSound = NULL;
 		
 		LTexture* gPlayerTexture;    
 		vector<LTexture*> pbTexture = {NULL, NULL};
@@ -94,7 +94,7 @@ class PlayMode :public GameMode{
 		void sendBombLocation();
 		void bombPlanted(std::pair<int, int> location);
 		void bombDefused();
-		void updateBombState(int state);
+		void updateBombState(BombState state,bool ext = true);
 		LTexture* bombTexture = NULL;
 		Entity* bomb = NULL;
 		Clock* clock = NULL;
@@ -112,6 +112,7 @@ class PlayMode :public GameMode{
 		
 
 		void spawnThrowable(int x, int y, int speed, double angle, int damage, ThrowableType type);
+		void handleThrowables(vector<Throwable> &th, Player* p, function<void(Throwable&)> onHit);
 		void ReInit();
 		void enterMode();
 		void Pause();

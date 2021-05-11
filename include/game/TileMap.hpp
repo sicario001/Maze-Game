@@ -11,8 +11,6 @@
 
 using namespace std;
 
-const int TILE_SIZE = 128;
-
 enum FLOOR_TYPE{
     GRASS,
     STONE

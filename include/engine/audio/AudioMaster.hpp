@@ -15,7 +15,7 @@ class AudioMaster
 	public:
 		AudioMaster();
 		~AudioMaster();
-		void release();
+		void free();
 		void init() ;
 		void setListenerPosition(float x, float y, float z);
 		void setListenerOrientation(float atX, float atY, float atZ, float upX, float upY, float upZ);

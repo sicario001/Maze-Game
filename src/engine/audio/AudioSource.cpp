@@ -82,10 +82,17 @@ void AudioSource::setGain(float gain)
 	alSourcef(source, AL_GAIN, gain);
 }
 
-void AudioSource::release()
+void AudioSource::free()
 {
+	if (state==STATE_EMPTY)
+	{
+		return;
+	}
+	
 	alDeleteSources(1, &source);
 	alDeleteBuffers(1, &buffer);
+
+	state = STATE_EMPTY;
 }
 
 int AudioSource::getState(){

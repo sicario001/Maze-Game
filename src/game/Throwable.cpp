@@ -68,7 +68,7 @@ void Throwable::onHit(){
     }
     
 }
-void Throwable::release(){
+void Throwable::free(){
     if(hitSound)
-        hitSound->release();
+        hitSound->free();
 }

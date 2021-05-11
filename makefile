@@ -4,7 +4,7 @@ LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -lopenal -lalut -lenet -pthread
 TARGET := myapp
 INCDIR := include
 OBJDIR := obj
-SRCS := $(wildcard src/*/*/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*.cpp)
+SRCS := $(wildcard src/*/*/*/*.cpp) $(wildcard src/*/*/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*.cpp)
 OBJS := $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 DEPS := $(OBJS:.o=.d)
