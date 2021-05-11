@@ -1,7 +1,9 @@
 CC = g++
-CFLAGS = -std=c++17 -Wall -g
+CFLAGS = -std=c++17 -Wall
 LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -lopenal -lalut -lenet -pthread
+MEDIADIR := media
 TARGET := myapp
+RELEASE := release.zip
 INCDIR := include
 OBJDIR := obj
 SRCS := $(wildcard src/*/*/*/*.cpp) $(wildcard src/*/*/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*.cpp)
@@ -11,6 +13,19 @@ DEPS := $(OBJS:.o=.d)
 CFLAGS += -MMD -MP
 
 all: $(DIRS) $(TARGET)
+
+debug: CFLAGS+= -g
+debug: $(DIRS) $(TARGET)
+
+release: $(RELEASE)
+
+$(RELEASE):$(DIRS) $(TARGET)
+	mkdir -p bin
+	rm -f $(RELEASE)
+	cp $(TARGET) bin/$(TARGET)
+	cp -r $(MEDIADIR) bin/$(MEDIADIR)
+	cd bin;	zip -r ../$(RELEASE) *
+	rm -rf bin
 
 $(DIRS):
 	mkdir -p $(DIRS)
@@ -23,6 +38,6 @@ $(OBJDIR)/%.o: src/%.cpp
 	$(CC) -c $< -o $@ $(CFLAGS) -I $(INCDIR)
 
 clean:
-	rm -rf $(TARGET) $(OBJDIR) $(DEPS)
+	rm -rf $(TARGET) $(OBJDIR) $(DEPS) $(RELEASE)
 
 -include $(DEPS)
