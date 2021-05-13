@@ -310,6 +310,7 @@ void TileMap::generateMap1(double density){
     int numRows = LEVEL_HEIGHT/TILE_SIZE;
     int numCols = LEVEL_WIDTH/TILE_SIZE;
     initializeMap(numRows, numCols);
+    vector<vector<bool>> bad_points(numRows, vector<bool>(numCols, false));
     int numWalls = density*(numRows*numCols);
     int s1_x = 0;
     int s1_y = 0;
@@ -318,13 +319,14 @@ void TileMap::generateMap1(double density){
     while (numWalls>0){
         int x = rand()%numRows;
         int y = rand()%numCols;
-        if (getMap(x, y) || (x==s1_x && y==s1_y) || (x==s2_x && y ==s2_y)){
+        if (getMap(x, y) || bad_points[x][y] || (x==s1_x && y==s1_y) || (x==s2_x && y ==s2_y)){
             continue;
         }
         vector<vector<bool>> m;
         cloneMap(m);
         m[x][y] = true;
         if (!checkConnected(m)){
+            bad_points[x][y] = true;
             continue;
         }
         setMap(x, y, true);
