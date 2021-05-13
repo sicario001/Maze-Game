@@ -283,3 +283,17 @@ void Player::playThrowableSound(ThrowableType type){
         break;
     }
 }
+
+void Player::stopMovement(){
+    canMove = false;
+    // modify this to set dirX and dirY to 0
+    velX = 0;
+    velY = 0;
+    dirX = 0;
+    dirY = 0;
+    lastVelX = 0;
+    lastVelY = 0;
+}
+void Player::allowMovement(){
+    canMove = true;
+}

@@ -64,4 +64,7 @@ public:
     void stopReloading();
     void updateFireLock();
     void free();
+
+    void stopMovement();
+    void allowMovement();
 };

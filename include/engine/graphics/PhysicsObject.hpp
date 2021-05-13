@@ -103,8 +103,6 @@ public:
     void setPosVel(int pX, int pY, int pVelX, int pVelY);
     void setRotation(int deg);
     void move();
-    void stopMovement();
-    void allowMovement();
     // handle collision with a body, move back a step
     bool handleCollision(RigidBody* rb);
     // check if outside window

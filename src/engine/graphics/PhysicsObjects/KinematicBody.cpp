@@ -39,17 +39,7 @@ void KinematicBody::move()
     collisionRect->shift(x,y);
 }
 
-void KinematicBody::stopMovement(){
-    canMove = false;
-    // modify this to set dirX and dirY to 0
-    velX = 0;
-    velY = 0;
-    lastVelX = 0;
-    lastVelY = 0;
-}
-void KinematicBody::allowMovement(){
-    canMove = true;
-}
+
 bool KinematicBody::inVicinity(std::pair<int, int>obj, int pix_dis){
     int distance_sq = (x-obj.first)*(x-obj.first)+ (y-obj.second)*(y-obj.second);
     if (distance_sq<=(pix_dis*pix_dis)){
