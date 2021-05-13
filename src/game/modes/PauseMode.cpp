@@ -1,8 +1,6 @@
 #include "game/GameModes.hpp"
 
 PauseMode::PauseMode(){
-	gButtonSpriteSheetTexture = new LTexture();
-	background = new LTexture();
 	//Set sprites
 	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
 	{
@@ -11,30 +9,19 @@ PauseMode::PauseMode(){
 		gSpriteClips[ i ].w = BUTTON_WIDTH;
 		gSpriteClips[ i ].h = BUTTON_HEIGHT;
 	}
-	gButtons[ 0 ] = new LButton(BUTTON_PRIM,gButtonSpriteSheetTexture,gSpriteClips);
-	gButtons[ 1 ] = new LButton(BUTTON_ALT,gButtonSpriteSheetTexture,gSpriteClips);
 }
 
 bool PauseMode::loadMediaPauseMenu(){
 	bool success = true;
 	gButtons[0]->loadAudio();
 	gButtons[1]->loadAudio();
-	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/pause_menu_new.png" ) )
-	{
-		printf( "Failed to load button sprite texture!\n" );
-		success = false;
-	}
-	if( !background->loadFromFile( "media/texture/pause_menu_background.png" ) )
-	{
-		printf( "Failed to load background texture!\n" );
-		success = false;
-	}
-	else
-	{
-		//Set buttons in corners
-		gButtons[ 0 ]->setPosition( SCREEN_WIDTH-BUTTON_WIDTH-20, 10 );
-		gButtons[ 1 ]->setPosition( SCREEN_WIDTH-BUTTON_WIDTH-20, BUTTON_HEIGHT+10 );
-	}
+	gButtonSpriteSheetTexture = gEngine->textureStore->getSourceFor(TS_MENU_PAUSE);
+
+	gButtons[ 0 ] = new LButton(BUTTON_PRIM,gButtonSpriteSheetTexture,gSpriteClips);
+	gButtons[ 1 ] = new LButton(BUTTON_ALT,gButtonSpriteSheetTexture,gSpriteClips);
+	gButtons[ 0 ]->setPosition( SCREEN_WIDTH-BUTTON_WIDTH-20, 10 );
+	gButtons[ 1 ]->setPosition( SCREEN_WIDTH-BUTTON_WIDTH-20, BUTTON_HEIGHT+10 );
+	background = gEngine->textureStore->getSourceFor(TS_BG_PAUSE);
 	return success;
 }
 

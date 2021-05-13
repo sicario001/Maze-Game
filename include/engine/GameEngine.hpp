@@ -7,6 +7,7 @@
 #include "engine/net/ClientNet.hpp"
 #include "engine/net/ServerNet.hpp"
 #include "engine/audio/AudioStore.hpp"
+#include "engine/graphics/TextureStore.hpp"
 #include "game/GameModes.hpp"
 
 enum GameModes{
@@ -26,7 +27,7 @@ class GameEngine
     public:
         AudioMaster* audioMaster;
         AudioStore* audioStore;
-
+        TextureStore* textureStore;
 
         SDL_Rect* camera = NULL;
 

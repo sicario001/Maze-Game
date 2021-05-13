@@ -2,7 +2,6 @@
 #include "game/Throwable.hpp"
 
 TileMap::TileMap(ClientNet* client, ServerNet* server){
-    gTileSheet = new LTexture();
     pthread_mutex_init( &mutex1, NULL);
     
     // generateTiles(client, server);
@@ -352,10 +351,7 @@ void TileMap::generateMap(){
 
 bool TileMap::loadTexture(){
 	//Load wall texture
-	if( !gTileSheet->loadFromFile( "media/texture/tilesheet.png" ) )
-	{
-        return false;
-	}
+    gTileSheet = gEngine->textureStore->getSourceFor(TS_TILESHEET);
     return true;
 }
 

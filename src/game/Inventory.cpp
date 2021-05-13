@@ -1,16 +1,6 @@
 #include "game/Inventory.hpp"
 
 Inventory::Inventory(){
-    rifleTexture = new LTexture();
-    pistolTexture = new LTexture();
-    // smokeTexture = new LTexture();
-    // flashTexture = new LTexture();
-    // grenadeTexture = new LTexture();
-    desTextTexture = new LTexture();
-    knifeTexture = new LTexture();
-    // bombTexture = new LTexture();
-    // defuseKitTexture = new LTexture();
-
 }
 void Inventory::useBullet(){
     switch (currWeapon)
@@ -85,39 +75,9 @@ bool Inventory::canReload(){
 }
 void Inventory::loadMediaInventory(){
     gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 50);
-    if( !rifleTexture->loadFromFile( "media/texture/inventory/AKM.png" ) )
-	{
-		printf( "Failed to load gun texture!\n" );
-	}
-    if( !pistolTexture->loadFromFile( "media/texture/inventory/FN45.png" ) )
-	{
-		printf( "Failed to load gun texture!\n" );
-	}
-    // if( !smokeTexture->loadFromFile( "media/texture/inventory/smoke.png" ) )
-	// {
-	// 	printf( "Failed to load smoke texture!\n" );
-	// }
-    // if( !flashTexture->loadFromFile( "media/texture/inventory/Flashbang.png" ) )
-	// {
-	// 	printf( "Failed to load flash texture!\n" );
-	// }
-    // if( !grenadeTexture->loadFromFile( "media/texture/inventory/Grenade.png" ) )
-	// {
-	// 	printf( "Failed to load grenade texture!\n" );
-	// }
-    if( !knifeTexture->loadFromFile( "media/texture/inventory/Bayonet.png" ) )
-	{
-		printf( "Failed to load no weapons texture!\n" );
-	}
-    
-    // if( !bombTexture->loadFromFile( "media/texture/AKM.png" ) )
-	// {
-	// 	printf( "Failed to load bomb texture!\n" );
-	// }
-    // if( !defuseKitTexture->loadFromFile( "media/texture/AKM.png" ) )
-	// {
-	// 	printf( "Failed to load bomb texture!\n" );
-	// }
+    rifleTexture = gEngine->textureStore->getSourceFor(TS_W_AKM);
+    pistolTexture = gEngine->textureStore->getSourceFor(TS_W_FN45);
+    knifeTexture = gEngine->textureStore->getSourceFor(TS_W_BAYONET);
 }
 void Inventory::reload(){
     switch (currWeapon)

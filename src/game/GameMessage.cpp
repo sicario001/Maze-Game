@@ -1,10 +1,6 @@
 #include "game/GameMessage.hpp"
 
 GameMessage::GameMessage(){
-    messageTexture = new LTexture();
-    background_ct = new LTexture();
-    background_t = new LTexture();
-    background = new LTexture();
     timer = new LTimer();
     active = false;
 
@@ -12,10 +8,6 @@ GameMessage::GameMessage(){
 GameMessage::~GameMessage(){
     if(explosionSound)
         explosionSound->free();
-    messageTexture->free();
-    background_ct->free();
-    background_t->free();
-    background->free();
     delete(timer);
     timer = NULL;
 
@@ -79,18 +71,9 @@ void GameMessage::loadMedia(){
         explosionSound = gEngine->audioStore->getSourceFor(AS_EXPLOSION_SOUND);
     }
     gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 50);
-    if( !background_ct->loadFromFile( "media/texture/ct_win.png" ) )
-	{
-		printf( "Failed to load background texture!\n" );
-	}
-    if( !background_t->loadFromFile( "media/texture/t_win.png" ) )
-	{
-		printf( "Failed to load background texture!\n" );
-	}
-    if( !background->loadFromFile( "media/texture/background_end.png" ) )
-	{
-		printf( "Failed to load background texture!\n" );
-	}
+    background_ct = gEngine->textureStore->getSourceFor(TS_BG_CT_WIN);
+    background_t = gEngine->textureStore->getSourceFor(TS_BG_T_WIN);
+    background = gEngine->textureStore->getSourceFor(TS_BG_END);
 }
 bool GameMessage::isActive(){
     if (!active){

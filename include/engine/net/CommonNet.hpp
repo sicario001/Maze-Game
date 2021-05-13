@@ -9,7 +9,7 @@
 class CommonNet{
     private:
         pthread_mutex_t mutex;
-
+        int ping;
     public:
         ENetAddress address;
         ENetEvent event;
@@ -18,6 +18,7 @@ class CommonNet{
         bool isConnected();
         void setConnected();
         void setNotConnected();
+        int getPing();
         void SendPacket(ENetPeer* peer, const char* data);
         std::vector<int> Parsedata(char* data);
         void SendDataPosVelDeg(ENetPeer* peer, int x, int y, int velX, int velY, int deg);

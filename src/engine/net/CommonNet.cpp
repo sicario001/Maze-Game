@@ -126,3 +126,7 @@ void CommonNet::setNotConnected(){
     connected = false;
     pthread_mutex_unlock(&mutex);
 }
+
+int CommonNet::getPing(){
+    return peer->roundTripTime;
+}

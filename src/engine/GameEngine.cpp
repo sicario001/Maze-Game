@@ -22,14 +22,11 @@ GameEngine::GameEngine(int c_or_s){
 	playMode = new PlayMode(true, clientObj, serverObj);
 	audioMaster = new AudioMaster();
 	audioStore = new AudioStore();
+	textureStore = new TextureStore();
 }
 
 bool GameEngine::init()
 {
-	audioMaster->init();
-	audioStore->init();
-	bgm = audioStore->getSourceFor(AS_BGM);
-	startbgm();
 	//Initialization flag
 	bool success = true;
 
@@ -83,7 +80,14 @@ bool GameEngine::init()
 			}
 		}
 	}
-
+	if(success){
+		audioMaster->init();
+		audioStore->init();
+		textureStore->init();
+		
+		bgm = audioStore->getSourceFor(AS_BGM);
+		startbgm();
+	}
 	return success;
 }
 
@@ -212,6 +216,7 @@ void GameEngine::runLoop(){
 	bgm->free();
 	audioMaster->free();
 	audioStore->free();
+	textureStore->free();
 	//Destroy window	
 	SDL_DestroyRenderer(gRenderer );
 	SDL_DestroyWindow(gWindow );

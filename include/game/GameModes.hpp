@@ -21,6 +21,7 @@
 #include "game/Inventory.hpp"
 #include "game/TileMap.hpp"
 #include "game/ScoreBoard.hpp"
+#include "game/PingStatus.hpp"
 
 extern GameEngine* gEngine;
 
@@ -104,6 +105,7 @@ class PlayMode :public GameMode{
 		void bombDefused();
 		void updateBombState(BombState state,bool ext = true);
 		ScoreBoard* scoreBoard;
+		PingStatus* pingStatus;
 		LTexture* bombTexture = NULL;
 		Entity* bomb = NULL;
 		Clock* clock = NULL;

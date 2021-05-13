@@ -20,6 +20,7 @@ class LTimer;
 class ProgressBar;
 class Inventory;
 class ScoreBoard;
+class PingStatus;
 
 class Throwable;
 class LoadingScreen;
@@ -28,6 +29,7 @@ class GameMessage;
 class AudioMaster;
 class AudioSource;
 class AudioStore;
+class TextureStore;
 
 enum LButtonSprite
 {

@@ -1,8 +1,6 @@
 #include "game/GameModes.hpp"
 
 HomeMode::HomeMode(){
-	gButtonSpriteSheetTexture = new LTexture();
-	background = new LTexture();
 	//Set sprites
 	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
 	{
@@ -11,30 +9,22 @@ HomeMode::HomeMode(){
 		gSpriteClips[ i ].w = BUTTON_WIDTH;
 		gSpriteClips[ i ].h = BUTTON_HEIGHT;
 	}
-	gButtons[ 0 ] = new LButton(BUTTON_PRIM,gButtonSpriteSheetTexture,gSpriteClips);
-	gButtons[ 1 ] = new LButton(BUTTON_ALT,gButtonSpriteSheetTexture,gSpriteClips);
 }
 
 bool HomeMode::loadMediaHome(){
 	std::cout << "load media home" << std::endl;
 	bool success = true;
+
+	gButtonSpriteSheetTexture = gEngine->textureStore->getSourceFor(TS_MENU);
+
+	gButtons[ 0 ] = new LButton(BUTTON_PRIM,gButtonSpriteSheetTexture,gSpriteClips);
+	gButtons[ 1 ] = new LButton(BUTTON_ALT,gButtonSpriteSheetTexture,gSpriteClips);
 	gButtons[0]->loadAudio();
 	gButtons[1]->loadAudio();
-	if( !gButtonSpriteSheetTexture->loadFromFile( "media/texture/sprites/menu_new.png" ) )
-	{
-		printf( "Failed to load button sprite texture!\n" );
-		success = false;
-	}
-	else
-	{
-		//Set buttons in corners
-		gButtons[ 0 ]->setPosition( 0, 0 );
-		gButtons[ 1 ]->setPosition( 0, BUTTON_HEIGHT +10);
-	}
-	if (!background->loadFromFile("media/texture/background.png")){
-		printf( "Failed to load background texture!\n" );
-		success = false;
-	}
+	gButtons[ 0 ]->setPosition( 0, 0 );
+	gButtons[ 1 ]->setPosition( 0, BUTTON_HEIGHT +10);
+	
+	background = gEngine->textureStore->getSourceFor(TS_BG);
 	return success;
 }
 

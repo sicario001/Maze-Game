@@ -202,6 +202,12 @@ void PlayMode::update(bool render){
 		
 	}
 	if (LoadingComplete){
+		if(serverObj!=NULL && serverObj->peer!=NULL){
+			pingStatus->updatePingStatus(serverObj->getPing());
+		}
+		if(clientObj!=NULL && clientObj->peer!=NULL){
+			pingStatus->updatePingStatus(clientObj->getPing());
+		}
 		// handle movement of otherPlayer
 		//Move the players
 		player->move();
@@ -269,6 +275,7 @@ void PlayMode::update(bool render){
 
 			clock->render();
 			scoreBoard->render();
+			pingStatus->render();
 			player->inventory->render();
 		}
 
@@ -421,28 +428,11 @@ bool PlayMode::loadMediaPlay()
 	//Loading success flag
 	bool success = true;
 	//Load player bullet texture
+	pbTexture[0] = gEngine->textureStore->getSourceFor(TS_BULLET);
+	pbTexture[1] = gEngine->textureStore->getSourceFor(TS_SLASH);
 	
-	if( !pbTexture[0]->loadFromFile( "media/texture/bullet.png" ) )
-	{
-		printf( "Failed to load player texture!\n" );
-		success = false;
-	}
-	if( !pbTexture[1]->loadFromFile( "media/texture/slashEffect.png" ) )
-	{
-		printf( "Failed to load player texture!\n" );
-		success = false;
-	}
-	//Load player texture
-	if( !gPlayerTexture->loadFromFile( "media/texture/spritesheet.png" ) )
-	{
-		printf( "Failed to load player texture!\n" );
-		success = false;
-	}
-	if( !bombTexture->loadFromFile( "media/texture/c4.png" ) )
-	{
-		printf( "Failed to load player texture!\n" );
-		success = false;
-	}
+	gPlayerTexture = gEngine->textureStore->getSourceFor(TS_SPRITESHEET);
+	bombTexture = gEngine->textureStore->getSourceFor(TS_C4);
 	//Load wall texture
 	if( !tileMap->loadTexture() )
 	{
@@ -453,6 +443,7 @@ bool PlayMode::loadMediaPlay()
 	loadingScreen->loadMedia();
 	gameMessage->loadMedia();
 	scoreBoard->loadMedia();
+	pingStatus->loadMedia();
 	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
@@ -469,11 +460,6 @@ void PlayMode::freePlayMode(){
 	gameHalfMessageInit = false;
 	gameEndMessageInit = false;
 
-	gPlayerTexture->free();
-	for (LTexture* x:pbTexture){
-		x->free();
-	}
-	bombTexture->free();
 	bombBeepSound->free();
 	player->free();
 	otherPlayer->free();
@@ -484,10 +470,12 @@ void PlayMode::freePlayMode(){
 	delete (bomb);
 	delete (loadingScreen);
 	delete (gameMessage);
+	delete (pingStatus);
 	delete (scoreBoard);
 
 	loadingScreen = NULL;
 	scoreBoard = NULL;
+	pingStatus = NULL;
 	gameMessage = NULL;
 	bomb = NULL;
 	player = NULL;
@@ -559,12 +547,8 @@ void PlayMode::ReInit(){
 	bombState = IDLE;
 	initBombAudio();
 
-	gPlayerTexture = new LTexture();
-	for (int i=0; i<(int)pbTexture.size(); i++){
-		pbTexture[i] = new LTexture();
-	}
 	scoreBoard = new ScoreBoard();
-	bombTexture = new LTexture(0.1);
+	pingStatus = new PingStatus();
 	tileMap = new TileMap(clientObj, serverObj);
 	healthBar = new HealthBar();
 	clock = new Clock();

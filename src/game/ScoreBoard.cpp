@@ -1,13 +1,9 @@
 #include "game/ScoreBoard.hpp"
 
 ScoreBoard::ScoreBoard(){
-    background = new LTexture();
-    gScoreTextTexture = new LTexture();
     reset();
 }
 ScoreBoard::~ScoreBoard(){
-    background->free();
-    gScoreTextTexture->free();
 }
 void ScoreBoard::reset(){
     PlayerScore = 0;

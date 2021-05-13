@@ -1,9 +1,7 @@
 #include "game/Clock.hpp"
 
 Clock::Clock(){
-    gTimeTextTexture = new LTexture();
     timer = new LTimer();
-    background = new LTexture();
     running = false;
 
 }
@@ -29,11 +27,7 @@ int Clock::getTime(){
 }
 void Clock::loadMediaClock(){
     gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 50);
-    if( !background->loadFromFile( "media/texture/clock.png" ) )
-	{
-		printf( "Failed to load clock texture!\n" );
-	}
-
+    background = gEngine->textureStore->getSourceFor(TS_CLOCK);
 }
 bool Clock::isRunning(){
     return running;
