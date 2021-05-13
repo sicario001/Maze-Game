@@ -28,7 +28,7 @@ using namespace std;
 class GameMode{
 	public:
 		virtual void eventHandler(SDL_Event &e){}
-		virtual void update(){}
+		virtual void update(bool render = true){}
 		virtual void enterMode(){}
 
 
@@ -44,7 +44,7 @@ class HomeMode :public GameMode{
 	public:
 		HomeMode();
 		void eventHandler(SDL_Event& e);
-		void update();
+		void update(bool render = true);
 		void enterMode();
 };
 
@@ -58,7 +58,7 @@ class PauseMode :public GameMode{
 	public:
 		PauseMode();
 		void eventHandler(SDL_Event& e);
-		void update();
+		void update(bool render = true);
 		void enterMode();
 };
 
@@ -76,7 +76,7 @@ class PlayMode :public GameMode{
 
 		vector<Throwable> playerThrowables;
 		vector<Throwable> otherPlayerThrowables;
-		void update();
+		
 		void initPlayers();
 		pthread_mutex_t mutex;
     	pthread_cond_t initTileMapSignal;
@@ -89,8 +89,7 @@ class PlayMode :public GameMode{
 		void initBombAudio();
 	public:
 
-		
-		void updateInPauseMode();
+		void update(bool render = true);
 
 
 		Player* player = NULL;

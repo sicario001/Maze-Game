@@ -38,7 +38,7 @@ bool HomeMode::loadMediaHome(){
 	return success;
 }
 
-void HomeMode::update(){
+void HomeMode::update(bool render){
 	
 	background->renderBackground(NULL);
 	//Render buttons

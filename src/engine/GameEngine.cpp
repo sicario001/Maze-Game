@@ -205,7 +205,7 @@ void GameEngine::runLoop(){
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
 		if (currMode==PAUSE_MODE){
-			playMode->updateInPauseMode();
+			playMode->update(false);
 		}
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );

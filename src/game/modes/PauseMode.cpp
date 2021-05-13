@@ -46,7 +46,7 @@ void PauseMode::eventHandler(SDL_Event& e){
 	}
 }
 
-void PauseMode::update(){
+void PauseMode::update(bool render){
 	// std::cout << "update pause media" << std::endl;
 	//Render buttons
 	background->renderBackground(NULL);
