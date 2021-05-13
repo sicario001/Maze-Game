@@ -106,6 +106,7 @@ void GameEngine::checkRoundEnd(){
 		if(playMode->LoadingComplete && !serverObj->isConnected()){
 			playMode->setWinner(0);
 			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->currentRoundNum = -1;
 			playMode->roundEndMessageInit = true;
 			return;
 		}
@@ -160,6 +161,7 @@ void GameEngine::checkRoundEnd(){
 		if(playMode->LoadingComplete && !clientObj->isConnected()){
 			playMode->setWinner(0);
 			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->currentRoundNum = -1;
 			playMode->roundEndMessageInit = true;
 			return;
 		}
@@ -193,7 +195,7 @@ void GameEngine::runLoop(){
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
 		if (currMode==PAUSE_MODE){
-			playMode->updateInPauseMode();
+			playMode->update(false);
 		}
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );

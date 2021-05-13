@@ -99,6 +99,10 @@ std::vector<int> CommonNet::Parsedata(char* data){
         {
             return {7};
         }
+        case 8:
+        {
+            return {8};
+        }
         default:
             return {};
     }

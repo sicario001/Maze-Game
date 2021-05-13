@@ -32,7 +32,25 @@ void PlayMode::eventHandler(SDL_Event& e){
     {
         switch( e.key.keysym.sym )
         {
-            case SDLK_ESCAPE: openPauseMenu = true; break;
+            case SDLK_ESCAPE:
+			{
+				// if bomb was being planted or defused, cancel it
+				player->stopReloading();
+				if (progressBar!=NULL){
+					delete(progressBar);
+					progressBar = NULL;
+					if (playerObj==ATTACK){
+						updateBombState(IDLE,false);
+					}
+					else{
+						updateBombState(PLANTED,false);
+					}
+				}
+				// don't allow player movement
+				player->stopMovement();
+				openPauseMenu = true;
+				break;
+			}
 			case SDLK_e:
 			{
 				if (LoadingComplete && !roundOver){
@@ -74,9 +92,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 	}
 
 }
-void PlayMode::updateInPauseMode(){
 
-}
 void PlayMode::handleThrowables(vector<Throwable> &th, Player* p, function<void(Throwable&)> onHit){
 	for (Throwable& x : th)
 	{
@@ -139,7 +155,7 @@ void PlayMode::InitRound(){
 	
 	gEngine->stopbgm();
 }
-void PlayMode::update(){
+void PlayMode::update(bool render){
 	
 	if (openPauseMenu){
 		openPauseMenu = false;
@@ -149,7 +165,9 @@ void PlayMode::update(){
 	}
 	if (roundOver){
 		if (gameMessage->isActive()){
-			gameMessage->render();
+			if (render){
+				gameMessage->render();
+			}
 			return;
 		}
 		else{
@@ -173,6 +191,11 @@ void PlayMode::update(){
 				gameEndMessageInit = true;
 				return;
 			}
+			// for disconnection in between the game
+			if (currentRoundNum==-1){
+				canReturnHome = true;
+				return;
+			}
 			StartNewRound();
 			return;
 		}
@@ -180,22 +203,6 @@ void PlayMode::update(){
 	}
 	if (LoadingComplete){
 		// handle movement of otherPlayer
-		if (playerObj!=ATTACK){
-			if (bombState==PLANTING){
-				otherPlayer->stopMovement();
-			}
-			else{
-				otherPlayer->allowMovement();
-			}
-		}
-		else{
-			if (bombState==DEFUSING){
-				otherPlayer->stopMovement();
-			}
-			else{
-				otherPlayer->allowMovement();
-			}
-		}
 		//Move the players
 		player->move();
 		otherPlayer->move();
@@ -214,16 +221,21 @@ void PlayMode::update(){
 		player->resetCamera();
 
 		
-		//Render walls and tiles	
-		tileMap->render();
-
-		//Render bomb
-		if (bomb!=NULL){
-			bomb->render();
-		}
 		
-		//render other player
-		otherPlayer->render();
+		if (render){
+			//Render walls and tiles
+			tileMap->render();
+
+			//Render bomb
+			if (bomb!=NULL){
+				bomb->render();
+			}
+			
+			//render other player
+			otherPlayer->render();
+		}
+
+		
 		
 		// render bullets
 		handleThrowables(playerThrowables,otherPlayer,[this](Throwable& x){
@@ -243,17 +255,22 @@ void PlayMode::update(){
 		
 		//Render player
 		player->resetClip();
-		player->render();
+		if (render){
+			player->render();
+		}
 		
 		// render bullets
 		handleThrowables(otherPlayerThrowables,player,[](Throwable& x){});
 		
 		healthBar->setHealth(player->getHealth());
-		healthBar->render();
 
-		clock->render();
-		scoreBoard->render();
-		player->inventory->render();
+		if (render){
+			healthBar->render();
+
+			clock->render();
+			scoreBoard->render();
+			player->inventory->render();
+		}
 
 		if (player->reloadBar!=NULL){
 			if (player->isReloading){
@@ -264,7 +281,9 @@ void PlayMode::update(){
 					player->inventory->reload();
 				}
 				else{
-					player->reloadBar->render();
+					if (render){
+						player->reloadBar->render();
+					}
 				}
 			}
 			else{
@@ -287,7 +306,9 @@ void PlayMode::update(){
 				}
 			}
 			else{
-				progressBar->render();
+				if (render){
+					progressBar->render();
+				}
 			}
 		}
 
@@ -297,10 +318,12 @@ void PlayMode::update(){
 	else{
 		if (serverObj!=NULL){
 			if (!serverObj->isConnected()){
-				loadingScreen->render("Waiting for Client to Connect");
+				if (render)
+					loadingScreen->render("Waiting for Client to Connect");
 			}
 			else{
-				loadingScreen->render("Waiting for Client to receive tile map");
+				if (render)
+					loadingScreen->render("Waiting for Client to receive tile map");
 			}
 			if (serverObj->isConnected() && ClientMapInitialized && !mapSent){
 				tileMap->sendMapToClient(serverObj);
@@ -309,10 +332,12 @@ void PlayMode::update(){
 		}
 		else{
 			if (!clientObj->isConnected()){
-				loadingScreen->render("Establishing connection with the server");
+				if (render)
+					loadingScreen->render("Establishing connection with the server");
 			}
 			else{
-				loadingScreen->render("Waiting to receive tile map");
+				if (render)
+					loadingScreen->render("Waiting to receive tile map");
 			}
 			if (clientObj->isConnected() && isInitTileMap() && !tileMapInitSent){
 				clientObj->SendTileMapInitialized();
@@ -574,6 +599,7 @@ void PlayMode::Pause(){
 	isPaused = true;
 }
 void PlayMode::unPause(){
+	player->allowMovement();
 	isPaused = false;
 }
 void PlayMode::Reset(){

@@ -46,7 +46,7 @@ void PauseMode::eventHandler(SDL_Event& e){
 	}
 }
 
-void PauseMode::update(){
+void PauseMode::update(bool render){
 	// std::cout << "update pause media" << std::endl;
 	//Render buttons
 	background->renderBackground(NULL);
@@ -61,6 +61,9 @@ void PauseMode::update(){
 	}
 	else if (gButtons[1]->getMode()){
 		gButtons[1]->setMode(0);
+		if (gEngine->serverObj!=NULL){
+			gEngine->serverObj->sendDisconnectRequest();
+		}
 		gEngine->setGameMode(HOME);
 	}
 }

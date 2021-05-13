@@ -112,6 +112,9 @@ void* ReceiveLoop(void* param){
 						else if (received_data[0]==6){
 							gEngine->playMode->setWinner(received_data[1]);
 						}
+						else if (received_data[0]==8){
+							gEngine->clientObj->Disconnect();
+						}
 						enet_packet_destroy(event.packet);
 
 						break;
