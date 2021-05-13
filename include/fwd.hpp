@@ -25,6 +25,10 @@ class Throwable;
 class LoadingScreen;
 class GameMessage;
 
+class AudioMaster;
+class AudioSource;
+class AudioStore;
+
 enum LButtonSprite
 {
 	BUTTON_SPRITE_MOUSE_OUT,

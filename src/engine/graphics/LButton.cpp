@@ -24,8 +24,8 @@ LButton::LButton(ButtonType type, LTexture* spriteSheet,SDL_Rect (&spriteClips)[
 }
 
 void LButton::loadAudio(){
-	hoverSound = gEngine->audioMaster.loadWaveFile("media/audio/ui_click1.wav");
-	clickSound = gEngine->audioMaster.loadWaveFile("media/audio/ui_click2.wav");
+	hoverSound = gEngine->audioStore->getSourceFor(AS_HOVER_SOUND);
+	clickSound = gEngine->audioStore->getSourceFor(AS_CLICK_SOUND);
 }
 
 void LButton::setPosition( int x, int y )

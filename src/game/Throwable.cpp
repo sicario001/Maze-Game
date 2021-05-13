@@ -20,7 +20,7 @@ Throwable::Throwable(int pX, int pY, int pSpeed, double rotation, int pDamage,LT
     else{
         numFramesEnd = 1;
     }
-    hitSound = gEngine->audioMaster.loadWaveFile("media/audio/bullethit.wav");
+    hitSound = gEngine->audioStore->getSourceFor(AS_HIT_SOUND);
     hitSound->setReferenceDistance(200);
     hitSound->setRollOffFactor(2);
 }

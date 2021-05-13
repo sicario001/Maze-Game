@@ -1,14 +1,12 @@
 #include "engine/audio/AudioSource.hpp"
 #include <AL/alut.h>
-AudioSource::AudioSource(const char* path):
-	buffer(0),
+AudioSource::AudioSource(unsigned int &pBuffer):
+	buffer(pBuffer),
 	source(0),
 	state(STATE_STOP)
-{
-	buffer = alutCreateBufferFromFile(path);
-	
+{	
 	alGenSources(1, &source);
-	alSourcei(source, AL_BUFFER, buffer);
+	alSourcei(source, AL_BUFFER, pBuffer);
 }
 
 void AudioSource::play(bool loop)
@@ -82,7 +80,6 @@ void AudioSource::free()
 	}
 	
 	alDeleteSources(1, &source);
-	alDeleteBuffers(1, &buffer);
 
 	state = STATE_EMPTY;
 }

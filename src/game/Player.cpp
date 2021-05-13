@@ -8,19 +8,19 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
     health = pHealth;
     inventory = new Inventory();
 
-    walkingSounds = gEngine->audioMaster.loadWaveFile("media/audio/walk.wav");
+    walkingSounds = gEngine->audioStore->getSourceFor(AS_WALKING_SOUND);
     walkingSounds->setReferenceDistance(200);
     walkingSounds->setRollOffFactor(0.7);
 
-    shootingSounds = gEngine->audioMaster.loadWaveFile("media/audio/gunshot.wav");
+    shootingSounds = gEngine->audioStore->getSourceFor(AS_SHOOTING_SOUND);
     shootingSounds->setReferenceDistance(200);
     shootingSounds->setRollOffFactor(2);
 
-    slashingSounds = gEngine->audioMaster.loadWaveFile("media/audio/slash.wav");
+    slashingSounds = gEngine->audioStore->getSourceFor(AS_SLASHING_SOUND);
     slashingSounds->setReferenceDistance(200);
     slashingSounds->setRollOffFactor(2);
 
-    reloadingSounds = gEngine->audioMaster.loadWaveFile("media/audio/reload.wav");
+    reloadingSounds = gEngine->audioStore->getSourceFor(AS_RELOADING_SOUND);
     reloadingSounds->setReferenceDistance(200);
     reloadingSounds->setRollOffFactor(2);
 
@@ -218,7 +218,7 @@ void Player::playSoundIfWalked(bool isListener){
             walkingSounds->play();
         }
         else if(walkingSounds->getState()!=AL_PLAYING){
-	        // cout << "played at " <<x <<" " << y << endl;
+	        cout << "played at " <<x <<" " << y << endl;
             walkingSounds->rewind();
             walkingSounds->play();
         }

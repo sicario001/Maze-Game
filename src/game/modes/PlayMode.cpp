@@ -137,6 +137,7 @@ void PlayMode::InitRound(){
 	playerThrowables.clear();
 	otherPlayerThrowables.clear();
 	
+	gEngine->stopbgm();
 }
 void PlayMode::update(){
 	
@@ -178,7 +179,6 @@ void PlayMode::update(){
 		
 	}
 	if (LoadingComplete){
-
 		// handle movement of otherPlayer
 		if (playerObj!=ATTACK){
 			if (bombState==PLANTING){
@@ -520,12 +520,17 @@ void PlayMode::initBombAudio(){
 	if(bombBeepSound){
 		bombBeepSound->free();
 	}
-	bombBeepSound = gEngine->audioMaster.loadWaveFile("media/audio/beep.wav");
+	bombBeepSound = gEngine->audioStore->getSourceFor(AS_BOMB_BEEP_SOUND);
 	bombBeepSound->setReferenceDistance(200);
 	bombBeepSound->setRollOffFactor(1.5);
 }
 
 void PlayMode::ReInit(){
+	if(player)
+		player->free();
+	if(otherPlayer)
+		otherPlayer->free();
+
 	bombState = IDLE;
 	initBombAudio();
 

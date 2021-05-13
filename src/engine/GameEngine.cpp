@@ -20,12 +20,15 @@ GameEngine::GameEngine(int c_or_s){
 	}
 	// cout<<"in\n";
 	playMode = new PlayMode(true, clientObj, serverObj);
+	audioMaster = new AudioMaster();
+	audioStore = new AudioStore();
 }
 
 bool GameEngine::init()
 {
-	audioMaster.init();
-	bgm = audioMaster.loadWaveFile("media/audio/bgm.wav");
+	audioMaster->init();
+	audioStore->init();
+	bgm = audioStore->getSourceFor(AS_BGM);
 	startbgm();
 	//Initialization flag
 	bool success = true;
@@ -108,16 +111,20 @@ void GameEngine::checkRoundEnd(){
 		}
 		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
 			if (playMode->player->getHealth()<=0){
-				playMode->setWinner(winner);
-				serverObj->SendRoundEndSignal(winner);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner, false);
-				playMode->roundEndMessageInit = true;
+				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE){
+					playMode->setWinner(winner);
+					serverObj->SendRoundEndSignal(winner);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner,false);
+					playMode->roundEndMessageInit = true;
+				}
 			}
 			else if (playMode->otherPlayer->getHealth()<=0){
-				playMode->setWinner(playMode->playerObj);
-				serverObj->SendRoundEndSignal(playMode->playerObj);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj, false);
-				playMode->roundEndMessageInit = true;
+				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
+					playMode->setWinner(playMode->playerObj);
+					serverObj->SendRoundEndSignal(playMode->playerObj);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj,false);
+					playMode->roundEndMessageInit = true;
+				}
 			}
 			if (playMode->clock->timeOver()){
 				if (playMode->bombState == PLANTED){
@@ -138,23 +145,6 @@ void GameEngine::checkRoundEnd(){
 				serverObj->SendRoundEndSignal(DEFEND);
 				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND,false);
 				playMode->roundEndMessageInit = true;
-			}
-			
-			if (playMode->player->getHealth()<=0){
-				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE){
-					playMode->setWinner(winner);
-					serverObj->SendRoundEndSignal(winner);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner,false);
-					playMode->roundEndMessageInit = true;
-				}
-			}
-			else if (playMode->otherPlayer->getHealth()<=0){
-				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
-					playMode->setWinner(playMode->playerObj);
-					serverObj->SendRoundEndSignal(playMode->playerObj);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj,false);
-					playMode->roundEndMessageInit = true;
-				}
 			}
 			
 		}
@@ -218,7 +208,8 @@ void GameEngine::runLoop(){
 	//Free loaded images
 	// playMode->freePlayMode();
 	bgm->free();
-	audioMaster.free();
+	audioMaster->free();
+	audioStore->free();
 	//Destroy window	
 	SDL_DestroyRenderer(gRenderer );
 	SDL_DestroyWindow(gWindow );
@@ -274,7 +265,7 @@ void GameEngine::updateMapfromServer(vector<int> &map_vec){
 
 void GameEngine::resetListener(int x,int y){
 	// cout << "listener at " <<x <<" " << y << endl;
-	audioMaster.setListenerPosition(x,y,0);
+	audioMaster->setListenerPosition(x,y,0);
 }
 
 void GameEngine::setGameMode(GameModeType a){

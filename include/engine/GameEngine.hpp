@@ -6,7 +6,7 @@
 #include "fwd.hpp"
 #include "engine/net/ClientNet.hpp"
 #include "engine/net/ServerNet.hpp"
-#include "engine/audio/AudioMaster.hpp"
+#include "engine/audio/AudioStore.hpp"
 #include "game/GameModes.hpp"
 
 enum GameModes{
@@ -24,7 +24,8 @@ class GameEngine
         AudioSource* bgm = NULL;
         
     public:
-        AudioMaster audioMaster;
+        AudioMaster* audioMaster;
+        AudioStore* audioStore;
 
 
         SDL_Rect* camera = NULL;

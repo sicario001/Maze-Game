@@ -18,18 +18,14 @@ void AudioMaster::free()
 	if (device != NULL) {
 		alcCloseDevice(device);
 	}
+	alutExit();
 }
-AudioSource* AudioMaster::loadWaveFile(std::string path)
+void AudioMaster::loadWaveFile(std::string path,unsigned int &buffer)
 {
-	AudioSource* entity = NULL;
-
 	if (path.empty()) {
 		throw "ALError: Invalid path";
 	}
-
-	entity = new AudioSource(path.c_str());
-	
-	return entity;
+	buffer = alutCreateBufferFromFile(path.c_str());
 }
 void AudioMaster::init()
 {	

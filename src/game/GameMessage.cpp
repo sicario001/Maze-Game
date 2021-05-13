@@ -62,7 +62,7 @@ void GameMessage::resetMessage(std::string message, Uint32 duration, int type, b
             messageText<<"  |  YOU LOSE";
             break;
         case DRAW:
-            messageText<<"  |  YOU LOSE";
+            messageText<<"  |  DRAW";
             break;
         default:
             break;
@@ -76,7 +76,7 @@ void GameMessage::resetMessage(std::string message, Uint32 duration, int type, b
 }
 void GameMessage::loadMedia(){
     if(explosionSound==NULL){
-        explosionSound = gEngine->audioMaster.loadWaveFile("media/audio/explosion.wav");
+        explosionSound = gEngine->audioStore->getSourceFor(AS_EXPLOSION_SOUND);
     }
     gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 50);
     if( !background_ct->loadFromFile( "media/texture/ct_win.png" ) )

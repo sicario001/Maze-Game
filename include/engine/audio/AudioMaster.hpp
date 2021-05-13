@@ -20,7 +20,7 @@ class AudioMaster
 		void setListenerPosition(float x, float y, float z);
 		void setListenerOrientation(float atX, float atY, float atZ, float upX, float upY, float upZ);
 		void setListenerVelocity(float x, float y, float z);
-		AudioSource* loadWaveFile(std::string path);
+		void loadWaveFile(std::string path, unsigned int& buffer);
 		
 	private:
 		static AudioMaster* instance;
