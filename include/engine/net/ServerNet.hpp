@@ -27,6 +27,7 @@ class ServerNet:public CommonNet{
         void setRunning();
         void setNotRunning();
         void waitForConnection();
+        void sendDisconnectRequest();
         void SendRoundEndSignal(PlayerObj winner);
         void SendMap(ENetPeer* peer, std::vector<std::vector<bool>> &map);
 };

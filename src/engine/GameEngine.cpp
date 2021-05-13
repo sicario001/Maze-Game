@@ -103,6 +103,7 @@ void GameEngine::checkRoundEnd(){
 		if(playMode->LoadingComplete && !serverObj->isConnected()){
 			playMode->setWinner(0);
 			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->currentRoundNum = -1;
 			playMode->roundEndMessageInit = true;
 			return;
 		}
@@ -170,6 +171,7 @@ void GameEngine::checkRoundEnd(){
 		if(playMode->LoadingComplete && !clientObj->isConnected()){
 			playMode->setWinner(0);
 			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->currentRoundNum = -1;
 			playMode->roundEndMessageInit = true;
 			return;
 		}

@@ -94,3 +94,9 @@ void ServerNet::SendRoundEndSignal(PlayerObj winner){
     sprintf(send_data, "6|%d", winner);
     SendPacket(peer, send_data);
 }
+
+void ServerNet::sendDisconnectRequest(){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "8");
+    SendPacket(peer, send_data);
+}

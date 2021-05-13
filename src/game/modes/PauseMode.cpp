@@ -61,6 +61,9 @@ void PauseMode::update(){
 	}
 	else if (gButtons[1]->getMode()){
 		gButtons[1]->setMode(0);
+		if (gEngine->serverObj!=NULL){
+			gEngine->serverObj->sendDisconnectRequest();
+		}
 		gEngine->setGameMode(HOME);
 	}
 }

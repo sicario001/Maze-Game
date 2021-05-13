@@ -172,6 +172,11 @@ void PlayMode::update(){
 				gameEndMessageInit = true;
 				return;
 			}
+			// for disconnection in between the game
+			if (currentRoundNum==-1){
+				canReturnHome = true;
+				return;
+			}
 			StartNewRound();
 			return;
 		}
