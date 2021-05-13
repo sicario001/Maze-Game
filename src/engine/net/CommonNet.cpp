@@ -12,9 +12,9 @@ void CommonNet::SendDataThrowablePosVel(ENetPeer* peer, int x, int y, int velX, 
     SendPacket(peer, send_data);
 }
 
-void CommonNet::SendHit(ENetPeer* peer, int damage){
+void CommonNet::SendHit(ENetPeer* peer, int damage, int currentRoundNum){
     char send_data[1024] = {'\0'};
-    sprintf(send_data, "3|%d", damage);
+    sprintf(send_data, "3|%d|%d", damage, currentRoundNum);
     SendPacket(peer, send_data);
 }
 void CommonNet::SendBombState(int state){
@@ -73,9 +73,9 @@ std::vector<int> CommonNet::Parsedata(char* data){
         }
         case 3:
         {
-            int damage;
-            sscanf(data, "3|%d", &damage);
-            return{3, damage};
+            int damage, currRoundNum;
+            sscanf(data, "3|%d|%d", &damage, &currRoundNum);
+            return{3, damage, currRoundNum};
         }
         case 4:
         {

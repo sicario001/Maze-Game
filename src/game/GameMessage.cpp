@@ -2,9 +2,9 @@
 
 GameMessage::GameMessage(){
     messageTexture = new LTexture();
-    background_draw = new LTexture();
     background_ct = new LTexture();
     background_t = new LTexture();
+    background = new LTexture();
     timer = new LTimer();
     active = false;
 
@@ -15,6 +15,7 @@ GameMessage::~GameMessage(){
     messageTexture->free();
     background_ct->free();
     background_t->free();
+    background->free();
     delete(timer);
     timer = NULL;
 
@@ -27,12 +28,9 @@ void GameMessage::render(){
         break;
     case CT_WIN:
         background_ct->renderBackground(NULL);
-        break;
-    case DRAW_DISCONNECT:
-        background_draw->renderBackground(NULL);
-        break;
-    
+        break;    
     default:
+        background->renderBackground(NULL);
         break;
     }
     messageTexture->loadFromRenderedText( messageText.str().c_str(), SDL_Color{0, 0, 0, 255}, gFont);
@@ -57,7 +55,15 @@ void GameMessage::resetMessage(std::string message, Uint32 duration, int type, b
         case DRAW_DISCONNECT:
             messageText<<"  |  DISCONNECTED";
             break;
-        
+        case WIN:
+            messageText<<"  |  YOU WIN";
+            break;
+        case LOOSE:
+            messageText<<"  |  YOU LOSE";
+            break;
+        case DRAW:
+            messageText<<"  |  YOU LOSE";
+            break;
         default:
             break;
     }
@@ -77,11 +83,11 @@ void GameMessage::loadMedia(){
 	{
 		printf( "Failed to load background texture!\n" );
 	}
-    if( !background_draw->loadFromFile( "media/texture/loadingScreen.png" ) )
+    if( !background_t->loadFromFile( "media/texture/t_win.png" ) )
 	{
 		printf( "Failed to load background texture!\n" );
 	}
-    if( !background_t->loadFromFile( "media/texture/t_win.png" ) )
+    if( !background->loadFromFile( "media/texture/background_end.png" ) )
 	{
 		printf( "Failed to load background texture!\n" );
 	}

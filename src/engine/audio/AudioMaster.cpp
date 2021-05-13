@@ -22,38 +22,31 @@ void AudioMaster::free()
 AudioSource* AudioMaster::loadWaveFile(std::string path)
 {
 	AudioSource* entity = NULL;
-	ALvoid *data;
-	ALsizei size, freq;
-	ALenum format;
-	ALboolean loop = AL_FALSE;
-	
+
 	if (path.empty()) {
 		throw "ALError: Invalid path";
 	}
-	
-	std::ifstream file(path.c_str(), std::ifstream::binary);
-	
-	alutLoadWAVFile((ALbyte*)path.c_str(), &format, &data, &size, &freq, &loop);
 
-	entity = new AudioSource(data, size, freq, format);
+	entity = new AudioSource(path.c_str());
 	
 	return entity;
 }
 void AudioMaster::init()
-{
-	device = alcOpenDevice(NULL);
+{	
+	alutInit(NULL,NULL);
+	// device = alcOpenDevice(NULL);
 	
-	if (device == NULL) {
-		throw "ALError: Couldn't open device";
-	}
+	// if (device == NULL) {
+	// 	throw "ALError: Couldn't open device";
+	// }
 	
-	context = alcCreateContext(device, NULL);
+	// context = alcCreateContext(device, NULL);
 	
-	if (context == NULL) {
-		throw "ALError: Couldn't create context";
-	} else {
-		alcMakeContextCurrent(context);
-	}
+	// if (context == NULL) {
+	// 	throw "ALError: Couldn't create context";
+	// } else {
+	// 	alcMakeContextCurrent(context);
+	// }
 	alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
 }
 

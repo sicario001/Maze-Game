@@ -12,7 +12,11 @@
 enum BackgroundType{
     T_WIN,
     CT_WIN,
-    DRAW_DISCONNECT
+    WIN,
+    LOOSE,
+    DRAW,
+    DRAW_DISCONNECT,
+    SWAP_SIDES
 };
 
 class GameMessage{
@@ -22,7 +26,7 @@ class GameMessage{
 		std::stringstream messageText;
         LTexture* background_ct = NULL;
         LTexture* background_t = NULL;
-        LTexture* background_draw = NULL;
+        LTexture* background = NULL;
         TTF_Font *gFont = NULL;
         Uint32 totalTime;
         bool active = false;

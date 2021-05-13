@@ -35,7 +35,7 @@ void PlayMode::eventHandler(SDL_Event& e){
             case SDLK_ESCAPE: openPauseMenu = true; break;
 			case SDLK_e:
 			{
-				if (LoadingComplete){
+				if (LoadingComplete && !roundOver){
 					if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
 						player->stopReloading();
 						progressBar = new ProgressBar(10000);
@@ -54,7 +54,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 		switch(e.key.keysym.sym){
 			case SDLK_e:
 			{
-				if (LoadingComplete){
+				if (LoadingComplete && !roundOver){
 					if (progressBar!=NULL){
 						delete(progressBar);
 						progressBar = NULL;
@@ -69,7 +69,7 @@ void PlayMode::eventHandler(SDL_Event& e){
 			}
 		}
 	}
-	if (LoadingComplete){
+	if (LoadingComplete && !roundOver){
 		player->handleEvent(e);
 	}
 
@@ -103,6 +103,41 @@ void PlayMode::handleThrowables(vector<Throwable> &th, Player* p, function<void(
 	}),th.end());
 }
 
+void PlayMode::StartNewRound(){
+	currentRoundNum++;
+	if (currentRoundNum> 2*totalRoundsInHalf){
+		canReturnHome = true;
+		return;
+	}
+	if (currentRoundNum == totalRoundsInHalf+1){
+		swapSides = true;
+		
+	}
+	InitRound();
+}
+void PlayMode::InitRound(){
+	roundOver = false;
+	roundEndMessageInit = false;
+	bombState = IDLE;
+	bombLocation = {-1, -1};
+	bombBeepSound->rewind();
+	player->free();
+	otherPlayer->free();
+
+	delete (player);
+	delete (otherPlayer);
+	delete (bomb);
+
+	initPlayers();
+	healthBar = new HealthBar();
+	bomb = NULL; 
+	clock->reset(RoundTime);
+	player->inventory->loadMediaInventory();
+	
+	playerThrowables.clear();
+	otherPlayerThrowables.clear();
+	
+}
 void PlayMode::update(){
 	
 	if (openPauseMenu){
@@ -117,7 +152,27 @@ void PlayMode::update(){
 			return;
 		}
 		else{
-			canReturnHome = true;
+			if (currentRoundNum==totalRoundsInHalf && !gameHalfMessageInit){
+				gameMessage->resetMessage("SWAPPING SIDES", 2000, SWAP_SIDES,false);
+				gameHalfMessageInit = true;
+				return;
+			}
+			if (currentRoundNum==2*totalRoundsInHalf && !gameEndMessageInit){
+				int typeMessage;
+				if (scoreBoard->getPlayerScore()>scoreBoard->getOtherPlayerScore()){
+					typeMessage = WIN;
+				}
+				else if (scoreBoard->getPlayerScore()<scoreBoard->getOtherPlayerScore()){
+					typeMessage = LOOSE;
+				}
+				else{
+					typeMessage = DRAW;
+				}
+				gameMessage->resetMessage("GAME OVER", 2000, typeMessage,false);
+				gameEndMessageInit = true;
+				return;
+			}
+			StartNewRound();
 			return;
 		}
 		
@@ -174,13 +229,13 @@ void PlayMode::update(){
 		handleThrowables(playerThrowables,otherPlayer,[this](Throwable& x){
 			if (clientObj!=NULL){
 				if ((clientObj->peer)!=NULL){
-					clientObj->SendHit(clientObj->peer, x.damage);
+					clientObj->SendHit(clientObj->peer, x.damage, currentRoundNum);
 					otherPlayer->damage(x.damage);
 				}
 			}
 			else{
 				if ((serverObj->peer)!=NULL){
-					serverObj->SendHit(serverObj->peer, x.damage);
+					serverObj->SendHit(serverObj->peer, x.damage, currentRoundNum);
 					otherPlayer->damage(x.damage);
 				}
 			}
@@ -197,7 +252,7 @@ void PlayMode::update(){
 		healthBar->render();
 
 		clock->render();
-		
+		scoreBoard->render();
 		player->inventory->render();
 
 		if (player->reloadBar!=NULL){
@@ -322,8 +377,10 @@ void PlayMode::updateBombState(BombState state, bool ext){
 			bombBeepSound->setPosition(bombLocation.first,bombLocation.second,0);
 			bombBeepSound->play(true);
 			if(!ext){
-				bombPlanted({player->getPosX(), player->getPosY()});
-				sendBombLocation();
+				if (bombLocation.first == -1){
+					bombPlanted({player->getPosX(), player->getPosY()});
+					sendBombLocation();
+				}
 			}
 			break;
 		case DEFUSED:
@@ -370,6 +427,7 @@ bool PlayMode::loadMediaPlay()
 	clock->loadMediaClock();
 	loadingScreen->loadMedia();
 	gameMessage->loadMedia();
+	scoreBoard->loadMedia();
 	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
@@ -383,6 +441,8 @@ void PlayMode::freePlayMode(){
 	roundOver = false;
 	canReturnHome = false;
 	roundEndMessageInit = false;
+	gameHalfMessageInit = false;
+	gameEndMessageInit = false;
 
 	gPlayerTexture->free();
 	for (LTexture* x:pbTexture){
@@ -399,8 +459,10 @@ void PlayMode::freePlayMode(){
 	delete (bomb);
 	delete (loadingScreen);
 	delete (gameMessage);
+	delete (scoreBoard);
 
 	loadingScreen = NULL;
+	scoreBoard = NULL;
 	gameMessage = NULL;
 	bomb = NULL;
 	player = NULL;
@@ -425,7 +487,7 @@ void PlayMode::initPlayers(){
 	int client_start_pos_x = 2500;
 	int client_start_pos_y = 1860;
 
-	if (clientObj!=NULL){
+	if ((clientObj!=NULL)^swapSides){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);
 		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf, SURVIVOR);
@@ -471,10 +533,12 @@ void PlayMode::ReInit(){
 	for (int i=0; i<(int)pbTexture.size(); i++){
 		pbTexture[i] = new LTexture();
 	}
+	scoreBoard = new ScoreBoard();
 	bombTexture = new LTexture(0.1);
 	tileMap = new TileMap(clientObj, serverObj);
 	healthBar = new HealthBar();
 	clock = new Clock();
+
 
 	initPlayers();
 	player->allowMovement();
@@ -487,14 +551,9 @@ void PlayMode::ReInit(){
 	loadingScreen = new LoadingScreen();
 	gameMessage = new GameMessage();
 	loadMediaPlay();
-	
-	for(Throwable& i:playerThrowables){
-		i.free();
-	}
-	for(Throwable& i:otherPlayerThrowables){
-		i.free();
-	}
-	
+	playerThrowables.clear();
+	otherPlayerThrowables.clear();
+	currentRoundNum = 1;
 	isPaused = false;
 }
 void PlayMode::enterMode(){
@@ -549,5 +608,11 @@ void PlayMode::setWinner(int x){
 	}
 	else{
 		roundWinner = ATTACK;
+	}
+	if (playerObj==roundWinner){
+		scoreBoard->incPlayerScore();
+	}
+	else{
+		scoreBoard->incOtherPlayerScore();
 	}
 }

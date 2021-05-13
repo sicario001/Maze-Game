@@ -139,6 +139,24 @@ void GameEngine::checkRoundEnd(){
 				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND,false);
 				playMode->roundEndMessageInit = true;
 			}
+			
+			if (playMode->player->getHealth()<=0){
+				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE){
+					playMode->setWinner(winner);
+					serverObj->SendRoundEndSignal(winner);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner,false);
+					playMode->roundEndMessageInit = true;
+				}
+			}
+			else if (playMode->otherPlayer->getHealth()<=0){
+				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
+					playMode->setWinner(playMode->playerObj);
+					serverObj->SendRoundEndSignal(playMode->playerObj);
+					playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj,false);
+					playMode->roundEndMessageInit = true;
+				}
+			}
+			
 		}
 	}
 	else{
@@ -168,6 +186,7 @@ void GameEngine::runLoop(){
 	while( !quit_program )
 	{
 		//Handle events on queue
+		checkRoundEnd();
 		while( SDL_PollEvent( &e ) != 0 )
 		{
 			//User requests quit
@@ -179,7 +198,7 @@ void GameEngine::runLoop(){
 			//Handle input for the player
 			gMode->eventHandler(e);
 		}
-		checkRoundEnd();
+		
 		//Clear screen
 		SDL_SetRenderDrawColor( gEngine->gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( gEngine->gRenderer );
@@ -233,7 +252,9 @@ void GameEngine::addThrowableToVector(std::vector<int> &data){
 
 void GameEngine::damagePlayer(std::vector<int> &data){
 	if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
-		playMode->player->damage(data[1]);
+		if ((playMode->currentRoundNum) ==data[2]){
+			playMode->player->damage(data[1]);
+		}
 	}
 }
 
