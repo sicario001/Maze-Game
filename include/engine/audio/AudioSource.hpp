@@ -17,8 +17,7 @@ enum EAudioSourceState
 class AudioSource
 {
 	public:
-		AudioSource(void *data, unsigned int size, unsigned int frequency, int format);
-		AudioSource(AudioSource &src);
+		AudioSource(const char* path);
 		void play(bool loop=false);
 		void pause();
 		void stop();

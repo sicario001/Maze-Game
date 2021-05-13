@@ -1,22 +1,14 @@
 #include "engine/audio/AudioSource.hpp"
-
-AudioSource::AudioSource(void * data, unsigned int size, unsigned int frequency, int format) :
+#include <AL/alut.h>
+AudioSource::AudioSource(const char* path):
 	buffer(0),
 	source(0),
 	state(STATE_STOP)
 {
-	alGenBuffers(1, &buffer);
-	alBufferData(buffer, format, data, size, frequency);
+	buffer = alutCreateBufferFromFile(path);
 	
 	alGenSources(1, &source);
 	alSourcei(source, AL_BUFFER, buffer);
-}
-
-AudioSource::AudioSource(AudioSource &src) :
-	buffer(src.buffer),
-	source(src.source),
-	state(STATE_STOP)
-{
 }
 
 void AudioSource::play(bool loop)
