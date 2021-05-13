@@ -118,6 +118,10 @@ void GameEngine::checkRoundEnd(){
 					playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner,false);
 					playMode->roundEndMessageInit = true;
 				}
+				else{
+					playMode->updatePlayerToDead(0);
+					serverObj->sendPlayerDead(0);
+				}
 			}
 			else if (playMode->otherPlayer->getHealth()<=0){
 				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
@@ -125,6 +129,10 @@ void GameEngine::checkRoundEnd(){
 					serverObj->SendRoundEndSignal(playMode->playerObj);
 					playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj,false);
 					playMode->roundEndMessageInit = true;
+				}
+				else{
+					playMode->updatePlayerToDead(1);
+					serverObj->sendPlayerDead(1);
 				}
 			}
 			if (playMode->clock->timeOver()){

@@ -35,33 +35,37 @@ void PlayMode::eventHandler(SDL_Event& e){
             case SDLK_ESCAPE:
 			{
 				// if bomb was being planted or defused, cancel it
-				player->stopReloading();
-				if (progressBar!=NULL){
-					delete(progressBar);
-					progressBar = NULL;
-					if (playerObj==ATTACK){
-						updateBombState(IDLE,false);
+				if (!player->isDead){
+					player->stopReloading();
+					if (progressBar!=NULL){
+						delete(progressBar);
+						progressBar = NULL;
+						if (playerObj==ATTACK){
+							updateBombState(IDLE,false);
+						}
+						else{
+							updateBombState(PLANTED,false);
+						}
 					}
-					else{
-						updateBombState(PLANTED,false);
-					}
+					// don't allow player movement
+					player->stopMovement();
 				}
-				// don't allow player movement
-				player->stopMovement();
 				openPauseMenu = true;
 				break;
 			}
 			case SDLK_e:
 			{
 				if (LoadingComplete && !roundOver){
-					if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
-						player->stopReloading();
-						progressBar = new ProgressBar(10000);
-						if (playerObj==ATTACK){
-							updateBombState(PLANTING,false);
-						}
-						else{
-							updateBombState(DEFUSING,false);
+					if (!player->isDead){
+						if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
+							player->stopReloading();
+							progressBar = new ProgressBar(10000);
+							if (playerObj==ATTACK){
+								updateBombState(PLANTING,false);
+							}
+							else{
+								updateBombState(DEFUSING,false);
+							}
 						}
 					}
 				}
@@ -73,14 +77,16 @@ void PlayMode::eventHandler(SDL_Event& e){
 			case SDLK_e:
 			{
 				if (LoadingComplete && !roundOver){
-					if (progressBar!=NULL){
-						delete(progressBar);
-						progressBar = NULL;
-						if (playerObj==ATTACK){
-							updateBombState(IDLE,false);
-						}
-						else{
-							updateBombState(PLANTED,false);
+					if (!player->isDead){
+						if (progressBar!=NULL){
+							delete(progressBar);
+							progressBar = NULL;
+							if (playerObj==ATTACK){
+								updateBombState(IDLE,false);
+							}
+							else{
+								updateBombState(PLANTED,false);
+							}
 						}
 					}
 				}
@@ -88,7 +94,9 @@ void PlayMode::eventHandler(SDL_Event& e){
 		}
 	}
 	if (LoadingComplete && !roundOver){
-		player->handleEvent(e);
+		if (!player->isDead){
+			player->handleEvent(e);
+		}
 	}
 
 }
@@ -645,5 +653,28 @@ void PlayMode::setWinner(int x){
 	}
 	else{
 		scoreBoard->incOtherPlayerScore();
+	}
+}
+
+void PlayMode::updatePlayerToDead(int player_type){
+	if (player_type){
+		otherPlayer->isDead = true;
+		otherPlayer->resetClip();
+	}
+	else{
+		player->isDead = true;
+		if (progressBar!=NULL){
+			delete(progressBar);
+			progressBar = NULL;
+			if (playerObj==ATTACK){
+				updateBombState(IDLE,false);
+			}
+			else{
+				updateBombState(PLANTED,false);
+			}
+		}
+		player->stopReloading();
+		player->stopMovement();
+		player->resetClip();
 	}
 }

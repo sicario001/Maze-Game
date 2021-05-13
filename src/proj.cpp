@@ -115,6 +115,14 @@ void* ReceiveLoop(void* param){
 						else if (received_data[0]==8){
 							gEngine->clientObj->Disconnect();
 						}
+						else if (received_data[0]==9){
+							if (received_data[1]==0){
+								gEngine->playMode->updatePlayerToDead(1);
+							}
+							else{
+								gEngine->playMode->updatePlayerToDead(0);
+							}
+						}
 						enet_packet_destroy(event.packet);
 
 						break;

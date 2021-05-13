@@ -103,6 +103,12 @@ std::vector<int> CommonNet::Parsedata(char* data){
         {
             return {8};
         }
+        case 9:
+        {
+            int x;
+            sscanf(data, "9|%d", &x);
+            return {9, x};
+        }
         default:
             return {};
     }

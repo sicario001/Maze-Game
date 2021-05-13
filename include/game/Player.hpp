@@ -48,6 +48,7 @@ public:
     Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> shootFunc, PlayerSpriteType type);
     Inventory* inventory = NULL;
     bool isReloading = false;
+    bool isDead = false;
     int getHealth();
     ProgressBar* reloadBar = NULL;
     void damage(int x);

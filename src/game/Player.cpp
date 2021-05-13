@@ -29,8 +29,10 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
 }
 
 void Player::damage(int d){
-    health -= d;
-    cout <<"Health "<< health << endl;
+    if (!isDead){
+        health -= d;
+        cout <<"Health "<< health << endl;
+    }
 }
 
 void Player::resetAudioSourcePosition(){
@@ -194,7 +196,10 @@ int Player::getHealth(){
 
 }
 void Player::resetClip(){
-    if (canMove && inventory->getCurrWeapon()>0){
+    if (isDead){
+        clip->y = (STANDING +6*playerType)*PLAYER_SPRITE_SIZE;
+    }
+    else if (canMove && inventory->getCurrWeapon()>0){
         if (isReloading){
             clip->y = (RELOADING +6*playerType)*PLAYER_SPRITE_SIZE;
         }

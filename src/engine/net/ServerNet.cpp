@@ -100,3 +100,9 @@ void ServerNet::sendDisconnectRequest(){
     sprintf(send_data, "8");
     SendPacket(peer, send_data);
 }
+
+void ServerNet::sendPlayerDead(int type){
+    char send_data[1024] = {'\0'};
+    sprintf(send_data, "9|%d", type);
+    SendPacket(peer, send_data);
+}

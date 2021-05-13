@@ -137,6 +137,7 @@ class PlayMode :public GameMode{
 		void setWinner(int x);
 		void StartNewRound();
 		void InitRound();
+		void updatePlayerToDead(int player_type);
 		int currentRoundNum = 0;
 		int totalRoundsInHalf = 2;
 		bool swapSides = false;
