@@ -476,6 +476,7 @@ void PlayMode::freePlayMode(){
 	roundEndMessageInit = false;
 	gameHalfMessageInit = false;
 	gameEndMessageInit = false;
+	swapSides = false;
 
 	gPlayerTexture->free();
 	for (LTexture* x:pbTexture){
@@ -534,6 +535,8 @@ void PlayMode::initPlayers(){
 		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf, SURVIVOR);
 		playerObj = DEFEND;
 	}
+	player->isDead = false;
+	otherPlayer->isDead = false;
 }
 PlayMode::PlayMode(){}
 

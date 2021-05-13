@@ -44,6 +44,8 @@ void KinematicBody::stopMovement(){
     // modify this to set dirX and dirY to 0
     velX = 0;
     velY = 0;
+    lastVelX = 0;
+    lastVelY = 0;
 }
 void KinematicBody::allowMovement(){
     canMove = true;
