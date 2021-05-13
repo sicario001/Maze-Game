@@ -24,6 +24,8 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
     reloadingSounds->setReferenceDistance(200);
     reloadingSounds->setRollOffFactor(2);
 
+    dirX=0;
+    dirY=0;
 }
 
 void Player::damage(int d){
@@ -110,10 +112,10 @@ void Player::handleEvent(SDL_Event &e)
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
-            case SDLK_w: velY -= speed; break;
-            case SDLK_s: velY += speed; break;
-            case SDLK_a: velX -= speed; break;
-            case SDLK_d: velX += speed; break;
+            case SDLK_w: dirY = -1; break;
+            case SDLK_s: dirY = 1; break;
+            case SDLK_a: dirX = -1; break;
+            case SDLK_d: dirX = 1; break;
             case SDLK_1: if(canMove) {
                 inventory->changeWeapon(KNIFE); 
                 stopReloading();
@@ -153,12 +155,24 @@ void Player::handleEvent(SDL_Event &e)
         //Adjust the velocity
         switch( e.key.keysym.sym )
         {
-            case SDLK_w: velY += speed; break;
-            case SDLK_s: velY -= speed; break;
-            case SDLK_a: velX += speed; break;
-            case SDLK_d: velX -= speed; break;
+            case SDLK_w: 
+            case SDLK_s: dirY = 0; break;
+            case SDLK_a: 
+            case SDLK_d: dirX = 0; break;
         }
     }
+
+    if (dirX==0 && dirY==0)
+    {   
+        velX=0;
+        velY=0;
+    }
+    else{
+        double angle = atan2(dirY,dirX);
+        velX = (int)(1.0*speed*cos(angle));
+        velY = (int)(1.0*speed*sin(angle));
+    }
+
     resetRotation();
 }
 

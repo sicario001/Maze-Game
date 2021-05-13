@@ -26,6 +26,9 @@ enum PlayerStanceType{
 
 class Player : public KinematicBody{
 private:
+    int dirX;
+    int dirY;
+
     function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> spawnFunc;
 
     void shoot(ThrowableType t);
