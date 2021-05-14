@@ -208,7 +208,9 @@ int Player::getHealth(){
 
 }
 void Player::resetClip(){
+    texture->setAlpha(255);
     if (isDead){
+        texture->setAlpha(100);
         clip->y = (STANDING +6*playerType)*PLAYER_SPRITE_SIZE;
     }
     else if (canMove && inventory->getCurrWeapon()>0){

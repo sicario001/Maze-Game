@@ -109,11 +109,13 @@ void PlayMode::handleThrowables(vector<Throwable> &th, Player* p, function<void(
 	{
 		x.move();
 		tileMap->handleThrowables(&x);
-		if(x.handleCollision(p)){
-			if(!x.collided){
-				onHit(x);
+		if (!p->isDead){
+			if(x.handleCollision(p)){
+				if(!x.collided){
+					onHit(x);
+				}
+				x.onHit();
 			}
-			x.onHit();
 		}
 		if(x.isActive){
 			x.render();
@@ -228,18 +230,26 @@ void PlayMode::update(bool render){
 
 		//check collision
 		player->handleOutOfBounds();
-		tileMap->handleCollisions(player);
-		player->handleCollision(otherPlayer);
+		if (!player->isDead){
+			tileMap->handleCollisions(player);
+		}
+		if (!otherPlayer->isDead){
+			player->handleCollision(otherPlayer);
+		}
 		
 
 		otherPlayer->handleOutOfBounds();
-		tileMap->handleCollisions(otherPlayer);
-		otherPlayer->handleCollision(player);
+		if (!otherPlayer->isDead){
+			tileMap->handleCollisions(otherPlayer);
+		}
+		if (!player->isDead){
+			otherPlayer->handleCollision(player);
+		}
 
 		player->resetCamera();
 
 		
-		
+		otherPlayer->resetClip();
 		if (render){
 			//Render walls and tiles
 			tileMap->render();
