@@ -297,7 +297,7 @@ void GameEngine::setGameMode(GameModeType a){
 			playMode->Reset();
 			
 			if (clientObj!=NULL){
-				clientObj->Connect("127.0.0.1", 7777);
+				clientObj->Connect(server_address.c_str(), server_port);
 			}
 			playMode->enterMode();
 			break;

@@ -145,6 +145,8 @@ void* ReceiveLoop(void* param){
 }
 
 GameEngine* gEngine;
+string server_address = "127.0.0.1";
+int server_port = 7777;
 
 int main( int argc, char* args[] )
 {
@@ -156,6 +158,15 @@ int main( int argc, char* args[] )
 	int c_or_s;
 	std::cout<<"Enter 0 for server and 1 for client: ";
 	std::cin>>c_or_s;
+	if(c_or_s==1){
+		cout << "Do you want to use a specific server address? (y/n)" << endl;
+		string response;
+		cin >>response;
+		if(response == "y"){
+			cout << "Enter host address and port number separated by space" << endl;
+			cin >> server_address >> server_port;
+		}
+	}
 	gEngine = new GameEngine(c_or_s);
 	std::cout << "Engine loaded" << std::endl;
 	//Start up SDL and create window

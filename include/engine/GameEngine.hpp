@@ -9,6 +9,9 @@
 #include "engine/audio/AudioStore.hpp"
 #include "game/GameModes.hpp"
 
+extern std::string server_address;
+extern int server_port;
+
 enum GameModes{
 	HOME_MODE = 0,
 	PLAY_MODE = 1,
