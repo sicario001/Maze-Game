@@ -269,16 +269,31 @@ void Player::stopReloading(){
 }
 
 void Player::free(){
-    if(walkingSounds)
+    if(walkingSounds){
         walkingSounds->free();
-    if(shootingSounds)
+        delete(walkingSounds);
+        walkingSounds = NULL;
+    }
+    if(shootingSounds){
         shootingSounds->free();
-    if(emptyMagSounds)
+        delete(shootingSounds);
+        shootingSounds = NULL;
+    }
+    if(emptyMagSounds){
         emptyMagSounds->free();
-    if(reloadingSounds)
+        delete(emptyMagSounds);
+        emptyMagSounds = NULL;
+    }
+    if(reloadingSounds){
         reloadingSounds->free();
-    if(slashingSounds)
+        delete(reloadingSounds);
+        reloadingSounds = NULL;
+    }
+    if(slashingSounds){
         slashingSounds->free();
+        delete(slashingSounds);
+        slashingSounds = NULL;
+    }
 }
 
 void Player::playThrowableSound(ThrowableType type){

@@ -12,6 +12,14 @@ LoadingScreen::~LoadingScreen(){
     loadIcon->free();
     background->free();
     gLoadTextTexture->free();
+
+    delete(loadIcon);
+    delete(background);
+    delete(gLoadTextTexture);
+
+    loadIcon = NULL;
+    background = NULL;
+    gLoadTextTexture = NULL;
     timer = NULL;
 }
 

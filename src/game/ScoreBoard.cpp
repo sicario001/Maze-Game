@@ -8,6 +8,12 @@ ScoreBoard::ScoreBoard(){
 ScoreBoard::~ScoreBoard(){
     background->free();
     gScoreTextTexture->free();
+
+    delete(background);
+    delete(gScoreTextTexture);
+
+    background = NULL;
+    gScoreTextTexture = NULL;
 }
 void ScoreBoard::reset(){
     PlayerScore = 0;

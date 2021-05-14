@@ -10,12 +10,27 @@ GameMessage::GameMessage(){
 
 }
 GameMessage::~GameMessage(){
-    if(explosionSound)
+    if(explosionSound){
         explosionSound->free();
+        delete(explosionSound);
+        explosionSound = NULL;
+    }
+    
     messageTexture->free();
     background_ct->free();
     background_t->free();
     background->free();
+
+    delete(messageTexture);
+    delete(background_ct);
+    delete(background_t);
+    delete(background);
+
+    messageTexture = NULL;
+    background_ct = NULL;
+    background = NULL;
+    background_t = NULL;
+
     delete(timer);
     timer = NULL;
 

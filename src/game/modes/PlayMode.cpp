@@ -488,13 +488,21 @@ void PlayMode::freePlayMode(){
 	swapSides = false;
 
 	gPlayerTexture->free();
+	delete(gPlayerTexture);
+	gPlayerTexture = NULL;
 	for (LTexture* x:pbTexture){
 		x->free();
+		delete(x);
+		x = NULL;
 	}
 	bombTexture->free();
 	bombBeepSound->free();
-	player->free();
-	otherPlayer->free();
+
+	delete(bombTexture);
+	delete(bombBeepSound);
+
+	bombTexture = NULL;
+	bombBeepSound = NULL;
 
 	delete (player);
 	delete (otherPlayer);
