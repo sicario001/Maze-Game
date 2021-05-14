@@ -1,7 +1,7 @@
 #include "engine/audio/AudioStore.hpp"
 
 AudioStore::AudioStore(){
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 11; i++)
     {
         sound_buffer[i]=0;
     }
@@ -9,20 +9,21 @@ AudioStore::AudioStore(){
 }
 
 void AudioStore::init(){
-    gEngine->audioMaster->loadWaveFile("media/audio/ui_click1.wav",sound_buffer[0]);
-    gEngine->audioMaster->loadWaveFile("media/audio/ui_click2.wav",sound_buffer[1]);
-    gEngine->audioMaster->loadWaveFile("media/audio/explosion.wav",sound_buffer[2]);
-    gEngine->audioMaster->loadWaveFile("media/audio/beep.wav",sound_buffer[3]);
-    gEngine->audioMaster->loadWaveFile("media/audio/walk.wav",sound_buffer[4]);
-    gEngine->audioMaster->loadWaveFile("media/audio/gunshot.wav",sound_buffer[5]);
-    gEngine->audioMaster->loadWaveFile("media/audio/reload.wav",sound_buffer[6]);
-    gEngine->audioMaster->loadWaveFile("media/audio/slash.wav",sound_buffer[7]);
-    gEngine->audioMaster->loadWaveFile("media/audio/bullethit.wav",sound_buffer[8]);
-    gEngine->audioMaster->loadWaveFile("media/audio/bgm.wav",sound_buffer[9]);
+    gEngine->audioMaster->loadWaveFile("media/audio/ui_click1.wav",sound_buffer[AS_HOVER_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/ui_click2.wav",sound_buffer[AS_CLICK_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/explosion.wav",sound_buffer[AS_EXPLOSION_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/beep.wav",sound_buffer[AS_BOMB_BEEP_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/walk.wav",sound_buffer[AS_WALKING_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/gunshot.wav",sound_buffer[AS_SHOOTING_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/empty_mag.wav",sound_buffer[AS_EMPTY_MAG]);
+    gEngine->audioMaster->loadWaveFile("media/audio/reload.wav",sound_buffer[AS_RELOADING_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/slash.wav",sound_buffer[AS_SLASHING_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/bullethit.wav",sound_buffer[AS_HIT_SOUND]);
+    gEngine->audioMaster->loadWaveFile("media/audio/bgm.wav",sound_buffer[AS_BGM]);
 }
 
 void AudioStore::free(){
-	alDeleteBuffers(10, sound_buffer);
+	alDeleteBuffers(11, sound_buffer);
 }
 
 AudioSource* AudioStore::getSourceFor(AsSoundType t){

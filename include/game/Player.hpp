@@ -40,6 +40,7 @@ private:
 
     AudioSource* walkingSounds;
     AudioSource* shootingSounds;
+    AudioSource* emptyMagSounds;
     AudioSource* reloadingSounds;
     AudioSource* slashingSounds;
     void resetAudioSourcePosition();

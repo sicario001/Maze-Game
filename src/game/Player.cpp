@@ -10,11 +10,15 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
 
     walkingSounds = gEngine->audioStore->getSourceFor(AS_WALKING_SOUND);
     walkingSounds->setReferenceDistance(200);
-    walkingSounds->setRollOffFactor(0.7);
+    walkingSounds->setRollOffFactor(2);
 
     shootingSounds = gEngine->audioStore->getSourceFor(AS_SHOOTING_SOUND);
     shootingSounds->setReferenceDistance(200);
     shootingSounds->setRollOffFactor(2);
+
+    emptyMagSounds = gEngine->audioStore->getSourceFor(AS_EMPTY_MAG);
+    emptyMagSounds->setReferenceDistance(200);
+    emptyMagSounds->setRollOffFactor(2);
 
     slashingSounds = gEngine->audioStore->getSourceFor(AS_SLASHING_SOUND);
     slashingSounds->setReferenceDistance(200);
@@ -38,6 +42,7 @@ void Player::damage(int d){
 void Player::resetAudioSourcePosition(){
     reloadingSounds->setPosition(x,y,0);
     shootingSounds->setPosition(x,y,0);
+    emptyMagSounds->setPosition(x,y,0);
     slashingSounds->setPosition(x,y,0);
     walkingSounds->setPosition(x,y,0);
 }
@@ -101,8 +106,14 @@ void Player::handleEvent(SDL_Event &e)
         }
         
         // left click to shoot
-        if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()>0 && !(inventory->isEmptyMag())){
-            shoot(BULLET);
+        if(e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()>0){
+            if(inventory->isEmptyMag()){
+                emptyMagSounds->rewind();
+                emptyMagSounds->play();
+            }
+            else{
+                shoot(BULLET);
+            }
         }
         else if (e.type == SDL_MOUSEBUTTONDOWN && e.key.repeat==0 && inventory->getCurrWeapon()==KNIFE){
             shoot(KNIFE_SLASH);
@@ -237,7 +248,7 @@ void Player::playSoundIfWalked(bool isListener){
             walkingSounds->play();
         }
         else if(walkingSounds->getState()!=AL_PLAYING){
-	        cout << "played at " <<x <<" " << y << endl;
+	        // cout << "played at " <<x <<" " << y << endl;
             walkingSounds->rewind();
             walkingSounds->play();
         }
@@ -262,6 +273,8 @@ void Player::free(){
         walkingSounds->free();
     if(shootingSounds)
         shootingSounds->free();
+    if(emptyMagSounds)
+        emptyMagSounds->free();
     if(reloadingSounds)
         reloadingSounds->free();
     if(slashingSounds)

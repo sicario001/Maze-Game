@@ -40,6 +40,10 @@ void CommonNet::SendPacket(ENetPeer* peer, const char* data)
     enet_peer_send(peer, 0, packet);
 }
 
+int CommonNet::getPing(){
+    return peer->roundTripTime;
+}
+
 std::vector<int> CommonNet::Parsedata(char* data){
     // std::cout<<data<<"\n";
     int data_type;

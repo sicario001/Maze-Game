@@ -210,6 +210,13 @@ void PlayMode::update(bool render){
 		
 	}
 	if (LoadingComplete){
+		if(serverObj!=NULL && serverObj->peer!=NULL){
+			pingStatus->updatePingStatus(serverObj->getPing());
+		}
+		if(clientObj!=NULL && clientObj->peer!=NULL){
+			pingStatus->updatePingStatus(clientObj->getPing());
+		}
+
 		// handle movement of otherPlayer
 		//Move the players
 		player->move();
@@ -277,6 +284,7 @@ void PlayMode::update(bool render){
 
 			clock->render();
 			scoreBoard->render();
+			pingStatus->render();
 			player->inventory->render();
 		}
 
@@ -461,6 +469,7 @@ bool PlayMode::loadMediaPlay()
 	loadingScreen->loadMedia();
 	gameMessage->loadMedia();
 	scoreBoard->loadMedia();
+	pingStatus->loadMedia();
 	player->inventory->loadMediaInventory();
 	gFont = TTF_OpenFont( "media/fonts/Amatic-Bold.ttf", 40);
 	return success;
@@ -494,9 +503,11 @@ void PlayMode::freePlayMode(){
 	delete (loadingScreen);
 	delete (gameMessage);
 	delete (scoreBoard);
+	delete (pingStatus);
 
 	loadingScreen = NULL;
 	scoreBoard = NULL;
+	pingStatus = NULL;
 	gameMessage = NULL;
 	bomb = NULL;
 	player = NULL;
@@ -575,6 +586,7 @@ void PlayMode::ReInit(){
 		pbTexture[i] = new LTexture();
 	}
 	scoreBoard = new ScoreBoard();
+	pingStatus = new PingStatus();
 	bombTexture = new LTexture(0.1);
 	tileMap = new TileMap(clientObj, serverObj);
 	healthBar = new HealthBar();

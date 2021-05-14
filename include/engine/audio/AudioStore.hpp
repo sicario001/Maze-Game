@@ -10,6 +10,7 @@ enum AsSoundType{
     AS_BOMB_BEEP_SOUND,
     AS_WALKING_SOUND,
     AS_SHOOTING_SOUND,
+    AS_EMPTY_MAG,
     AS_RELOADING_SOUND,
     AS_SLASHING_SOUND,
     AS_HIT_SOUND,
@@ -17,7 +18,7 @@ enum AsSoundType{
 };
 
 class AudioStore{
-    unsigned int sound_buffer[10];
+    unsigned int sound_buffer[11];
     public:
         AudioStore();
         void init();

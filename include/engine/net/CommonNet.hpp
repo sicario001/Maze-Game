@@ -9,7 +9,7 @@
 class CommonNet{
     private:
         pthread_mutex_t mutex;
-
+        int ping = 0;
     public:
         ENetAddress address;
         ENetEvent event;
@@ -25,5 +25,6 @@ class CommonNet{
         void SendHit(ENetPeer* peer, int damage, int currentRoundNum);
         void SendBombState(int state);
         void SendBombLocation(std::pair<int, int> location);
+        int getPing();
 };
 void* ReceiveLoop(void* param);

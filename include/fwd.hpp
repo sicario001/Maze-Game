@@ -20,6 +20,7 @@ class LTimer;
 class ProgressBar;
 class Inventory;
 class ScoreBoard;
+class PingStatus;
 
 class Throwable;
 class LoadingScreen;

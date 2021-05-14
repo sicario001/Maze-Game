@@ -15,7 +15,7 @@ void ScoreBoard::reset(){
 }
 void ScoreBoard::render(){
     scoreText.str( "" );
-	scoreText <<PlayerScore<<" - "<<OtherPlayerScore;
+	scoreText<<"Score: " <<PlayerScore<<" - "<<OtherPlayerScore;
 	gScoreTextTexture->loadFromRenderedText( scoreText.str().c_str(), SDL_Color{0, 0, 0, 255}, gFont);
 	gScoreTextTexture->render(100+SCREEN_WIDTH/2, 10, NULL, 1);
 }
