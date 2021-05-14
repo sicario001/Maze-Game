@@ -99,6 +99,7 @@ class PlayMode :public GameMode{
 		BombState bombState;
 		std::pair<int, int> bombLocation = {-1, -1};
 		int RoundTime = 120000;
+		int RoundEndMessageDuration = 2000;
 		void sendBombState();
 		void sendBombLocation();
 		void bombPlanted(std::pair<int, int> location);

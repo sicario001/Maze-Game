@@ -205,9 +205,9 @@ int Inventory::getReloadDuration(){
     switch (currWeapon)
     {
     case RIFLE:
-        return 10000;    
-    case PISTOL:
         return 5000;    
+    case PISTOL:
+        return 3000;    
     default:
         return 0; 
     }

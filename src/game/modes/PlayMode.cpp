@@ -59,13 +59,16 @@ void PlayMode::eventHandler(SDL_Event& e){
 					if (!player->isDead){
 						if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
 							player->stopReloading();
-							progressBar = new ProgressBar(10000);
+							
 							if (playerObj==ATTACK){
+								progressBar = new ProgressBar(10000);
 								updateBombState(PLANTING,false);
 							}
 							else{
+								progressBar = new ProgressBar(5000);
 								updateBombState(DEFUSING,false);
 							}
+							player->stopMovement();
 						}
 					}
 				}
@@ -106,11 +109,13 @@ void PlayMode::handleThrowables(vector<Throwable> &th, Player* p, function<void(
 	{
 		x.move();
 		tileMap->handleThrowables(&x);
-		if(x.handleCollision(p)){
-			if(!x.collided){
-				onHit(x);
+		if (!p->isDead){
+			if(x.handleCollision(p)){
+				if(!x.collided){
+					onHit(x);
+				}
+				x.onHit();
 			}
-			x.onHit();
 		}
 		if(x.isActive){
 			x.render();
@@ -155,7 +160,7 @@ void PlayMode::InitRound(){
 	initPlayers();
 	healthBar = new HealthBar();
 	bomb = NULL; 
-	clock->reset(RoundTime);
+	clock->reset(RoundTime+RoundEndMessageDuration);
 	player->inventory->loadMediaInventory();
 	
 	playerThrowables.clear();
@@ -225,18 +230,26 @@ void PlayMode::update(bool render){
 
 		//check collision
 		player->handleOutOfBounds();
-		tileMap->handleCollisions(player);
-		player->handleCollision(otherPlayer);
+		if (!player->isDead){
+			tileMap->handleCollisions(player);
+		}
+		if (!otherPlayer->isDead){
+			player->handleCollision(otherPlayer);
+		}
 		
 
 		otherPlayer->handleOutOfBounds();
-		tileMap->handleCollisions(otherPlayer);
-		otherPlayer->handleCollision(player);
+		if (!otherPlayer->isDead){
+			tileMap->handleCollisions(otherPlayer);
+		}
+		if (!player->isDead){
+			otherPlayer->handleCollision(player);
+		}
 
 		player->resetCamera();
 
 		
-		
+		otherPlayer->resetClip();
 		if (render){
 			//Render walls and tiles
 			tileMap->render();
@@ -306,7 +319,6 @@ void PlayMode::update(bool render){
 				delete(player->reloadBar);
 				player->reloadBar = NULL;
 				player->stopReloading();
-				player->inventory->reload();
 			}
 		}
 

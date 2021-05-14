@@ -14,7 +14,7 @@
 class Inventory{
     private:
         WeaponType currWeapon = KNIFE;
-        const int firelockvals[3] = {20, 5, 20};
+        const int firelockvals[3] = {50, 5, 20};
         const int damagevals[3] = {5, 10, 15};
         int mag_rem_rifle = 10;
         int mag_lim_rifle = 10;
