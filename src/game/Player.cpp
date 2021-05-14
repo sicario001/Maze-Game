@@ -35,6 +35,7 @@ Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,fu
 void Player::damage(int d){
     if (!isDead){
         health -= d;
+        health = max(0, health);
         cout <<"Health "<< health << endl;
     }
 }
@@ -122,35 +123,35 @@ void Player::handleEvent(SDL_Event &e)
     //If a key was pressed
 	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
     {
-        //Adjust the velocity
-        switch( e.key.keysym.sym )
-        {
-            case SDLK_w: dirY = -1; break;
-            case SDLK_s: dirY = 1; break;
-            case SDLK_a: dirX = -1; break;
-            case SDLK_d: dirX = 1; break;
-            case SDLK_1: if(canMove) {
-                inventory->changeWeapon(KNIFE); 
-                stopReloading();
-            } break;
-            case SDLK_2: if(canMove) {
-                inventory->changeWeapon(RIFLE);
-                stopReloading();
-            } break;
-            case SDLK_3: if(canMove) {
-                inventory->changeWeapon(PISTOL); 
-                stopReloading();
-            } break;
-            // case SDLK_4: if(canMove) {
-            //     inventory->changeWeapon(GRENADE); 
-            //     stopReloading();
-            // } break;
-            // case SDLK_5: if(canMove) {
-            //     inventory->changeWeapon(FLASH); 
-            //     stopReloading();
-            // } break;
-            case SDLK_r: {
-                if (canMove){
+        if (canMove){
+            //Adjust the velocity
+            switch( e.key.keysym.sym )
+            {
+                case SDLK_w: dirY = -1; break;
+                case SDLK_s: dirY = 1; break;
+                case SDLK_a: dirX = -1; break;
+                case SDLK_d: dirX = 1; break;
+                case SDLK_1:
+                    inventory->changeWeapon(KNIFE); 
+                    stopReloading();
+                    break;
+                case SDLK_2:
+                    inventory->changeWeapon(RIFLE);
+                    stopReloading();
+                    break;
+                case SDLK_3:
+                    inventory->changeWeapon(PISTOL); 
+                    stopReloading();
+                    break;
+                // case SDLK_4: if(canMove) {
+                //     inventory->changeWeapon(GRENADE); 
+                //     stopReloading();
+                // } break;
+                // case SDLK_5: if(canMove) {
+                //     inventory->changeWeapon(FLASH); 
+                //     stopReloading();
+                // } break;
+                case SDLK_r: {
                     if (isReloading==false && inventory->canReload()){
                         reloadingSounds->rewind();
                         reloadingSounds->play();

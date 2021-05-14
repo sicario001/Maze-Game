@@ -105,7 +105,7 @@ void GameEngine::checkRoundEnd(){
 		}
 		if(playMode->LoadingComplete && !serverObj->isConnected()){
 			playMode->setWinner(0);
-			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, DRAW_DISCONNECT, false);
 			playMode->currentRoundNum = -1;
 			playMode->roundEndMessageInit = true;
 			return;
@@ -115,7 +115,7 @@ void GameEngine::checkRoundEnd(){
 				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE){
 					playMode->setWinner(winner);
 					serverObj->SendRoundEndSignal(winner);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, winner,false);
+					playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, winner,false);
 					playMode->roundEndMessageInit = true;
 				}
 				else{
@@ -127,7 +127,7 @@ void GameEngine::checkRoundEnd(){
 				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
 					playMode->setWinner(playMode->playerObj);
 					serverObj->SendRoundEndSignal(playMode->playerObj);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->playerObj,false);
+					playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, playMode->playerObj,false);
 					playMode->roundEndMessageInit = true;
 				}
 				else{
@@ -139,20 +139,21 @@ void GameEngine::checkRoundEnd(){
 				if (playMode->bombState == PLANTED){
 					playMode->setWinner(ATTACK);
 					serverObj->SendRoundEndSignal(ATTACK);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, ATTACK, true);
+					playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, ATTACK, true);
 					playMode->roundEndMessageInit = true;
 				}	
 				else{
 					playMode->setWinner(DEFEND);
 					serverObj->SendRoundEndSignal(DEFEND);
-					playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND, false);
+					playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, DEFEND, false);
 					playMode->roundEndMessageInit = true;
 				}
 			}
 			if (playMode->bombState==DEFUSED){
 				playMode->setWinner(DEFEND);
+				cout<<"IN1\n";
 				serverObj->SendRoundEndSignal(DEFEND);
-				playMode->gameMessage->resetMessage("ROUND OVER", 2000, DEFEND,false);
+				playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, DEFEND,false);
 				playMode->roundEndMessageInit = true;
 			}
 			
@@ -168,13 +169,13 @@ void GameEngine::checkRoundEnd(){
 		}
 		if(playMode->LoadingComplete && !clientObj->isConnected()){
 			playMode->setWinner(0);
-			playMode->gameMessage->resetMessage("ROUND OVER", 2000, DRAW_DISCONNECT, false);
+			playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, DRAW_DISCONNECT, false);
 			playMode->currentRoundNum = -1;
 			playMode->roundEndMessageInit = true;
 			return;
 		}
 		if (playMode->roundOver){
-			playMode->gameMessage->resetMessage("ROUND OVER", 2000, playMode->roundWinner, playMode->clock->timeOver() && playMode->bombState == PLANTED);
+			playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, playMode->roundWinner, playMode->clock->timeOver() && playMode->bombState == PLANTED);
 			playMode->roundEndMessageInit = true;
 		}
 	}

@@ -59,13 +59,16 @@ void PlayMode::eventHandler(SDL_Event& e){
 					if (!player->isDead){
 						if (progressBar==NULL && ((bombState==IDLE && playerObj==ATTACK)||((bomb!=NULL) && (bombState == PLANTED) && (playerObj == DEFEND) && (player->inVicinity(bombLocation, 50))))){
 							player->stopReloading();
-							progressBar = new ProgressBar(10000);
+							
 							if (playerObj==ATTACK){
+								progressBar = new ProgressBar(10000);
 								updateBombState(PLANTING,false);
 							}
 							else{
+								progressBar = new ProgressBar(5000);
 								updateBombState(DEFUSING,false);
 							}
+							player->stopMovement();
 						}
 					}
 				}
@@ -155,7 +158,7 @@ void PlayMode::InitRound(){
 	initPlayers();
 	healthBar = new HealthBar();
 	bomb = NULL; 
-	clock->reset(RoundTime);
+	clock->reset(RoundTime+RoundEndMessageDuration);
 	player->inventory->loadMediaInventory();
 	
 	playerThrowables.clear();
@@ -306,7 +309,6 @@ void PlayMode::update(bool render){
 				delete(player->reloadBar);
 				player->reloadBar = NULL;
 				player->stopReloading();
-				player->inventory->reload();
 			}
 		}
 
