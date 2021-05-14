@@ -35,7 +35,6 @@ void CommonNet::SendPacket(ENetPeer* peer, const char* data)
     // We are using the flag ENET_PACKET_FLAG_RELIABLE that acts a bit like TCP.
     // That is to say, it'll make sure the packet makes it to the destination.
     ENetPacket* packet = enet_packet_create(data, strlen(data) + 1, ENET_PACKET_FLAG_RELIABLE);
-
     // Finally, send the packet to the peer on channel 0!
     enet_peer_send(peer, 0, packet);
 }

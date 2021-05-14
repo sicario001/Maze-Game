@@ -239,10 +239,10 @@ void Player::resetCamera(){
 }
 void Player::playSoundIfWalked(bool isListener){
     resetAudioSourcePosition();
+    if(isListener){
+        gEngine->resetListener(x,y);
+    }
     if(lastVelX!=0 || lastVelY!=0){
-        if(isListener){
-    	    gEngine->resetListener(x,y);
-        }
 	    // cout << "walker at " <<x <<" " << y << endl;
         if(walkingSounds->getState() == AL_PAUSED){
             walkingSounds->play();

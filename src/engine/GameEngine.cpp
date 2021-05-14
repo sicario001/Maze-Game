@@ -119,8 +119,10 @@ void GameEngine::checkRoundEnd(){
 					playMode->roundEndMessageInit = true;
 				}
 				else{
-					playMode->updatePlayerToDead(0);
-					serverObj->sendPlayerDead(0);
+					if(!playMode->player->isDead){
+						playMode->updatePlayerToDead(0);
+						serverObj->sendPlayerDead(0);
+					}
 				}
 			}
 			else if (playMode->otherPlayer->getHealth()<=0){
@@ -131,13 +133,16 @@ void GameEngine::checkRoundEnd(){
 					playMode->roundEndMessageInit = true;
 				}
 				else{
-					playMode->updatePlayerToDead(1);
-					serverObj->sendPlayerDead(1);
+					if(!playMode->otherPlayer->isDead){
+						playMode->updatePlayerToDead(1);
+						serverObj->sendPlayerDead(1);
+					}
 				}
 			}
 			if (playMode->clock->timeOver()){
 				if (playMode->bombState == PLANTED){
 					playMode->setWinner(ATTACK);
+					cout << "TIME OVER GAME END" << endl;
 					serverObj->SendRoundEndSignal(ATTACK);
 					playMode->gameMessage->resetMessage("ROUND OVER", 2000, ATTACK, true);
 					playMode->roundEndMessageInit = true;
