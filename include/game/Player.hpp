@@ -46,8 +46,9 @@ private:
     void resetAudioSourcePosition();
     PlayerSpriteType playerType;
 public:
-    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> shootFunc, PlayerSpriteType type);
+    Player(int health, int x, int y, LTexture* pbt,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> shootFunc, PlayerSpriteType type, bool IsOther = false);
     Inventory* inventory = NULL;
+    bool isOther = false;
     bool isReloading = false;
     bool isDead = false;
     int getHealth();

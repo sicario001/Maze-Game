@@ -1,5 +1,5 @@
-There is a problem which we haven't fixed yet - the server has to start before the client, or they won't connect.
+The game compiles and runs as expected.
 
-Other than that, there are a few features we had planned but haven't added-
-1. More weapons like flash bangs, grenades.
+There are a few features we had planned but haven't added-
+1. More weapons like flash bangs, smokes and grenades.
 2. Some UI elements.

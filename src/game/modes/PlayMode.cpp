@@ -568,14 +568,14 @@ void PlayMode::initPlayers(){
 		getPlayerClip(SURVIVOR,clip1);
 		getPlayerClip(SOLDIER,clip2);
 		player = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip1,sf, SURVIVOR);
-		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf, SOLDIER);
+		otherPlayer = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip2,sf, SOLDIER, true);
 		playerObj = ATTACK;
 	}
 	else{
 		getPlayerClip(SOLDIER,clip1);
 		getPlayerClip(SURVIVOR,clip2);
 		player = new Player(100,server_start_pos_x,server_start_pos_y,gPlayerTexture,&clip1,sf, SOLDIER);
-		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf, SURVIVOR);
+		otherPlayer = new Player(100,client_start_pos_x,client_start_pos_y,gPlayerTexture,&clip2,sf, SURVIVOR, true);
 		playerObj = DEFEND;
 	}
 	player->isDead = false;

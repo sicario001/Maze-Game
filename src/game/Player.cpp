@@ -2,8 +2,9 @@
 #include "game/Player.hpp"
 #include "game/Throwable.hpp"
 
-Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> sf, PlayerSpriteType type): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
+Player::Player(int pHealth, int pX,int pY, LTexture* pTexture,SDL_Rect* pClip,function <void(int x,int y, int speed, double angle, int damage, ThrowableType type)> sf, PlayerSpriteType type, bool IsOther): KinematicBody(pX,pY,0,0,5,new CollisionRect(0,0,PLAYER_COLLIDER_SIZE,PLAYER_COLLIDER_SIZE,0,PLAYER_SPRITE_SIZE,PLAYER_SPRITE_SIZE),pTexture,pClip){
     playerType = type;
+    isOther = IsOther;
     spawnFunc = sf;
     health = pHealth;
     inventory = new Inventory();
@@ -227,7 +228,12 @@ void Player::resetClip(){
         }
     }
     else{
-        clip->y = (EMPTY_HANDED +6*playerType)*PLAYER_SPRITE_SIZE;
+        if (isOther){
+            clip->y = (RIFLE_EQUIPPED +6*playerType)*PLAYER_SPRITE_SIZE;
+        }
+        else{
+            clip->y = (EMPTY_HANDED +6*playerType)*PLAYER_SPRITE_SIZE;
+        }
     }
 }
 void Player::resetCamera(){

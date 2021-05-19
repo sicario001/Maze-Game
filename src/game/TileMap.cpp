@@ -395,7 +395,7 @@ void TileMap::sendMapToClient(ServerNet* server){
 void TileMap::generateTiles(ServerNet* server){
     
     if (server!=NULL){
-        generateMap1(0.1);
+        generateMap1(0.5);
     }
     int mapRows = (int) getMapSize().first;
     int mapCols = (int) getMapSize().second;
