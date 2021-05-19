@@ -140,6 +140,11 @@ void* ReceiveLoop(void* param){
 				}
 			}
 		}
+		else{
+			if (gEngine->playMode !=NULL && gEngine->playMode->loadingScreen !=NULL && gEngine->playMode->loadingScreen->connecting_to_server){
+				gEngine->clientObj->Connect(server_address.c_str(), server_port);
+			}
+		}
   	}
 	pthread_exit(NULL);
 }

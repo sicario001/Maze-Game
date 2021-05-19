@@ -8,6 +8,7 @@
 #include "engine/net/ServerNet.hpp"
 #include "engine/audio/AudioStore.hpp"
 #include "game/GameModes.hpp"
+#include "game/LoadingScreen.hpp"
 
 extern std::string server_address;
 extern int server_port;

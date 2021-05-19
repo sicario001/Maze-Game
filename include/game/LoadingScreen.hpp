@@ -23,4 +23,5 @@ class LoadingScreen{
         ~LoadingScreen();
         void render(std::string text);
         void loadMedia();
+        bool connecting_to_server = false;
 };

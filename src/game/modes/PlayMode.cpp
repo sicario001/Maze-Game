@@ -219,6 +219,7 @@ void PlayMode::update(bool render){
 		
 	}
 	if (LoadingComplete){
+		loadingScreen->connecting_to_server = false;
 		if(serverObj!=NULL && serverObj->peer!=NULL){
 			pingStatus->updatePingStatus(serverObj->getPing());
 		}
@@ -350,8 +351,9 @@ void PlayMode::update(bool render){
 	else{
 		if (serverObj!=NULL){
 			if (!serverObj->isConnected()){
+				
 				if (render)
-					loadingScreen->render("Waiting for Client to Connect");
+					loadingScreen->render("Waiting for Client to Connect");			
 			}
 			else{
 				if (render)
@@ -364,10 +366,12 @@ void PlayMode::update(bool render){
 		}
 		else{
 			if (!clientObj->isConnected()){
+				loadingScreen->connecting_to_server = true;
 				if (render)
 					loadingScreen->render("Establishing connection with the server");
 			}
 			else{
+				loadingScreen->connecting_to_server = false;
 				if (render)
 					loadingScreen->render("Waiting to receive tile map");
 			}

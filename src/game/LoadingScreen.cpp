@@ -6,6 +6,7 @@ LoadingScreen::LoadingScreen(){
     background = new LTexture();
     timer = new LTimer();
     timer->start();
+    connecting_to_server = false;
 }
 LoadingScreen::~LoadingScreen(){
     delete(timer);

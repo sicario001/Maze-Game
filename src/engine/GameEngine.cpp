@@ -296,9 +296,9 @@ void GameEngine::setGameMode(GameModeType a){
 			
 			playMode->Reset();
 			
-			if (clientObj!=NULL){
-				clientObj->Connect(server_address.c_str(), server_port);
-			}
+			// if (clientObj!=NULL){
+			// 	clientObj->Connect(server_address.c_str(), server_port);
+			// }
 			playMode->enterMode();
 			break;
 		case RESUME:
