@@ -48,7 +48,7 @@ bool GameEngine::init()
 		}
 
 		//Create window
-		gWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+		gWindow = SDL_CreateWindow( "Maze Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
 		if( gWindow == NULL )
 		{
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -112,7 +112,7 @@ void GameEngine::checkRoundEnd(){
 		}
 		if (currMode==PLAY_MODE || currMode==PAUSE_MODE){
 			if (playMode->player->getHealth()<=0){
-				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE){
+				if (playMode->playerObj==DEFEND || playMode->bombState==IDLE || playMode->bombState==PLANTING){
 					playMode->setWinner(winner);
 					serverObj->SendRoundEndSignal(winner);
 					playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, winner,false);
@@ -126,7 +126,7 @@ void GameEngine::checkRoundEnd(){
 				}
 			}
 			else if (playMode->otherPlayer->getHealth()<=0){
-				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE){
+				if (playMode->playerObj==ATTACK || playMode->bombState==IDLE || playMode->bombState==PLANTING){
 					playMode->setWinner(playMode->playerObj);
 					serverObj->SendRoundEndSignal(playMode->playerObj);
 					playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, playMode->playerObj,false);
@@ -140,7 +140,7 @@ void GameEngine::checkRoundEnd(){
 				}
 			}
 			if (playMode->clock->timeOver()){
-				if (playMode->bombState == PLANTED){
+				if (playMode->bombState == PLANTED || playMode->bombState == DEFUSING){
 					playMode->setWinner(ATTACK);
 					cout << "TIME OVER GAME END" << endl;
 					serverObj->SendRoundEndSignal(ATTACK);

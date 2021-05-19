@@ -156,6 +156,10 @@ void PlayMode::InitRound(){
 	delete (player);
 	delete (otherPlayer);
 	delete (bomb);
+	if (progressBar!=NULL){
+		delete(progressBar);
+	}
+	progressBar = NULL;
 
 	initPlayers();
 	healthBar = new HealthBar();
@@ -524,7 +528,11 @@ void PlayMode::freePlayMode(){
 	delete (gameMessage);
 	delete (scoreBoard);
 	delete (pingStatus);
+	if (progressBar!=NULL){
+		delete (progressBar);
+	}
 
+	progressBar = NULL;
 	loadingScreen = NULL;
 	scoreBoard = NULL;
 	pingStatus = NULL;
