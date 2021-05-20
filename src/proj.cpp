@@ -110,7 +110,7 @@ void* ReceiveLoop(void* param){
 							gEngine->playMode->bombPlanted({received_data[1], received_data[2]});
 						}
 						else if (received_data[0]==6){
-							cout<<"IN2\n";
+							// cout<<"IN2\n";
 							gEngine->playMode->setWinner(received_data[1]);
 						}
 						else if (received_data[0]==8){

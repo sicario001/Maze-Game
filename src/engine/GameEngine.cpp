@@ -156,7 +156,7 @@ void GameEngine::checkRoundEnd(){
 			}
 			if (playMode->bombState==DEFUSED){
 				playMode->setWinner(DEFEND);
-				cout<<"IN1\n";
+				// cout<<"IN1\n";
 				serverObj->SendRoundEndSignal(DEFEND);
 				playMode->gameMessage->resetMessage("ROUND OVER", playMode->RoundEndMessageDuration, DEFEND,false);
 				playMode->roundEndMessageInit = true;

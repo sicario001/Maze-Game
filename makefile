@@ -18,6 +18,7 @@ debug: CFLAGS+= -g
 debug: $(DIRS) $(TARGET)
 
 release: $(RELEASE)
+release: LDFLAGS:= -Bstatic $(LDFLAGS)
 
 $(RELEASE):$(DIRS) $(TARGET)
 	mkdir -p bin

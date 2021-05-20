@@ -37,7 +37,7 @@ void Player::damage(int d){
     if (!isDead){
         health -= d;
         health = max(0, health);
-        cout <<"Health "<< health << endl;
+        // cout <<"Health "<< health << endl;
     }
 }
 
